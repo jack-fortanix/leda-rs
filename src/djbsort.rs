@@ -8,21 +8,33 @@
  *  the modifications made to adapt it to the LEDAcrypt codebase.
 *****************************************************************************/
 
+#[inline]
+fn int32_MINMAX(a: i32, b: i32) -> (i32,i32) {
+    let ab : i32 = b ^ a;
+    let mut c : i32 = b - a;
+    c ^= ab & (c ^ b);
+    c >>= 31;
+    c &= ab;
+    return (a ^ c, b ^ c);
+}
+
 pub unsafe fn int32_sort(mut x: *mut i32,
-                     mut n: libc::c_longlong) {
-    let mut top: libc::c_longlong = 0;
-    let mut p: libc::c_longlong = 0;
-    let mut q: libc::c_longlong = 0;
-    let mut r: libc::c_longlong = 0;
-    let mut i: libc::c_longlong = 0;
-    let mut j: libc::c_longlong = 0;
-    if n < 2i32 as libc::c_longlong { return }
-    top = 1i32 as libc::c_longlong;
+                         mut n: isize) {
+
+    let mut top: isize = 0;
+    let mut p: isize = 0;
+    let mut q: isize = 0;
+    let mut r: isize = 0;
+    let mut i: isize = 0;
+    let mut j: isize = 0;
+
+    if n < 2 { return }
+    top = 1;
     while top < n - top { top += top }
     p = top;
-    while p >= 1i32 as libc::c_longlong {
-        i = 0i32 as libc::c_longlong;
-        while i + 2i32 as libc::c_longlong * p <= n {
+    while p >= 1 {
+        i = 0;
+        while i + 2 * p <= n {
             j = i;
             while j < i + p {
                 let mut ab: i32 =
@@ -38,7 +50,7 @@ pub unsafe fn int32_sort(mut x: *mut i32,
                 *fresh1 ^= c;
                 j += 1
             }
-            i += 2i32 as libc::c_longlong * p
+            i += 2 * p
         }
         j = i;
         while j < n - p {
@@ -55,8 +67,8 @@ pub unsafe fn int32_sort(mut x: *mut i32,
             *fresh3 ^= c_0;
             j += 1
         }
-        i = 0i32 as libc::c_longlong;
-        j = 0i32 as libc::c_longlong;
+        i = 0;
+        j = 0;
         q = top;
         while q > p {
             let mut current_block_73: u64;
@@ -84,7 +96,7 @@ pub unsafe fn int32_sort(mut x: *mut i32,
                     *x.offset((j + p) as isize) = a;
                     j += 1;
                     if !(j == i + p) { continue ; }
-                    i += 2i32 as libc::c_longlong * p;
+                    i += 2 * p;
                     current_block_73 = 12556861819962772176;
                     break ;
                 }
@@ -116,7 +128,7 @@ pub unsafe fn int32_sort(mut x: *mut i32,
                             *x.offset((j + p) as isize) = a_0;
                             j += 1
                         }
-                        i += 2i32 as libc::c_longlong * p
+                        i += 2 * p
                     }
                     /* now i + p > n - q */
                     j = i;

@@ -1,4 +1,6 @@
 
+mod consts;
+
 mod aes256;
 mod bf_decoding;
 mod constant_weight_codec;

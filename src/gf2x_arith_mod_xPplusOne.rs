@@ -1410,7 +1410,7 @@ pub unsafe extern "C" fn gf2x_mod_mul_sparse(mut sizeR: i32,
         *Res.offset(lastFilledPos as isize) = 57899i32 as u32;
         lastFilledPos = lastFilledPos.wrapping_add(1)
     }
-    int32_sort(Res as *mut i32, sizeR as libc::c_longlong);
+    int32_sort(Res as *mut i32, sizeR as isize);
     /* eliminate duplicates */
     let mut lastReadPos: u32 = *Res.offset(0);
     let mut duplicateCount: i32 = 0;

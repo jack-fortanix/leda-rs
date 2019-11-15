@@ -11,26 +11,19 @@ use crate::djbsort::int32_sort;
 pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [u32; 121],
                                   mut secondIterThreshold: *mut u8)
  -> i32 {
-    let mut LSparse_loc: [[u32; 121]; 2] =
-        [[0; 121]; 2]; /* vector of N_0 sparse blocks */
+    let mut LSparse_loc: [[u32; 121]; 2] = [[0; 121]; 2]; /* vector of N_0 sparse blocks */
     /* transpose blocks of L, we need its columns */
-    let mut i: i32 = 0i32;
-    while i < 2i32 {
-        let mut j: i32 = 0i32;
-        while j < 11i32 * 11i32 {
-            if (*LSparse.offset(i as isize))[j as usize] !=
-                   0i32 as u32 {
-                LSparse_loc[i as usize][j as usize] =
-                    (57899i32 as
-                         u32).wrapping_sub((*LSparse.offset(i as
-                                                                         isize))[j
-                                                                                     as
-                                                                                     usize])
+    let mut i: usize = 0;
+    while i < 2 {
+        let mut j = 0;
+        while j < crate::consts::DV * crate::consts::M {
+            if (*LSparse.offset(i as isize))[j as usize] != 0 as u32 {
+                LSparse_loc[i as usize][j as usize] = (crate::consts::P as u32).wrapping_sub((*LSparse.offset(i as isize))[j as usize]);
             }
             j += 1
         }
-        int32_sort(LSparse_loc[i as usize].as_mut_ptr() as *mut i32,
-                   (11i32 * 11i32) as libc::c_longlong);
+        int32_sort(LSparse_loc[i].as_mut_ptr() as *mut i32,
+                   (crate::consts::DV * crate::consts::M) as isize);
         i += 1
     }
     /* Gamma matrix: an N0 x N0 block circulant matrix with block size p
@@ -2679,9 +2672,7 @@ pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [u32; 121],
             while k < 11i32 * 11i32 {
                 let mut l: i32 = 0i32;
                 while l < 11i32 * 11i32 {
-                    gamma[i_0 as
-                              usize][j_0 as
-                                         usize][(57899i32 as
+                    gamma[i_0 as usize][j_0 as usize][(57899i32 as
                                                      u32).wrapping_add(LSparse_loc[i_0
                                                                                                 as
                                                                                                 usize][k
