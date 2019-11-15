@@ -10,21 +10,21 @@ extern "C" {
     #[no_mangle]
     fn int32_sort(x: *mut int32_t, n: libc::c_longlong);
 }
-pub type __uint8_t = libc::c_uchar;
+pub type __u8 = libc::c_uchar;
 pub type __int32_t = libc::c_int;
-pub type __uint32_t = libc::c_uint;
+pub type __u32 = libc::c_uint;
 pub type int32_t = __int32_t;
-pub type uint8_t = __uint8_t;
-pub type uint32_t = __uint32_t;
+pub type u8 = __u8;
+pub type u32 = __u32;
 /*---------------------------------------------------------------------------*/
 /* Tests if the current code attains the desired DFR. If that is the case, 
  * computes the threshold for the second iteration of the decoder and stores
  * it in the globally accessible vector*/
 #[no_mangle]
-pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [uint32_t; 121],
-                                  mut secondIterThreshold: *mut uint8_t)
+pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [u32; 121],
+                                  mut secondIterThreshold: *mut u8)
  -> libc::c_int {
-    let mut LSparse_loc: [[uint32_t; 121]; 2] =
+    let mut LSparse_loc: [[u32; 121]; 2] =
         [[0; 121]; 2]; /* vector of N_0 sparse blocks */
     /* transpose blocks of L, we need its columns */
     let mut i: libc::c_int = 0i32;
@@ -2811,7 +2811,7 @@ pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [uint32_t; 121],
         gammaBlockRowIdx_0 += 1
     }
     if 11i32 * 11i32 > allBlockMaxSumstMinusOne + allBlockMaxSumst {
-        *secondIterThreshold = (allBlockMaxSumst + 1i32) as uint8_t;
+        *secondIterThreshold = (allBlockMaxSumst + 1i32) as u8;
         return 1i32
     }
     return 0i32;

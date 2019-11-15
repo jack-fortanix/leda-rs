@@ -1,10 +1,10 @@
 #![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
          non_upper_case_globals, unused_assignments, unused_mut)]
-pub type __uint8_t = libc::c_uchar;
-pub type __uint64_t = libc::c_ulong;
-pub type uint8_t = __uint8_t;
-pub type uint64_t = __uint64_t;
-pub type DIGIT = uint64_t;
+pub type __u8 = libc::c_uchar;
+pub type __u64 = libc::c_ulong;
+pub type u8 = __u8;
+pub type u64 = __u64;
+pub type DIGIT = u64;
 /* *
  *
  * <marshalling.c>
@@ -38,7 +38,7 @@ pub type DIGIT = uint64_t;
  **/
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn poly_to_byte_seq(mut bs: *mut uint8_t,
+pub unsafe extern "C" fn poly_to_byte_seq(mut bs: *mut u8,
                                           mut y: *mut DIGIT) {
     let mut i: libc::c_int = 0i32;
     while i < (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) {
@@ -46,7 +46,7 @@ pub unsafe extern "C" fn poly_to_byte_seq(mut bs: *mut uint8_t,
         let mut v: libc::c_int = 0i32;
         let mut u: libc::c_int = 8i32 - 1i32;
         while u >= 0i32 {
-            *bs.offset((i * 8i32 + v) as isize) = (a >> u * 8i32) as uint8_t;
+            *bs.offset((i * 8i32 + v) as isize) = (a >> u * 8i32) as u8;
             v += 1;
             u -= 1
         }
@@ -91,7 +91,7 @@ pub unsafe extern "C" fn poly_to_byte_seq(mut bs: *mut uint8_t,
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
 pub unsafe extern "C" fn byte_seq_to_poly(mut y: *mut DIGIT,
-                                          mut bs: *mut uint8_t) {
+                                          mut bs: *mut u8) {
     let mut b: libc::c_int = 0i32;
     while b < (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32 {
         let mut a: DIGIT = 0i32 as DIGIT;

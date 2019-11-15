@@ -3,12 +3,12 @@
 extern "C" {
     /*--------------------------------------------------------------------------*/
     #[no_mangle]
-    fn rand_circulant_sparse_block(pos_ones: *mut uint32_t,
+    fn rand_circulant_sparse_block(pos_ones: *mut u32,
                                    countOnes: libc::c_int,
                                    seed_expander_ctx: *mut AES_XOF_struct);
 }
-pub type __uint32_t = libc::c_uint;
-pub type uint32_t = __uint32_t;
+pub type __u32 = libc::c_uint;
+pub type u32 = __u32;
 #[derive ( Copy, Clone )]
 #[repr(C)]
 pub struct AES_XOF_struct {
@@ -66,7 +66,7 @@ static mut qBlockWeights: [[libc::c_uchar; 2]; 2] =
  **/
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn generateHPosOnes(mut HPosOnes: *mut [uint32_t; 11],
+pub unsafe extern "C" fn generateHPosOnes(mut HPosOnes: *mut [u32; 11],
                                           mut keys_expander:
                                               *mut AES_XOF_struct) {
     let mut i: libc::c_int = 0i32;
@@ -81,9 +81,9 @@ pub unsafe extern "C" fn generateHPosOnes(mut HPosOnes: *mut [uint32_t; 11],
 // end generateHtr_HtrPosOnes
 #[no_mangle]
 pub unsafe extern "C" fn transposeHPosOnes(mut HtrPosOnes:
-                                               *mut [uint32_t; 11],
+                                               *mut [u32; 11],
                                            mut HPosOnes:
-                                               *mut [uint32_t; 11]) {
+                                               *mut [u32; 11]) {
     let mut i: libc::c_int = 0i32;
     while i < 2i32 {
         /* Obtain directly the sparse representation of the block of H */
@@ -108,9 +108,9 @@ pub unsafe extern "C" fn transposeHPosOnes(mut HtrPosOnes:
 // end transposeHPosOnes
 #[no_mangle]
 pub unsafe extern "C" fn transposeQPosOnes(mut QtrPosOnes:
-                                               *mut [uint32_t; 11],
+                                               *mut [u32; 11],
                                            mut QPosOnes:
-                                               *mut [uint32_t; 11]) {
+                                               *mut [u32; 11]) {
     let mut transposed_ones_idx: [libc::c_uint; 2] =
         [0i32 as libc::c_uint,
          0]; // position in the column of QtrPosOnes[][...]
@@ -185,7 +185,7 @@ pub unsafe extern "C" fn transposeQPosOnes(mut QtrPosOnes:
 // end transposeHPosOnes
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn generateQPosOnes(mut QPosOnes: *mut [uint32_t; 11],
+pub unsafe extern "C" fn generateQPosOnes(mut QPosOnes: *mut [u32; 11],
                                           mut keys_expander:
                                               *mut AES_XOF_struct) {
     let mut i: libc::c_int = 0i32;

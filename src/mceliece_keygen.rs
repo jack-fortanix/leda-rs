@@ -12,16 +12,16 @@ extern "C" {
     #[no_mangle]
     fn gf2x_transpose_in_place(A: *mut DIGIT);
     #[no_mangle]
-    fn gf2x_mod_add_sparse(sizeR: libc::c_int, Res: *mut uint32_t,
-                           sizeA: libc::c_int, A: *mut uint32_t,
-                           sizeB: libc::c_int, B: *mut uint32_t);
+    fn gf2x_mod_add_sparse(sizeR: libc::c_int, Res: *mut u32,
+                           sizeA: libc::c_int, A: *mut u32,
+                           sizeB: libc::c_int, B: *mut u32);
     #[no_mangle]
-    fn gf2x_mod_mul_sparse(sizeR: libc::c_int, Res: *mut uint32_t,
-                           sizeA: libc::c_int, A: *const uint32_t,
-                           sizeB: libc::c_int, B: *const uint32_t);
+    fn gf2x_mod_mul_sparse(sizeR: libc::c_int, Res: *mut u32,
+                           sizeA: libc::c_int, A: *const u32,
+                           sizeB: libc::c_int, B: *const u32);
     #[no_mangle]
     fn gf2x_mod_mul_dense_to_sparse(Res: *mut DIGIT, dense: *const DIGIT,
-                                    sparse: *const uint32_t,
+                                    sparse: *const u32,
                                     nPos: libc::c_uint);
     /* *
  *
@@ -56,25 +56,25 @@ extern "C" {
  **/
     /*----------------------------------------------------------------------------*/
     #[no_mangle]
-    fn generateHPosOnes(HPosOnes: *mut [uint32_t; 11],
+    fn generateHPosOnes(HPosOnes: *mut [u32; 11],
                         niederreiter_keys_expander: *mut AES_XOF_struct);
     /*----------------------------------------------------------------------------*/
     #[no_mangle]
-    fn generateQPosOnes(QPosOnes: *mut [uint32_t; 11],
+    fn generateQPosOnes(QPosOnes: *mut [u32; 11],
                         keys_expander: *mut AES_XOF_struct);
     #[no_mangle]
-    fn DFR_test(LSparse: *mut [uint32_t; 121],
-                secondIterThreshold: *mut uint8_t) -> libc::c_int;
+    fn DFR_test(LSparse: *mut [u32; 121],
+                secondIterThreshold: *mut u8) -> libc::c_int;
     #[no_mangle]
     fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong)
      -> *mut libc::c_void;
 }
-pub type __uint8_t = libc::c_uchar;
-pub type __uint32_t = libc::c_uint;
-pub type __uint64_t = libc::c_ulong;
-pub type uint8_t = __uint8_t;
-pub type uint32_t = __uint32_t;
-pub type uint64_t = __uint64_t;
+pub type __u8 = libc::c_uchar;
+pub type __u32 = libc::c_uint;
+pub type __u64 = libc::c_ulong;
+pub type u8 = __u8;
+pub type u32 = __u32;
+pub type u64 = __u64;
 pub type size_t = libc::c_ulong;
 /* *
  *
@@ -112,7 +112,7 @@ pub type size_t = libc::c_ulong;
 /* limb size definitions for the multi-precision GF(2^x) library              */
 /*----------------------------------------------------------------------------*/
 // gcc -DCPU_WORD_BITS=64 ...
-pub type DIGIT = uint64_t;
+pub type DIGIT = u64;
 /* *
  *
  * <rng.h>
@@ -162,8 +162,8 @@ pub struct AES_XOF_struct {
 #[repr(C)]
 pub struct privateKeyMcEliece_t {
     pub prng_seed: [libc::c_uchar; 32],
-    pub rejections: uint8_t,
-    pub secondIterThreshold: uint8_t,
+    pub rejections: u8,
+    pub secondIterThreshold: u8,
 }
 #[derive ( Copy, Clone )]
 #[repr(C)]
@@ -269,7 +269,7 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
 */
     seedexpander_from_trng(&mut keys_expander, (*sk).prng_seed.as_mut_ptr());
     // sequence of N0 circ block matrices (p x p): Hi
-    let mut HPosOnes: [[uint32_t; 11]; 2] = [[0; 11]; 2];
+    let mut HPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
     /* Sparse representation of the transposed circulant matrix H,
    with weight DV. Each index contains the position of a '1' digit in the
    corresponding Htr block */
@@ -278,12 +278,12 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
    blocks of Q. Each row contains the position of the
    ones of all the blocks of a row of Q as exponent+
    P*block_position */
-    let mut QPosOnes: [[uint32_t; 11]; 2] = [[0; 11]; 2];
+    let mut QPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
     /*Rejection-sample for a full L*/
-    let mut LPosOnes: [[uint32_t; 121]; 2] = [[0; 121]; 2];
+    let mut LPosOnes: [[u32; 121]; 2] = [[0; 121]; 2];
     let mut is_L_full: libc::c_int = 0;
     let mut isDFRok: libc::c_int = 0;
-    (*sk).rejections = 0i32 as uint8_t;
+    (*sk).rejections = 0i32 as u8;
     loop  {
         generateHPosOnes(HPosOnes.as_mut_ptr(), &mut keys_expander);
         generateQPosOnes(QPosOnes.as_mut_ptr(), &mut keys_expander);
@@ -291,12 +291,12 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
         while i < 2i32 {
             let mut j: libc::c_int = 0i32;
             while j < 11i32 * 11i32 {
-                LPosOnes[i as usize][j as usize] = 57899i32 as uint32_t;
+                LPosOnes[i as usize][j as usize] = 57899i32 as u32;
                 j += 1
             }
             i += 1
         }
-        let mut auxPosOnes: [uint32_t; 121] = [0; 121];
+        let mut auxPosOnes: [u32; 121] = [0; 121];
         let mut processedQOnes: [libc::c_uchar; 2] =
             [0i32 as libc::c_uchar, 0];
         let mut colQ: libc::c_int = 0i32;
@@ -306,7 +306,7 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
                 gf2x_mod_mul_sparse(11i32 * 11i32, auxPosOnes.as_mut_ptr(),
                                     11i32,
                                     HPosOnes[i_0 as usize].as_mut_ptr() as
-                                        *const uint32_t,
+                                        *const u32,
                                     qBlockWeights[i_0 as usize][colQ as usize]
                                         as libc::c_int,
                                     QPosOnes[i_0 as
@@ -317,7 +317,7 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
                                                                                 libc::c_int
                                                                                 as
                                                                                 isize)
-                                        as *const uint32_t);
+                                        as *const u32);
                 gf2x_mod_add_sparse(11i32 * 11i32,
                                     LPosOnes[colQ as usize].as_mut_ptr(),
                                     11i32 * 11i32,
@@ -341,7 +341,7 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
             i_1 += 1
         }
         (*sk).rejections =
-            ((*sk).rejections as libc::c_int + 1i32) as uint8_t;
+            ((*sk).rejections as libc::c_int + 1i32) as u8;
         if is_L_full != 0 {
             isDFRok =
                 DFR_test(LPosOnes.as_mut_ptr(),
@@ -349,7 +349,7 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
         }
         if !(is_L_full == 0 || isDFRok == 0) { break ; }
     }
-    (*sk).rejections = ((*sk).rejections as libc::c_int - 1i32) as uint8_t;
+    (*sk).rejections = ((*sk).rejections as libc::c_int - 1i32) as u8;
     let mut Ln0dense: [DIGIT; 905] =
         [0i32 as DIGIT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -462,7 +462,7 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
                                                                        isize),
                                      Ln0Inv.as_mut_ptr() as *const DIGIT,
                                      LPosOnes[i_2 as usize].as_mut_ptr() as
-                                         *const uint32_t,
+                                         *const u32,
                                      (11i32 * 11i32) as libc::c_uint);
         i_2 += 1
     }

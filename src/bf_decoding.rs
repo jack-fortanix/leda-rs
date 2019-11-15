@@ -5,13 +5,13 @@ extern "C" {
     fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong)
      -> *mut libc::c_void;
 }
-pub type __uint8_t = libc::c_uchar;
-pub type __uint32_t = libc::c_uint;
-pub type __uint64_t = libc::c_ulong;
-pub type uint8_t = __uint8_t;
-pub type uint32_t = __uint32_t;
-pub type uint64_t = __uint64_t;
-pub type DIGIT = uint64_t;
+pub type __u8 = libc::c_uchar;
+pub type __u32 = libc::c_uint;
+pub type __u64 = libc::c_ulong;
+pub type u8 = __u8;
+pub type u32 = __u32;
+pub type u64 = __u64;
+pub type DIGIT = u64;
 /* *
  *
  * <qc_ldpc_parameters.h>
@@ -145,15 +145,15 @@ pub static mut thresholds: [libc::c_int; 2] =
     [64i32, 11i32 * 11i32 / 2i32 + 1i32];
 #[no_mangle]
 pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
-                                     mut HtrPosOnes: *const [uint32_t; 11],
-                                     mut QtrPosOnes: *const [uint32_t; 11],
+                                     mut HtrPosOnes: *const [u32; 11],
+                                     mut QtrPosOnes: *const [u32; 11],
                                      mut privateSyndrome: *mut DIGIT)
  -> libc::c_int 
  //  1 polynomial
  {
-    let mut unsatParityChecks: [uint8_t; 115798] = [0; 115798];
-    let mut currQBlkPos: [uint32_t; 11] = [0; 11];
-    let mut currQBitPos: [uint32_t; 11] = [0; 11];
+    let mut unsatParityChecks: [u8; 115798] = [0; 115798];
+    let mut currQBlkPos: [u32; 11] = [0; 11];
+    let mut currQBitPos: [u32; 11] = [0; 11];
     let mut currSyndrome: [DIGIT; 905] = [0; 905];
     let mut check: libc::c_int = 0;
     let mut iteration: libc::c_int = 0i32;
@@ -161,7 +161,7 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
         gf2x_copy(currSyndrome.as_mut_ptr(), privateSyndrome as *const DIGIT);
         memset(unsatParityChecks.as_mut_ptr() as *mut libc::c_void, 0i32,
                ((2i32 * 57899i32) as
-                    libc::c_ulong).wrapping_mul(::std::mem::size_of::<uint8_t>()
+                    libc::c_ulong).wrapping_mul(::std::mem::size_of::<u8>()
                                                     as libc::c_ulong));
         let mut i: libc::c_int = 0i32;
         while i < 2i32 {
@@ -169,7 +169,7 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
             while valueIdx < 57899i32 {
                 let mut HtrOneIdx: libc::c_int = 0i32;
                 while HtrOneIdx < 11i32 {
-                    let mut tmp: uint32_t =
+                    let mut tmp: u32 =
                         if (*HtrPosOnes.offset(i as
                                                    isize))[HtrOneIdx as
                                                                usize].wrapping_add(valueIdx
@@ -234,9 +234,9 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
                             if tmp_0 >= 57899i32 {
                                 (tmp_0) - 57899i32
                             } else { tmp_0 };
-                        currQBitPos[currQoneIdx as usize] = tmp_0 as uint32_t;
+                        currQBitPos[currQoneIdx as usize] = tmp_0 as u32;
                         currQBlkPos[currQoneIdx as usize] =
-                            blockIdx as uint32_t;
+                            blockIdx as u32;
                         correlation +=
                             unsatParityChecks[(tmp_0 + currblockoffset) as
                                                   usize] as libc::c_int;

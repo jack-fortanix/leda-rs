@@ -1,9 +1,9 @@
 #![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
          non_upper_case_globals, unused_assignments, unused_mut)]
-pub type __uint8_t = libc::c_uchar;
-pub type __uint32_t = libc::c_uint;
-pub type uint8_t = __uint8_t;
-pub type uint32_t = __uint32_t;
+pub type __u8 = libc::c_uchar;
+pub type __u32 = libc::c_uint;
+pub type u8 = __u8;
+pub type u32 = __u32;
 /* *
  * AES-256 self contained implementation derived from :
  *
@@ -42,7 +42,7 @@ Te2[x] = S [x].[01, 03, 02, 01];
 Te3[x] = S [x].[01, 01, 03, 02];
 Te4[x] = S [x].[01, 01, 01, 01];
 */
-static mut Te0: [uint32_t; 256] =
+static mut Te0: [u32; 256] =
     [0xc66363a5u32, 0xf87c7c84u32, 0xee777799u32, 0xf67b7b8du32,
      0xfff2f20du32, 0xd66b6bbdu32, 0xde6f6fb1u32, 0x91c5c554u32,
      0x60303050u32, 0x2010103u32, 0xce6767a9u32, 0x562b2b7du32, 0xe7fefe19u32,
@@ -104,7 +104,7 @@ static mut Te0: [uint32_t; 256] =
      0xd06868b8u32, 0x824141c3u32, 0x299999b0u32, 0x5a2d2d77u32,
      0x1e0f0f11u32, 0x7bb0b0cbu32, 0xa85454fcu32, 0x6dbbbbd6u32,
      0x2c16163au32];
-static mut Te1: [uint32_t; 256] =
+static mut Te1: [u32; 256] =
     [0xa5c66363u32, 0x84f87c7cu32, 0x99ee7777u32, 0x8df67b7bu32, 0xdfff2f2u32,
      0xbdd66b6bu32, 0xb1de6f6fu32, 0x5491c5c5u32, 0x50603030u32, 0x3020101u32,
      0xa9ce6767u32, 0x7d562b2bu32, 0x19e7fefeu32, 0x62b5d7d7u32,
@@ -166,7 +166,7 @@ static mut Te1: [uint32_t; 256] =
      0xb8d06868u32, 0xc3824141u32, 0xb0299999u32, 0x775a2d2du32,
      0x111e0f0fu32, 0xcb7bb0b0u32, 0xfca85454u32, 0xd66dbbbbu32,
      0x3a2c1616u32];
-static mut Te2: [uint32_t; 256] =
+static mut Te2: [u32; 256] =
     [0x63a5c663u32, 0x7c84f87cu32, 0x7799ee77u32, 0x7b8df67bu32,
      0xf20dfff2u32, 0x6bbdd66bu32, 0x6fb1de6fu32, 0xc55491c5u32,
      0x30506030u32, 0x1030201u32, 0x67a9ce67u32, 0x2b7d562bu32, 0xfe19e7feu32,
@@ -228,7 +228,7 @@ static mut Te2: [uint32_t; 256] =
      0xe631d7e6u32, 0x42c68442u32, 0x68b8d068u32, 0x41c38241u32,
      0x99b02999u32, 0x2d775a2du32, 0xf111e0fu32, 0xb0cb7bb0u32, 0x54fca854u32,
      0xbbd66dbbu32, 0x163a2c16u32];
-static mut Te3: [uint32_t; 256] =
+static mut Te3: [u32; 256] =
     [0x6363a5c6u32, 0x7c7c84f8u32, 0x777799eeu32, 0x7b7b8df6u32,
      0xf2f20dffu32, 0x6b6bbdd6u32, 0x6f6fb1deu32, 0xc5c55491u32,
      0x30305060u32, 0x1010302u32, 0x6767a9ceu32, 0x2b2b7d56u32, 0xfefe19e7u32,
@@ -290,7 +290,7 @@ static mut Te3: [uint32_t; 256] =
      0xe6e631d7u32, 0x4242c684u32, 0x6868b8d0u32, 0x4141c382u32,
      0x9999b029u32, 0x2d2d775au32, 0xf0f111eu32, 0xb0b0cb7bu32, 0x5454fca8u32,
      0xbbbbd66du32, 0x16163a2cu32];
-static mut Te4: [uint32_t; 256] =
+static mut Te4: [u32; 256] =
     [0x63636363u32, 0x7c7c7c7cu32, 0x77777777u32, 0x7b7b7b7bu32,
      0xf2f2f2f2u32, 0x6b6b6b6bu32, 0x6f6f6f6fu32, 0xc5c5c5c5u32,
      0x30303030u32, 0x1010101u32, 0x67676767u32, 0x2b2b2b2bu32, 0xfefefefeu32,
@@ -352,12 +352,12 @@ static mut Te4: [uint32_t; 256] =
      0xe6e6e6e6u32, 0x42424242u32, 0x68686868u32, 0x41414141u32,
      0x99999999u32, 0x2d2d2d2du32, 0xf0f0f0fu32, 0xb0b0b0b0u32, 0x54545454u32,
      0xbbbbbbbbu32, 0x16161616u32];
-static mut rcon: [uint32_t; 10] =
-    [0x1000000i32 as uint32_t, 0x2000000i32 as uint32_t,
-     0x4000000i32 as uint32_t, 0x8000000i32 as uint32_t,
-     0x10000000i32 as uint32_t, 0x20000000i32 as uint32_t,
-     0x40000000i32 as uint32_t, 0x80000000u32, 0x1b000000i32 as uint32_t,
-     0x36000000i32 as uint32_t];
+static mut rcon: [u32; 10] =
+    [0x1000000i32 as u32, 0x2000000i32 as u32,
+     0x4000000i32 as u32, 0x8000000i32 as u32,
+     0x10000000i32 as u32, 0x20000000i32 as u32,
+     0x40000000i32 as u32, 0x80000000u32, 0x1b000000i32 as u32,
+     0x36000000i32 as u32];
 /* *
  * AES-256 self contained implementation derived from :
  *
@@ -395,52 +395,52 @@ static mut rcon: [uint32_t; 10] =
  * @return	the number of rounds for the given cipher key size.
  */
 #[no_mangle]
-pub unsafe extern "C" fn rijndaelKeySetupEnc(mut rk: *mut uint32_t,
-                                             mut cipherKey: *const uint8_t,
+pub unsafe extern "C" fn rijndaelKeySetupEnc(mut rk: *mut u32,
+                                             mut cipherKey: *const u8,
                                              mut keyBits: libc::c_int)
  -> libc::c_int {
     let mut i: libc::c_int = 0i32;
-    let mut temp: uint32_t = 0;
+    let mut temp: u32 = 0;
     *rk.offset(0) =
-        (*cipherKey.offset(0) as uint32_t) << 24i32 ^
-            (*cipherKey.offset(1) as uint32_t) << 16i32 ^
-            (*cipherKey.offset(2) as uint32_t) << 8i32 ^
-            *cipherKey.offset(3) as uint32_t;
+        (*cipherKey.offset(0) as u32) << 24i32 ^
+            (*cipherKey.offset(1) as u32) << 16i32 ^
+            (*cipherKey.offset(2) as u32) << 8i32 ^
+            *cipherKey.offset(3) as u32;
     *rk.offset(1) =
-        (*cipherKey.offset(4).offset(0) as uint32_t) << 24i32 ^
-            (*cipherKey.offset(4).offset(1) as uint32_t) << 16i32 ^
-            (*cipherKey.offset(4).offset(2) as uint32_t) << 8i32 ^
-            *cipherKey.offset(4).offset(3) as uint32_t;
+        (*cipherKey.offset(4).offset(0) as u32) << 24i32 ^
+            (*cipherKey.offset(4).offset(1) as u32) << 16i32 ^
+            (*cipherKey.offset(4).offset(2) as u32) << 8i32 ^
+            *cipherKey.offset(4).offset(3) as u32;
     *rk.offset(2) =
-        (*cipherKey.offset(8).offset(0) as uint32_t) << 24i32 ^
-            (*cipherKey.offset(8).offset(1) as uint32_t) << 16i32 ^
-            (*cipherKey.offset(8).offset(2) as uint32_t) << 8i32 ^
-            *cipherKey.offset(8).offset(3) as uint32_t;
+        (*cipherKey.offset(8).offset(0) as u32) << 24i32 ^
+            (*cipherKey.offset(8).offset(1) as u32) << 16i32 ^
+            (*cipherKey.offset(8).offset(2) as u32) << 8i32 ^
+            *cipherKey.offset(8).offset(3) as u32;
     *rk.offset(3) =
-        (*cipherKey.offset(12).offset(0) as uint32_t) << 24i32 ^
-            (*cipherKey.offset(12).offset(1) as uint32_t) << 16i32 ^
-            (*cipherKey.offset(12).offset(2) as uint32_t) << 8i32 ^
-            *cipherKey.offset(12).offset(3) as uint32_t;
+        (*cipherKey.offset(12).offset(0) as u32) << 24i32 ^
+            (*cipherKey.offset(12).offset(1) as u32) << 16i32 ^
+            (*cipherKey.offset(12).offset(2) as u32) << 8i32 ^
+            *cipherKey.offset(12).offset(3) as u32;
     *rk.offset(4) =
-        (*cipherKey.offset(16).offset(0) as uint32_t) << 24i32 ^
-            (*cipherKey.offset(16).offset(1) as uint32_t) << 16i32 ^
-            (*cipherKey.offset(16).offset(2) as uint32_t) << 8i32 ^
-            *cipherKey.offset(16).offset(3) as uint32_t;
+        (*cipherKey.offset(16).offset(0) as u32) << 24i32 ^
+            (*cipherKey.offset(16).offset(1) as u32) << 16i32 ^
+            (*cipherKey.offset(16).offset(2) as u32) << 8i32 ^
+            *cipherKey.offset(16).offset(3) as u32;
     *rk.offset(5) =
-        (*cipherKey.offset(20).offset(0) as uint32_t) << 24i32 ^
-            (*cipherKey.offset(20).offset(1) as uint32_t) << 16i32 ^
-            (*cipherKey.offset(20).offset(2) as uint32_t) << 8i32 ^
-            *cipherKey.offset(20).offset(3) as uint32_t;
+        (*cipherKey.offset(20).offset(0) as u32) << 24i32 ^
+            (*cipherKey.offset(20).offset(1) as u32) << 16i32 ^
+            (*cipherKey.offset(20).offset(2) as u32) << 8i32 ^
+            *cipherKey.offset(20).offset(3) as u32;
     *rk.offset(6) =
-        (*cipherKey.offset(24).offset(0) as uint32_t) << 24i32 ^
-            (*cipherKey.offset(24).offset(1) as uint32_t) << 16i32 ^
-            (*cipherKey.offset(24).offset(2) as uint32_t) << 8i32 ^
-            *cipherKey.offset(24).offset(3) as uint32_t;
+        (*cipherKey.offset(24).offset(0) as u32) << 24i32 ^
+            (*cipherKey.offset(24).offset(1) as u32) << 16i32 ^
+            (*cipherKey.offset(24).offset(2) as u32) << 8i32 ^
+            *cipherKey.offset(24).offset(3) as u32;
     *rk.offset(7) =
-        (*cipherKey.offset(28).offset(0) as uint32_t) << 24i32 ^
-            (*cipherKey.offset(28).offset(1) as uint32_t) << 16i32 ^
-            (*cipherKey.offset(28).offset(2) as uint32_t) << 8i32 ^
-            *cipherKey.offset(28).offset(3) as uint32_t;
+        (*cipherKey.offset(28).offset(0) as u32) << 24i32 ^
+            (*cipherKey.offset(28).offset(1) as u32) << 16i32 ^
+            (*cipherKey.offset(28).offset(2) as u32) << 8i32 ^
+            *cipherKey.offset(28).offset(3) as u32;
     loop  {
         temp = *rk.offset(7);
         *rk.offset(8) =
@@ -474,42 +474,42 @@ pub unsafe extern "C" fn rijndaelKeySetupEnc(mut rk: *mut uint32_t,
     };
 }
 #[no_mangle]
-pub unsafe extern "C" fn rijndaelEncrypt(mut rk: *const uint32_t,
+pub unsafe extern "C" fn rijndaelEncrypt(mut rk: *const u32,
                                          mut Nr: libc::c_int,
-                                         mut pt: *const uint8_t,
-                                         mut ct: *mut uint8_t) {
-    let mut s0: uint32_t = 0;
-    let mut s1: uint32_t = 0;
-    let mut s2: uint32_t = 0;
-    let mut s3: uint32_t = 0;
-    let mut t0: uint32_t = 0i32 as uint32_t;
-    let mut t1: uint32_t = 0i32 as uint32_t;
-    let mut t2: uint32_t = 0i32 as uint32_t;
-    let mut t3: uint32_t = 0i32 as uint32_t;
+                                         mut pt: *const u8,
+                                         mut ct: *mut u8) {
+    let mut s0: u32 = 0;
+    let mut s1: u32 = 0;
+    let mut s2: u32 = 0;
+    let mut s3: u32 = 0;
+    let mut t0: u32 = 0i32 as u32;
+    let mut t1: u32 = 0i32 as u32;
+    let mut t2: u32 = 0i32 as u32;
+    let mut t3: u32 = 0i32 as u32;
     /*
    * map byte array block to cipher state
    * and add initial round key:
    */
     s0 =
-        (*pt.offset(0) as uint32_t) << 24i32 ^
-            (*pt.offset(1) as uint32_t) << 16i32 ^
-            (*pt.offset(2) as uint32_t) << 8i32 ^ *pt.offset(3) as uint32_t ^
+        (*pt.offset(0) as u32) << 24i32 ^
+            (*pt.offset(1) as u32) << 16i32 ^
+            (*pt.offset(2) as u32) << 8i32 ^ *pt.offset(3) as u32 ^
             *rk.offset(0);
     s1 =
-        (*pt.offset(4).offset(0) as uint32_t) << 24i32 ^
-            (*pt.offset(4).offset(1) as uint32_t) << 16i32 ^
-            (*pt.offset(4).offset(2) as uint32_t) << 8i32 ^
-            *pt.offset(4).offset(3) as uint32_t ^ *rk.offset(1);
+        (*pt.offset(4).offset(0) as u32) << 24i32 ^
+            (*pt.offset(4).offset(1) as u32) << 16i32 ^
+            (*pt.offset(4).offset(2) as u32) << 8i32 ^
+            *pt.offset(4).offset(3) as u32 ^ *rk.offset(1);
     s2 =
-        (*pt.offset(8).offset(0) as uint32_t) << 24i32 ^
-            (*pt.offset(8).offset(1) as uint32_t) << 16i32 ^
-            (*pt.offset(8).offset(2) as uint32_t) << 8i32 ^
-            *pt.offset(8).offset(3) as uint32_t ^ *rk.offset(2);
+        (*pt.offset(8).offset(0) as u32) << 24i32 ^
+            (*pt.offset(8).offset(1) as u32) << 16i32 ^
+            (*pt.offset(8).offset(2) as u32) << 8i32 ^
+            *pt.offset(8).offset(3) as u32 ^ *rk.offset(2);
     s3 =
-        (*pt.offset(12).offset(0) as uint32_t) << 24i32 ^
-            (*pt.offset(12).offset(1) as uint32_t) << 16i32 ^
-            (*pt.offset(12).offset(2) as uint32_t) << 8i32 ^
-            *pt.offset(12).offset(3) as uint32_t ^ *rk.offset(3);
+        (*pt.offset(12).offset(0) as u32) << 24i32 ^
+            (*pt.offset(12).offset(1) as u32) << 16i32 ^
+            (*pt.offset(12).offset(2) as u32) << 8i32 ^
+            *pt.offset(12).offset(3) as u32 ^ *rk.offset(3);
     /* round 1: */
     t0 =
         Te0[(s0 >> 24i32) as usize] ^
@@ -796,10 +796,10 @@ pub unsafe extern "C" fn rijndaelEncrypt(mut rk: *const uint32_t,
                 0xff00i32 as libc::c_uint ^
             Te4[(t3 & 0xffi32 as libc::c_uint) as usize] &
                 0xffi32 as libc::c_uint ^ *rk.offset(0);
-    *ct.offset(0) = (s0 >> 24i32) as uint8_t;
-    *ct.offset(1) = (s0 >> 16i32) as uint8_t;
-    *ct.offset(2) = (s0 >> 8i32) as uint8_t;
-    *ct.offset(3) = s0 as uint8_t;
+    *ct.offset(0) = (s0 >> 24i32) as u8;
+    *ct.offset(1) = (s0 >> 16i32) as u8;
+    *ct.offset(2) = (s0 >> 8i32) as u8;
+    *ct.offset(3) = s0 as u8;
     s1 =
         Te4[(t1 >> 24i32) as usize] & 0xff000000u32 ^
             Te4[(t2 >> 16i32 & 0xffi32 as libc::c_uint) as usize] &
@@ -808,10 +808,10 @@ pub unsafe extern "C" fn rijndaelEncrypt(mut rk: *const uint32_t,
                 0xff00i32 as libc::c_uint ^
             Te4[(t0 & 0xffi32 as libc::c_uint) as usize] &
                 0xffi32 as libc::c_uint ^ *rk.offset(1);
-    *ct.offset(4).offset(0) = (s1 >> 24i32) as uint8_t;
-    *ct.offset(4).offset(1) = (s1 >> 16i32) as uint8_t;
-    *ct.offset(4).offset(2) = (s1 >> 8i32) as uint8_t;
-    *ct.offset(4).offset(3) = s1 as uint8_t;
+    *ct.offset(4).offset(0) = (s1 >> 24i32) as u8;
+    *ct.offset(4).offset(1) = (s1 >> 16i32) as u8;
+    *ct.offset(4).offset(2) = (s1 >> 8i32) as u8;
+    *ct.offset(4).offset(3) = s1 as u8;
     s2 =
         Te4[(t2 >> 24i32) as usize] & 0xff000000u32 ^
             Te4[(t3 >> 16i32 & 0xffi32 as libc::c_uint) as usize] &
@@ -820,10 +820,10 @@ pub unsafe extern "C" fn rijndaelEncrypt(mut rk: *const uint32_t,
                 0xff00i32 as libc::c_uint ^
             Te4[(t1 & 0xffi32 as libc::c_uint) as usize] &
                 0xffi32 as libc::c_uint ^ *rk.offset(2);
-    *ct.offset(8).offset(0) = (s2 >> 24i32) as uint8_t;
-    *ct.offset(8).offset(1) = (s2 >> 16i32) as uint8_t;
-    *ct.offset(8).offset(2) = (s2 >> 8i32) as uint8_t;
-    *ct.offset(8).offset(3) = s2 as uint8_t;
+    *ct.offset(8).offset(0) = (s2 >> 24i32) as u8;
+    *ct.offset(8).offset(1) = (s2 >> 16i32) as u8;
+    *ct.offset(8).offset(2) = (s2 >> 8i32) as u8;
+    *ct.offset(8).offset(3) = s2 as u8;
     s3 =
         Te4[(t3 >> 24i32) as usize] & 0xff000000u32 ^
             Te4[(t0 >> 16i32 & 0xffi32 as libc::c_uint) as usize] &
@@ -832,8 +832,8 @@ pub unsafe extern "C" fn rijndaelEncrypt(mut rk: *const uint32_t,
                 0xff00i32 as libc::c_uint ^
             Te4[(t2 & 0xffi32 as libc::c_uint) as usize] &
                 0xffi32 as libc::c_uint ^ *rk.offset(3);
-    *ct.offset(12).offset(0) = (s3 >> 24i32) as uint8_t;
-    *ct.offset(12).offset(1) = (s3 >> 16i32) as uint8_t;
-    *ct.offset(12).offset(2) = (s3 >> 8i32) as uint8_t;
-    *ct.offset(12).offset(3) = s3 as uint8_t;
+    *ct.offset(12).offset(0) = (s3 >> 24i32) as u8;
+    *ct.offset(12).offset(1) = (s3 >> 16i32) as u8;
+    *ct.offset(12).offset(2) = (s3 >> 8i32) as u8;
+    *ct.offset(12).offset(3) = s3 as u8;
 }

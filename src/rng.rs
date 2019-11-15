@@ -17,14 +17,14 @@ extern "C" {
     fn clock_gettime(__clock_id: clockid_t, __tp: *mut timespec)
      -> libc::c_int;
     #[no_mangle]
-    fn rijndaelKeySetupEnc(rk: *mut uint32_t, cipherKey: *const uint8_t,
+    fn rijndaelKeySetupEnc(rk: *mut u32, cipherKey: *const u8,
                            keyBits: libc::c_int) -> libc::c_int;
     #[no_mangle]
-    fn rijndaelEncrypt(rk: *const uint32_t, Nr: libc::c_int,
-                       pt: *const uint8_t, ct: *mut uint8_t);
+    fn rijndaelEncrypt(rk: *const u32, Nr: libc::c_int,
+                       pt: *const u8, ct: *mut u8);
 }
-pub type __uint8_t = libc::c_uchar;
-pub type __uint32_t = libc::c_uint;
+pub type __u8 = libc::c_uchar;
+pub type __u32 = libc::c_uint;
 pub type __time_t = libc::c_long;
 pub type __clockid_t = libc::c_int;
 pub type __syscall_slong_t = libc::c_long;
@@ -44,8 +44,8 @@ pub struct AES256_CTR_DRBG_struct {
     pub V: [libc::c_uchar; 16],
     pub reseed_counter: libc::c_int,
 }
-pub type uint8_t = __uint8_t;
-pub type uint32_t = __uint32_t;
+pub type u8 = __u8;
+pub type u32 = __u32;
 #[derive ( Copy, Clone )]
 #[repr(C)]
 pub struct timespec {
@@ -229,14 +229,14 @@ pub unsafe extern "C" fn seedexpander(mut ctx: *mut AES_XOF_struct,
 pub unsafe extern "C" fn AES256_ECB(mut key: *mut libc::c_uchar,
                                     mut ptx: *mut libc::c_uchar,
                                     mut ctx: *mut libc::c_uchar) {
-    let mut round_key: [uint32_t; 60] =
-        [0i32 as uint32_t, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    let mut round_key: [u32; 60] =
+        [0i32 as u32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    rijndaelKeySetupEnc(round_key.as_mut_ptr(), key as *const uint8_t,
+    rijndaelKeySetupEnc(round_key.as_mut_ptr(), key as *const u8,
                         256i32);
-    rijndaelEncrypt(round_key.as_mut_ptr() as *const uint32_t, 14i32,
-                    ptx as *const uint8_t, ctx);
+    rijndaelEncrypt(round_key.as_mut_ptr() as *const u32, 14i32,
+                    ptx as *const u8, ctx);
 }
 #[no_mangle]
 pub unsafe extern "C" fn randombytes_init(mut entropy_input:

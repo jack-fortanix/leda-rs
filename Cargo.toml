@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 #mbedtls = "0.5.1"
 libc = "0.2"
+rustc-serialize = "0.3.19"

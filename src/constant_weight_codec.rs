@@ -7,10 +7,10 @@ extern "C" {
                      __file: *const libc::c_char, __line: libc::c_uint,
                      __function: *const libc::c_char) -> !;
 }
-pub type __uint32_t = libc::c_uint;
-pub type __uint64_t = libc::c_ulong;
-pub type uint32_t = __uint32_t;
-pub type uint64_t = __uint64_t;
+pub type __u32 = libc::c_uint;
+pub type __u64 = libc::c_ulong;
+pub type u32 = __u32;
+pub type u64 = __u64;
 /* *
  *
  * <gf2x_limbs.h>
@@ -47,7 +47,7 @@ pub type uint64_t = __uint64_t;
 /* limb size definitions for the multi-precision GF(2^x) library              */
 /*----------------------------------------------------------------------------*/
 // gcc -DCPU_WORD_BITS=64 ...
-pub type DIGIT = uint64_t;
+pub type DIGIT = u64;
 #[inline]
 unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
                                     exponent: libc::c_uint,
@@ -116,7 +116,7 @@ unsafe extern "C" fn gf2x_get_coeff(mut poly: *const DIGIT,
  **/
 /* bits will be written to the output matching the same convention of the
  * bitstream read, i.e., in the same order as they appear in the natural
- * encoding of the uint64_t, with the most significant bit being written
+ * encoding of the u64, with the most significant bit being written
  * as the first one in the output bitstream, starting in the output_bit_cursor
  * position */
 #[no_mangle]
@@ -124,16 +124,10 @@ pub unsafe extern "C" fn bitstream_write(mut output: *mut libc::c_uchar,
                                          amount_to_write: libc::c_uint,
                                          mut output_bit_cursor:
                                              *mut libc::c_uint,
-                                         mut value_to_write: uint64_t) {
+                                         mut value_to_write: u64) {
     if amount_to_write == 0i32 as libc::c_uint { return }
-    if amount_to_write <= 64i32 as libc::c_uint {
-    } else {
-        __assert_fail(b"amount_to_write <= 64\x00" as *const u8 as
-                          *const libc::c_char,
-                      b"constant_weight_codec.c\x00" as *const u8 as
-                          *const libc::c_char, 50i32 as libc::c_uint,
-                      (*::std::mem::transmute::<&[u8; 84],
-                                                &[libc::c_char; 84]>(b"void bitstream_write(unsigned char *, const unsigned int, unsigned int *, uint64_t)\x00")).as_ptr());
+    if amount_to_write >= 64i32 as libc::c_uint {
+        panic!("invalid amount_to_write");
     }
     let mut bit_cursor_in_char: libc::c_uint =
         (*output_bit_cursor).wrapping_rem(8i32 as libc::c_uint);
@@ -142,12 +136,12 @@ pub unsafe extern "C" fn bitstream_write(mut output: *mut libc::c_uchar,
     let mut remaining_bits_in_char: libc::c_uint =
         (8i32 as libc::c_uint).wrapping_sub(bit_cursor_in_char);
     if amount_to_write <= remaining_bits_in_char {
-        let mut cleanup_mask: uint64_t =
-            !(((1i32 as uint64_t) <<
+        let mut cleanup_mask: u64 =
+            !(((1i32 as u64) <<
                    amount_to_write).wrapping_sub(1i32 as libc::c_ulong) <<
                   remaining_bits_in_char.wrapping_sub(amount_to_write));
-        let mut buffer: uint64_t =
-            *output.offset(byte_cursor as isize) as uint64_t;
+        let mut buffer: u64 =
+            *output.offset(byte_cursor as isize) as u64;
         buffer =
             buffer & cleanup_mask |
                 value_to_write <<
@@ -157,27 +151,27 @@ pub unsafe extern "C" fn bitstream_write(mut output: *mut libc::c_uchar,
             (*output_bit_cursor).wrapping_add(amount_to_write)
     } else {
         /*copy remaining_bits_in_char, allowing further copies to be byte aligned */
-        let mut write_buffer: uint64_t =
+        let mut write_buffer: u64 =
             value_to_write >>
                 amount_to_write.wrapping_sub(remaining_bits_in_char);
-        let mut cleanup_mask_0: uint64_t =
-            !((1i32 << remaining_bits_in_char) - 1i32) as uint64_t;
-        let mut buffer_0: uint64_t =
-            *output.offset(byte_cursor as isize) as uint64_t;
+        let mut cleanup_mask_0: u64 =
+            !((1i32 << remaining_bits_in_char) - 1i32) as u64;
+        let mut buffer_0: u64 =
+            *output.offset(byte_cursor as isize) as u64;
         buffer_0 = buffer_0 & cleanup_mask_0 | write_buffer;
         *output.offset(byte_cursor as isize) = buffer_0 as libc::c_uchar;
         *output_bit_cursor =
             (*output_bit_cursor).wrapping_add(remaining_bits_in_char);
         byte_cursor = (*output_bit_cursor).wrapping_div(8i32 as libc::c_uint);
         /*write out as many as possible full bytes*/
-        let mut still_to_write: uint64_t =
+        let mut still_to_write: u64 =
             amount_to_write.wrapping_sub(remaining_bits_in_char) as
-                uint64_t; // end while
+                u64; // end while
         while still_to_write > 8i32 as libc::c_ulong {
             write_buffer =
                 value_to_write >>
                     still_to_write.wrapping_sub(8i32 as libc::c_ulong) &
-                    0xffi32 as uint64_t;
+                    0xffi32 as u64;
             *output.offset(byte_cursor as isize) =
                 write_buffer as libc::c_uchar;
             *output_bit_cursor =
@@ -186,7 +180,7 @@ pub unsafe extern "C" fn bitstream_write(mut output: *mut libc::c_uchar,
             still_to_write =
                 (still_to_write as
                      libc::c_ulong).wrapping_sub(8i32 as libc::c_ulong) as
-                    uint64_t as uint64_t
+                    u64 as u64
         }
         /*once here, only the still_to_write-LSBs of value_to_write are to be written
        * with their MSB as the MSB of the output[byte_cursor] */
@@ -194,10 +188,10 @@ pub unsafe extern "C" fn bitstream_write(mut output: *mut libc::c_uchar,
             write_buffer =
                 value_to_write &
                     ((1i32 << still_to_write) - 1i32) as libc::c_ulong;
-            let mut cleanup_mask_1: uint64_t =
+            let mut cleanup_mask_1: u64 =
                 !((1i32 << still_to_write) - 1i32 <<
                       (8i32 as libc::c_ulong).wrapping_sub(still_to_write)) as
-                    uint64_t;
+                    u64;
             write_buffer =
                 write_buffer <<
                     (8i32 as libc::c_ulong).wrapping_sub(still_to_write);
@@ -226,32 +220,26 @@ pub unsafe extern "C" fn bitstream_write(mut output: *mut libc::c_uchar,
 pub unsafe extern "C" fn bitstream_read(stream: *const libc::c_uchar,
                                         bit_amount: libc::c_uint,
                                         mut bit_cursor: *mut libc::c_uint)
- -> uint64_t {
-    if bit_amount == 0i32 as libc::c_uint { return 0i32 as uint64_t }
-    if bit_amount <= 64i32 as libc::c_uint {
-    } else {
-        __assert_fail(b"bit_amount <=64\x00" as *const u8 as
-                          *const libc::c_char,
-                      b"constant_weight_codec.c\x00" as *const u8 as
-                          *const libc::c_char, 111i32 as libc::c_uint,
-                      (*::std::mem::transmute::<&[u8; 88],
-                                                &[libc::c_char; 88]>(b"uint64_t bitstream_read(const unsigned char *const, const unsigned int, unsigned int *)\x00")).as_ptr());
+ -> u64 {
+    if bit_amount == 0i32 as libc::c_uint { return 0i32 as u64 }
+    if bit_amount > 64i32 as libc::c_uint {
+        panic!("invalid bit_amount");
     }
-    let mut extracted_bits: uint64_t = 0i32 as uint64_t;
+    let mut extracted_bits: u64 = 0i32 as u64;
     let mut bit_cursor_in_char: libc::c_int =
         (*bit_cursor).wrapping_rem(8i32 as libc::c_uint) as libc::c_int;
     let mut remaining_bits_in_char: libc::c_int = 8i32 - bit_cursor_in_char;
     if bit_amount <= remaining_bits_in_char as libc::c_uint {
         extracted_bits =
             *stream.offset((*bit_cursor).wrapping_div(8i32 as libc::c_uint) as
-                               isize) as uint64_t;
+                               isize) as u64;
         let mut slack_bits: libc::c_int =
             (remaining_bits_in_char as libc::c_uint).wrapping_sub(bit_amount)
                 as libc::c_int;
         extracted_bits = extracted_bits >> slack_bits;
         extracted_bits =
             extracted_bits &
-                ((1i32 as uint64_t) <<
+                ((1i32 as u64) <<
                      bit_amount).wrapping_sub(1i32 as libc::c_ulong)
     } else {
         let mut byte_cursor: libc::c_uint =
@@ -261,10 +249,10 @@ pub unsafe extern "C" fn bitstream_read(stream: *const libc::c_uchar,
             extracted_bits =
                 *stream.offset((*bit_cursor).wrapping_div(8i32 as
                                                               libc::c_uint) as
-                                   isize) as uint64_t;
+                                   isize) as u64;
             extracted_bits =
                 extracted_bits &
-                    ((1i32 as uint64_t) <<
+                    ((1i32 as u64) <<
                          7i32 -
                              (bit_cursor_in_char -
                                   1i32)).wrapping_sub(1i32 as libc::c_ulong);
@@ -276,7 +264,7 @@ pub unsafe extern "C" fn bitstream_read(stream: *const libc::c_uchar,
         while still_to_extract > 8i32 as libc::c_uint {
             extracted_bits =
                 extracted_bits << 8i32 |
-                    *stream.offset(byte_cursor as isize) as uint64_t;
+                    *stream.offset(byte_cursor as isize) as u64;
             byte_cursor = byte_cursor.wrapping_add(1);
             still_to_extract =
                 still_to_extract.wrapping_sub(8i32 as libc::c_uint)
@@ -285,7 +273,7 @@ pub unsafe extern "C" fn bitstream_read(stream: *const libc::c_uchar,
        taken from */
         extracted_bits =
             extracted_bits << still_to_extract |
-                *stream.offset(byte_cursor as isize) as uint64_t >>
+                *stream.offset(byte_cursor as isize) as u64 >>
                     (8i32 as libc::c_uint).wrapping_sub(still_to_extract)
     }
     *bit_cursor = (*bit_cursor).wrapping_add(bit_amount);
@@ -299,8 +287,8 @@ unsafe extern "C" fn bitstream_read_padded(stream: *const libc::c_uchar,
                                            bitAmount: libc::c_uint,
                                            bitstreamLength: libc::c_uint,
                                            bitCursor: *mut libc::c_uint)
- -> uint64_t {
-    let mut readBitstreamFragment: uint64_t = 0;
+ -> u64 {
+    let mut readBitstreamFragment: u64 = 0;
     if (*bitCursor).wrapping_add(bitAmount) < bitstreamLength {
         readBitstreamFragment = bitstream_read(stream, bitAmount, bitCursor)
     } else {
@@ -313,7 +301,7 @@ unsafe extern "C" fn bitstream_read_padded(stream: *const libc::c_uchar,
             readBitstreamFragment =
                 readBitstreamFragment <<
                     bitAmount.wrapping_sub(available_bits)
-        } else { readBitstreamFragment = 0i32 as uint64_t }
+        } else { readBitstreamFragment = 0i32 as u64 }
     }
     return readBitstreamFragment;
 }
@@ -419,7 +407,7 @@ pub unsafe extern "C" fn constant_weight_to_binary_approximate(bitstreamOut:
         bitstream_write(bitstreamOut,
                         quotient.wrapping_add(1i32 as libc::c_uint),
                         &mut outputBitCursor,
-                        ((1i32 as uint64_t) <<
+                        ((1i32 as u64) <<
                              quotient).wrapping_sub(1i32 as libc::c_ulong) <<
                             1i32); // clamp u-minus-one to zero
         let mut remainder: libc::c_uint =
@@ -430,12 +418,12 @@ pub unsafe extern "C" fn constant_weight_to_binary_approximate(bitstreamOut:
                     u.wrapping_sub(1i32 as libc::c_uint)
                 } else { 0i32 as libc::c_uint };
             bitstream_write(bitstreamOut, u, &mut outputBitCursor,
-                            remainder as uint64_t);
+                            remainder as u64);
         } else {
             bitstream_write(bitstreamOut, u, &mut outputBitCursor,
                             remainder.wrapping_add(((1i32 << u) as
                                                         libc::c_uint).wrapping_sub(d))
-                                as uint64_t);
+                                as u64);
         }
         inPositionsStillAvailable =
             inPositionsStillAvailable.wrapping_sub(distancesBetweenOnes[idxDistances
@@ -489,17 +477,17 @@ pub unsafe extern "C" fn binary_to_constant_weight_approximate(mut constantWeigh
                                                                bitLength:
                                                                    libc::c_int)
  -> libc::c_int {
-    let mut distancesBetweenOnes: [uint32_t; 199] =
+    let mut distancesBetweenOnes: [u32; 199] =
         [0;
             199]; /* assuming trailing slack bits in the input
    stream. In case the slack bits in the input stream are leading, change to
    8- (bitLength %8) - 1 */
-    let mut idxDistances: uint32_t = 0i32 as uint32_t;
-    let mut onesStillToPlaceOut: uint32_t = 199i32 as uint32_t;
-    let mut outPositionsStillAvailable: uint32_t =
-        (2i32 * 57899i32) as uint32_t;
+    let mut idxDistances: u32 = 0i32 as u32;
+    let mut onesStillToPlaceOut: u32 = 199i32 as u32;
+    let mut outPositionsStillAvailable: u32 =
+        (2i32 * 57899i32) as u32;
     let mut bitstreamInCursor: libc::c_uint = 0i32 as libc::c_uint;
-    idxDistances = 0i32 as uint32_t;
+    idxDistances = 0i32 as u32;
     while idxDistances < 199i32 as libc::c_uint &&
               outPositionsStillAvailable > onesStillToPlaceOut {
         /* lack of positions should not be possible */
@@ -514,26 +502,26 @@ pub unsafe extern "C" fn binary_to_constant_weight_approximate(mut constantWeigh
                      onesStillToPlaceOut);
         /* read unary-encoded quotient, i.e. leading 1^* 0 */
         let mut quotient: libc::c_uint = 0i32 as libc::c_uint;
-        while 1i32 as uint64_t ==
+        while 1i32 as u64 ==
                   bitstream_read_padded(bitstreamIn, 1i32 as libc::c_uint,
                                         bitLength as libc::c_uint,
                                         &mut bitstreamInCursor) {
             quotient = quotient.wrapping_add(1)
         }
         /* decode truncated binary encoded integer */
-        let mut distanceToBeComputed: uint32_t =
+        let mut distanceToBeComputed: u32 =
             if u > 0i32 as libc::c_uint {
                 bitstream_read_padded(bitstreamIn,
                                       u.wrapping_sub(1i32 as libc::c_uint),
                                       bitLength as libc::c_uint,
                                       &mut bitstreamInCursor)
-            } else { 0i32 as libc::c_ulong } as uint32_t;
+            } else { 0i32 as libc::c_ulong } as u32;
         if distanceToBeComputed >=
                ((1i32 << u) as libc::c_uint).wrapping_sub(d) {
             distanceToBeComputed =
                 (distanceToBeComputed as
                      libc::c_uint).wrapping_mul(2i32 as libc::c_uint) as
-                    uint32_t as uint32_t;
+                    u32 as u32;
             distanceToBeComputed =
                 (distanceToBeComputed as
                      libc::c_ulong).wrapping_add(bitstream_read_padded(bitstreamIn,
@@ -543,12 +531,12 @@ pub unsafe extern "C" fn binary_to_constant_weight_approximate(mut constantWeigh
                                                                            as
                                                                            libc::c_uint,
                                                                        &mut bitstreamInCursor))
-                    as uint32_t as uint32_t;
+                    as u32 as u32;
             distanceToBeComputed =
                 (distanceToBeComputed as
                      libc::c_uint).wrapping_sub(((1i32 << u) as
                                                      libc::c_uint).wrapping_sub(d))
-                    as uint32_t as uint32_t
+                    as u32 as u32
         }
         distancesBetweenOnes[idxDistances as usize] =
             distanceToBeComputed.wrapping_add(quotient.wrapping_mul(d));
@@ -559,13 +547,13 @@ pub unsafe extern "C" fn binary_to_constant_weight_approximate(mut constantWeigh
                                                                      usize].wrapping_add(1i32
                                                                                              as
                                                                                              libc::c_uint))
-                as uint32_t as uint32_t;
+                as u32 as u32;
         onesStillToPlaceOut = onesStillToPlaceOut.wrapping_sub(1);
         idxDistances = idxDistances.wrapping_add(1)
     }
     if outPositionsStillAvailable == onesStillToPlaceOut {
         while idxDistances < 199i32 as libc::c_uint {
-            distancesBetweenOnes[idxDistances as usize] = 0i32 as uint32_t;
+            distancesBetweenOnes[idxDistances as usize] = 0i32 as u32;
             idxDistances = idxDistances.wrapping_add(1)
         }
     }

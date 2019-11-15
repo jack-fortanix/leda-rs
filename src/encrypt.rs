@@ -39,7 +39,7 @@ extern "C" {
     #[no_mangle]
     fn encrypt_Kobara_Imai(output: *mut libc::c_uchar,
                            pk: *const publicKeyMcEliece_t,
-                           byteLenPtx: uint32_t, ptx: *const libc::c_uchar)
+                           byteLenPtx: u32, ptx: *const libc::c_uchar)
      -> libc::c_int;
     /* *
  *
@@ -79,12 +79,12 @@ extern "C" {
                            clen: libc::c_ulonglong, ctx: *const libc::c_uchar)
      -> libc::c_int;
 }
-pub type __uint8_t = libc::c_uchar;
-pub type __uint32_t = libc::c_uint;
-pub type __uint64_t = libc::c_ulong;
-pub type uint8_t = __uint8_t;
-pub type uint32_t = __uint32_t;
-pub type uint64_t = __uint64_t;
+pub type __u8 = libc::c_uchar;
+pub type __u32 = libc::c_uint;
+pub type __u64 = libc::c_ulong;
+pub type u8 = __u8;
+pub type u32 = __u32;
+pub type u64 = __u64;
 /* *
  *
  * <gf2x_limbs.h>
@@ -121,13 +121,13 @@ pub type uint64_t = __uint64_t;
 /* limb size definitions for the multi-precision GF(2^x) library              */
 /*----------------------------------------------------------------------------*/
 // gcc -DCPU_WORD_BITS=64 ...
-pub type DIGIT = uint64_t;
+pub type DIGIT = u64;
 #[derive ( Copy, Clone )]
 #[repr(C)]
 pub struct privateKeyMcEliece_t {
     pub prng_seed: [libc::c_uchar; 32],
-    pub rejections: uint8_t,
-    pub secondIterThreshold: uint8_t,
+    pub rejections: u8,
+    pub secondIterThreshold: u8,
 }
 #[derive ( Copy, Clone )]
 #[repr(C)]
@@ -195,7 +195,7 @@ pub unsafe extern "C" fn crypto_encrypt(mut c: *mut libc::c_uchar,
                 libc::c_ulong).wrapping_sub((8i32 as
                                                  libc::c_ulong).wrapping_mul((32i32
                                                                                   as
-                                                                                  libc::c_ulong).wrapping_add(::std::mem::size_of::<uint64_t>()
+                                                                                  libc::c_ulong).wrapping_add(::std::mem::size_of::<u64>()
                                                                                                                   as
                                                                                                                   libc::c_ulong))).wrapping_div(8i32
                                                                                                                                                     as
@@ -210,7 +210,7 @@ pub unsafe extern "C" fn crypto_encrypt(mut c: *mut libc::c_uchar,
                                    libc::c_ulong).wrapping_sub((8i32 as
                                                                     libc::c_ulong).wrapping_mul((32i32
                                                                                                      as
-                                                                                                     libc::c_ulong).wrapping_add(::std::mem::size_of::<uint64_t>()
+                                                                                                     libc::c_ulong).wrapping_add(::std::mem::size_of::<u64>()
                                                                                                                                      as
                                                                                                                                      libc::c_ulong))).wrapping_div(8i32
                                                                                                                                                                        as
@@ -221,7 +221,7 @@ pub unsafe extern "C" fn crypto_encrypt(mut c: *mut libc::c_uchar,
                  8i32 + leftover_len) as libc::c_ulonglong
     }
     if encrypt_Kobara_Imai(c, pk as *mut publicKeyMcEliece_t,
-                           mlen as uint32_t, m) == 1i32 {
+                           mlen as u32, m) == 1i32 {
         return 0i32
     }
     return -1i32;

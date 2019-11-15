@@ -13,9 +13,9 @@ extern "C" {
                      __file: *const libc::c_char, __line: libc::c_uint,
                      __function: *const libc::c_char) -> !;
 }
-pub type __uint64_t = libc::c_ulong;
-pub type uint64_t = __uint64_t;
-pub type DIGIT = uint64_t;
+pub type __u64 = libc::c_ulong;
+pub type u64 = __u64;
+pub type DIGIT = u64;
 /* *
  *
  * <gf2x_arith.h>

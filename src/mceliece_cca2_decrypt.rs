@@ -2,10 +2,6 @@
          non_upper_case_globals, unused_assignments, unused_mut)]
 #![feature(const_raw_ptr_to_usize_cast, label_break_value)]
 extern "C" {
-    #[no_mangle]
-    static mut stderr: *mut _IO_FILE;
-    #[no_mangle]
-    fn fprintf(_: *mut FILE, _: *const libc::c_char, _: ...) -> libc::c_int;
     /* *
  *
  * <constant_weight_codec.h>
@@ -42,7 +38,7 @@ extern "C" {
     fn bitstream_write(output: *mut libc::c_uchar,
                        amount_to_write: libc::c_uint,
                        output_bit_cursor: *mut libc::c_uint,
-                       value_to_write: uint64_t);
+                       value_to_write: u64);
     #[no_mangle]
     fn deterministic_random_byte_generator(output: *mut libc::c_uchar,
                                            output_len: libc::c_ulonglong,
@@ -57,18 +53,18 @@ extern "C" {
     fn gf2x_transpose_in_place(A: *mut DIGIT);
     /*---------------------------------------------------------------------------*/
     #[no_mangle]
-    fn gf2x_mod_add_sparse(sizeR: libc::c_int, Res: *mut uint32_t,
-                           sizeA: libc::c_int, A: *mut uint32_t,
-                           sizeB: libc::c_int, B: *mut uint32_t);
+    fn gf2x_mod_add_sparse(sizeR: libc::c_int, Res: *mut u32,
+                           sizeA: libc::c_int, A: *mut u32,
+                           sizeB: libc::c_int, B: *mut u32);
     /*----------------------------------------------------------------------------*/
     #[no_mangle]
-    fn gf2x_mod_mul_sparse(sizeR: libc::c_int, Res: *mut uint32_t,
-                           sizeA: libc::c_int, A: *const uint32_t,
-                           sizeB: libc::c_int, B: *const uint32_t);
+    fn gf2x_mod_mul_sparse(sizeR: libc::c_int, Res: *mut u32,
+                           sizeA: libc::c_int, A: *const u32,
+                           sizeB: libc::c_int, B: *const u32);
     /*----------------------------------------------------------------------------*/
     #[no_mangle]
     fn gf2x_mod_mul_dense_to_sparse(Res: *mut DIGIT, dense: *const DIGIT,
-                                    sparse: *const uint32_t,
+                                    sparse: *const u32,
                                     nPos: libc::c_uint);
     #[no_mangle]
     fn constant_weight_to_binary_approximate(bitstreamOut: *mut libc::c_uchar,
@@ -106,20 +102,20 @@ extern "C" {
  **/
     /*----------------------------------------------------------------------------*/
     #[no_mangle]
-    fn generateHPosOnes(HPosOnes: *mut [uint32_t; 11],
+    fn generateHPosOnes(HPosOnes: *mut [u32; 11],
                         niederreiter_keys_expander: *mut AES_XOF_struct);
     /*----------------------------------------------------------------------------*/
     #[no_mangle]
-    fn transposeHPosOnes(HtrPosOnes: *mut [uint32_t; 11],
-                         HPosOnes: *mut [uint32_t; 11]);
+    fn transposeHPosOnes(HtrPosOnes: *mut [u32; 11],
+                         HPosOnes: *mut [u32; 11]);
     /*----------------------------------------------------------------------------*/
     #[no_mangle]
-    fn generateQPosOnes(QPosOnes: *mut [uint32_t; 11],
+    fn generateQPosOnes(QPosOnes: *mut [u32; 11],
                         keys_expander: *mut AES_XOF_struct);
     /*----------------------------------------------------------------------------*/
     #[no_mangle]
-    fn transposeQPosOnes(QtrPosOnes: *mut [uint32_t; 11],
-                         QPosOnes: *mut [uint32_t; 11]);
+    fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11],
+                         QPosOnes: *mut [u32; 11]);
     /* *
  *
  * <bf_decoding.h>
@@ -152,8 +148,8 @@ extern "C" {
  *
  **/
     #[no_mangle]
-    fn bf_decoding(err: *mut DIGIT, HtrPosOnes: *const [uint32_t; 11],
-                   QtrPosOnes: *const [uint32_t; 11],
+    fn bf_decoding(err: *mut DIGIT, HtrPosOnes: *const [u32; 11],
+                   QtrPosOnes: *const [u32; 11],
                    privateSyndrome: *mut DIGIT) -> libc::c_int;
     #[no_mangle]
     fn Keccak(rate: libc::c_uint, capacity: libc::c_uint,
@@ -169,24 +165,13 @@ extern "C" {
     #[no_mangle]
     fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong)
      -> *mut libc::c_void;
-    #[no_mangle]
-    fn __assert_fail(__assertion: *const libc::c_char,
-                     __file: *const libc::c_char, __line: libc::c_uint,
-                     __function: *const libc::c_char) -> !;
     // end poly_seq_into_bytestream
     /*----------------------------------------------------------------------------*/
     #[no_mangle]
     static mut thresholds: [libc::c_int; 2];
 }
-pub type __uint8_t = libc::c_uchar;
-pub type __uint32_t = libc::c_uint;
-pub type __uint64_t = libc::c_ulong;
-pub type __off_t = libc::c_long;
-pub type __off64_t = libc::c_long;
-pub type uint8_t = __uint8_t;
-pub type uint32_t = __uint32_t;
-pub type uint64_t = __uint64_t;
-pub type size_t = libc::c_ulong;
+pub type DIGIT = u64;
+
 /* *
  *
  * <gf2x_limbs.h>
@@ -222,50 +207,6 @@ pub type size_t = libc::c_ulong;
 /*----------------------------------------------------------------------------*/
 /* limb size definitions for the multi-precision GF(2^x) library              */
 /*----------------------------------------------------------------------------*/
-// gcc -DCPU_WORD_BITS=64 ...
-pub type DIGIT = uint64_t;
-#[derive ( Copy, Clone )]
-#[repr(C)]
-pub struct _IO_FILE {
-    pub _flags: libc::c_int,
-    pub _IO_read_ptr: *mut libc::c_char,
-    pub _IO_read_end: *mut libc::c_char,
-    pub _IO_read_base: *mut libc::c_char,
-    pub _IO_write_base: *mut libc::c_char,
-    pub _IO_write_ptr: *mut libc::c_char,
-    pub _IO_write_end: *mut libc::c_char,
-    pub _IO_buf_base: *mut libc::c_char,
-    pub _IO_buf_end: *mut libc::c_char,
-    pub _IO_save_base: *mut libc::c_char,
-    pub _IO_backup_base: *mut libc::c_char,
-    pub _IO_save_end: *mut libc::c_char,
-    pub _markers: *mut _IO_marker,
-    pub _chain: *mut _IO_FILE,
-    pub _fileno: libc::c_int,
-    pub _flags2: libc::c_int,
-    pub _old_offset: __off_t,
-    pub _cur_column: libc::c_ushort,
-    pub _vtable_offset: libc::c_schar,
-    pub _shortbuf: [libc::c_char; 1],
-    pub _lock: *mut libc::c_void,
-    pub _offset: __off64_t,
-    pub __pad1: *mut libc::c_void,
-    pub __pad2: *mut libc::c_void,
-    pub __pad3: *mut libc::c_void,
-    pub __pad4: *mut libc::c_void,
-    pub __pad5: size_t,
-    pub _mode: libc::c_int,
-    pub _unused2: [libc::c_char; 20],
-}
-pub type _IO_lock_t = ();
-#[derive ( Copy, Clone )]
-#[repr(C)]
-pub struct _IO_marker {
-    pub _next: *mut _IO_marker,
-    pub _sbuf: *mut _IO_FILE,
-    pub _pos: libc::c_int,
-}
-pub type FILE = _IO_FILE;
 /* *
  *
  * <rng.h>
@@ -315,8 +256,8 @@ pub struct AES_XOF_struct {
 #[repr(C)]
 pub struct privateKeyMcEliece_t {
     pub prng_seed: [libc::c_uchar; 32],
-    pub rejections: uint8_t,
-    pub secondIterThreshold: uint8_t,
+    pub rejections: u8,
+    pub secondIterThreshold: u8,
 }
 /* *
  *
@@ -503,10 +444,10 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
     seedexpander_from_trng(&mut mceliece_decrypt_expander,
                            (*sk).prng_seed.as_mut_ptr());
     /* rebuild secret key values */
-    let mut HPosOnes: [[uint32_t; 11]; 2] = [[0; 11]; 2];
-    let mut QPosOnes: [[uint32_t; 11]; 2] = [[0; 11]; 2];
+    let mut HPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
+    let mut QPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
     let mut rejections: libc::c_int = (*sk).rejections as libc::c_int;
-    let mut LPosOnes: [[uint32_t; 121]; 2] = [[0; 121]; 2];
+    let mut LPosOnes: [[u32; 121]; 2] = [[0; 121]; 2];
     loop  {
         generateHPosOnes(HPosOnes.as_mut_ptr(),
                          &mut mceliece_decrypt_expander);
@@ -516,12 +457,12 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
         while i < 2i32 {
             let mut j: libc::c_int = 0i32;
             while j < 11i32 * 11i32 {
-                LPosOnes[i as usize][j as usize] = 57899i32 as uint32_t;
+                LPosOnes[i as usize][j as usize] = 57899i32 as u32;
                 j += 1
             }
             i += 1
         }
-        let mut auxPosOnes: [uint32_t; 121] = [0; 121];
+        let mut auxPosOnes: [u32; 121] = [0; 121];
         let mut processedQOnes: [libc::c_uchar; 2] =
             [0i32 as libc::c_uchar, 0];
         let mut colQ: libc::c_int = 0i32;
@@ -531,7 +472,7 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
                 gf2x_mod_mul_sparse(11i32 * 11i32, auxPosOnes.as_mut_ptr(),
                                     11i32,
                                     HPosOnes[i_0 as usize].as_mut_ptr() as
-                                        *const uint32_t,
+                                        *const u32,
                                     qBlockWeights[i_0 as usize][colQ as usize]
                                         as libc::c_int,
                                     QPosOnes[i_0 as
@@ -542,7 +483,7 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
                                                                                 libc::c_int
                                                                                 as
                                                                                 isize)
-                                        as *const uint32_t);
+                                        as *const u32);
                 gf2x_mod_add_sparse(11i32 * 11i32,
                                     LPosOnes[colQ as usize].as_mut_ptr(),
                                     11i32 * 11i32,
@@ -559,8 +500,8 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
         rejections -= 1;
         if !(rejections >= 0i32) { break ; }
     }
-    let mut HtrPosOnes: [[uint32_t; 11]; 2] = [[0; 11]; 2];
-    let mut QtrPosOnes: [[uint32_t; 11]; 2] = [[0; 11]; 2];
+    let mut HtrPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
+    let mut QtrPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
     transposeHPosOnes(HtrPosOnes.as_mut_ptr(), HPosOnes.as_mut_ptr());
     transposeQPosOnes(QtrPosOnes.as_mut_ptr(), QPosOnes.as_mut_ptr());
     /* end rebuild secret key values */
@@ -613,7 +554,7 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
                                                                           isize)
                                          as *const DIGIT,
                                      LPosOnes[i_2 as usize].as_mut_ptr() as
-                                         *const uint32_t,
+                                         *const u32,
                                      (11i32 * 11i32) as libc::c_uint);
         gf2x_mod_add(privateSyndrome.as_mut_ptr(),
                      privateSyndrome.as_mut_ptr() as *const DIGIT,
@@ -628,8 +569,8 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
     let mut ok: libc::c_int = 0;
     ok =
         bf_decoding(decoded_err,
-                    HtrPosOnes.as_mut_ptr() as *const [uint32_t; 11],
-                    QtrPosOnes.as_mut_ptr() as *const [uint32_t; 11],
+                    HtrPosOnes.as_mut_ptr() as *const [u32; 11],
+                    QtrPosOnes.as_mut_ptr() as *const [u32; 11],
                     privateSyndrome.as_mut_ptr());
     if ok == 0i32 { return 0i32 }
     let mut err_weight: libc::c_int = 0i32;
@@ -676,35 +617,30 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
 }
 /*----------------------------------------------------------------------------*/
 unsafe extern "C" fn char_left_bit_shift_n(length: libc::c_int,
-                                           mut in_0: *mut uint8_t,
+                                           mut in_0: *mut u8,
                                            amount: libc::c_int) {
-    if amount < 8i32 {
-    } else {
-        __assert_fail(b"amount < 8\x00" as *const u8 as *const libc::c_char,
-                      b"mceliece_cca2_decrypt.c\x00" as *const u8 as
-                          *const libc::c_char, 140i32 as libc::c_uint,
-                      (*::std::mem::transmute::<&[u8; 60],
-                                                &[libc::c_char; 60]>(b"void char_left_bit_shift_n(const int, uint8_t *, const int)\x00")).as_ptr());
+    if amount > 8i32 {
+        panic!("assertion");
     }
     if amount == 0i32 { return }
     let mut j: libc::c_int = 0;
-    let mut mask: uint8_t = 0;
+    let mut mask: u8 = 0;
     mask =
-        !(((0x1i32 as uint8_t as libc::c_int) << 8i32 - amount) - 1i32) as
-            uint8_t;
+        !(((0x1i32 as u8 as libc::c_int) << 8i32 - amount) - 1i32) as
+            u8;
     j = 0i32;
     while j < length - 1i32 {
         let ref mut fresh0 = *in_0.offset(j as isize);
-        *fresh0 = ((*fresh0 as libc::c_int) << amount) as uint8_t;
+        *fresh0 = ((*fresh0 as libc::c_int) << amount) as u8;
         let ref mut fresh1 = *in_0.offset(j as isize);
         *fresh1 =
             (*fresh1 as libc::c_int |
                  (*in_0.offset((j + 1i32) as isize) as libc::c_int &
-                      mask as libc::c_int) >> 8i32 - amount) as uint8_t;
+                      mask as libc::c_int) >> 8i32 - amount) as u8;
         j += 1
     }
     let ref mut fresh2 = *in_0.offset(j as isize);
-    *fresh2 = ((*fresh2 as libc::c_int) << amount) as uint8_t;
+    *fresh2 = ((*fresh2 as libc::c_int) << amount) as u8;
 }
 // end right_bit_shift_n
 /*----------------------------------------------------------------------------*/
@@ -801,18 +737,17 @@ pub unsafe extern "C" fn decrypt_Kobara_Imai(output: *mut libc::c_uchar,
     thresholds[1] = (*sk).secondIterThreshold as libc::c_int;
     if decrypt_McEliece(err.as_mut_ptr(), correctedCodeword.as_mut_ptr(), sk,
                         ctx) == 0i32 {
-        fprintf(stderr,
-                b"Decode FAIL\n\x00" as *const u8 as *const libc::c_char);
+        panic!("decoding fail");
         return 0i32
     }
     /* correctedCodeword now contains the correct codeword, iword is the first
     * portion, followed by syndrome turn back iword into a bytesequence */
-    let mut paddedSequenceLen: uint64_t = 0;
+    let mut paddedSequenceLen: u64 = 0;
     if clen <=
            (2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
                 8i32) as libc::c_ulonglong {
         paddedSequenceLen =
-            (((2i32 - 1i32) * 57899i32 + 7i32) / 8i32) as uint64_t
+            (((2i32 - 1i32) * 57899i32 + 7i32) / 8i32) as u64
     } else {
         paddedSequenceLen =
             clen.wrapping_sub((2i32 *
@@ -830,7 +765,7 @@ pub unsafe extern "C" fn decrypt_Kobara_Imai(output: *mut libc::c_uchar,
                                                                                                            8i32)
                                                                                                           as
                                                                                                           libc::c_ulonglong)
-                as uint64_t
+                as u64
     }
     let vla = paddedSequenceLen as usize;
     let mut paddedOutput: Vec<libc::c_uchar> = ::std::vec::from_elem(0, vla);
@@ -940,10 +875,8 @@ pub unsafe extern "C" fn decrypt_Kobara_Imai(output: *mut libc::c_uchar,
     let mut i_0: libc::c_int = 32i32;
     while i_0 < 48i32 {
         if cwEncOutputBuffer[i_0 as usize] as libc::c_int ^
-               outputHash[i_0 as usize] as libc::c_int != 0i32 {
-            fprintf(stderr,
-                    b"Nonzero TRNG pad \n\x00" as *const u8 as
-                        *const libc::c_char);
+            outputHash[i_0 as usize] as libc::c_int != 0i32 {
+                panic!("nonzero trng pad");
             return 0i32
         }
         i_0 += 1
@@ -974,24 +907,22 @@ pub unsafe extern "C" fn decrypt_Kobara_Imai(output: *mut libc::c_uchar,
     let mut i_2: libc::c_int = 0i32;
     while i_2 < 32i32 {
         if *paddedOutput.as_mut_ptr().offset(i_2 as isize) as libc::c_int !=
-               0i32 {
-            fprintf(stderr,
-                    b"KI const mismatch \n\x00" as *const u8 as
-                        *const libc::c_char);
+            0i32 {
+                panic!("KI const mismatch");
             return 0i32
         }
         i_2 += 1
     }
     /* retrieve message len, and set it */
-    let mut correctlySizedBytePtxLen: uint64_t = 0;
-    memcpy(&mut correctlySizedBytePtxLen as *mut uint64_t as
+    let mut correctlySizedBytePtxLen: u64 = 0;
+    memcpy(&mut correctlySizedBytePtxLen as *mut u64 as
                *mut libc::c_void,
            paddedOutput.as_mut_ptr().offset(32) as *const libc::c_void,
-           ::std::mem::size_of::<uint64_t>() as libc::c_ulong);
+           ::std::mem::size_of::<u64>() as libc::c_ulong);
     *byteOutputLength = correctlySizedBytePtxLen as libc::c_ulonglong;
     /* copy message in output buffer */
     memcpy(output as *mut libc::c_void,
-           paddedOutput.as_mut_ptr().offset(32).offset(::std::mem::size_of::<uint64_t>()
+           paddedOutput.as_mut_ptr().offset(32).offset(::std::mem::size_of::<u64>()
                                                            as libc::c_ulong as
                                                            isize) as
                *const libc::c_void, correctlySizedBytePtxLen);

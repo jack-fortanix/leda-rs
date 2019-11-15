@@ -32,16 +32,16 @@ extern "C" {
     #[no_mangle]
     fn int32_sort(x: *mut int32_t, n: libc::c_longlong);
 }
-pub type __uint8_t = libc::c_uchar;
+pub type __u8 = libc::c_uchar;
 pub type __int32_t = libc::c_int;
-pub type __uint32_t = libc::c_uint;
+pub type __u32 = libc::c_uint;
 pub type __int64_t = libc::c_long;
-pub type __uint64_t = libc::c_ulong;
+pub type __u64 = libc::c_ulong;
 pub type int32_t = __int32_t;
 pub type int64_t = __int64_t;
-pub type uint8_t = __uint8_t;
-pub type uint32_t = __uint32_t;
-pub type uint64_t = __uint64_t;
+pub type u8 = __u8;
+pub type u32 = __u32;
+pub type u64 = __u64;
 /* *
  *
  * <gf2x_limbs.h>
@@ -78,7 +78,7 @@ pub type uint64_t = __uint64_t;
 /* limb size definitions for the multi-precision GF(2^x) library              */
 /*----------------------------------------------------------------------------*/
 // gcc -DCPU_WORD_BITS=64 ...
-pub type DIGIT = uint64_t;
+pub type DIGIT = u64;
 pub type SIGNED_DIGIT = int64_t;
 #[derive ( Copy, Clone )]
 #[repr(C)]
@@ -92,7 +92,7 @@ pub struct AES_XOF_struct {
 #[derive ( Copy, Clone )]
 #[repr ( C )]
 pub union toReverse_t {
-    pub inByte: [uint8_t; 8],
+    pub inByte: [u8; 8],
     pub digitValue: DIGIT,
 }
 /* *
@@ -326,11 +326,11 @@ pub unsafe extern "C" fn left_bit_shift_wide_n(length: libc::c_int,
 }
 // end left_bit_shift_n
 /*----------------------------------------------------------------------------*/
-unsafe extern "C" fn byte_reverse_with_64bitDIGIT(mut b: uint8_t) -> uint8_t {
+unsafe extern "C" fn byte_reverse_with_64bitDIGIT(mut b: u8) -> u8 {
     b =
         ((b as libc::c_ulonglong).wrapping_mul(0x202020202u64) &
              0x10884422010u64).wrapping_rem(1023i32 as libc::c_ulonglong) as
-            uint8_t;
+            u8;
     return b;
 }
 // end byte_reverse_64bitDIGIT
@@ -1265,7 +1265,7 @@ unsafe extern "C" fn gf2x_fmac(mut Res: *mut DIGIT, mut operand: *const DIGIT,
 pub unsafe extern "C" fn gf2x_mod_mul_dense_to_sparse(mut Res: *mut DIGIT,
                                                       mut dense: *const DIGIT,
                                                       mut sparse:
-                                                          *const uint32_t,
+                                                          *const u32,
                                                       mut nPos:
                                                           libc::c_uint) {
     let mut resDouble: [DIGIT; 1810] =
@@ -1366,8 +1366,8 @@ pub unsafe extern "C" fn gf2x_mod_mul_dense_to_sparse(mut Res: *mut DIGIT,
 pub unsafe extern "C" fn gf2x_transpose_in_place_sparse(mut sizeA:
                                                             libc::c_int,
                                                         mut A:
-                                                            *mut uint32_t) {
-    let mut t: uint32_t = 0;
+                                                            *mut u32) {
+    let mut t: u32 = 0;
     let mut i: libc::c_int = 0i32;
     let mut j: libc::c_int = 0;
     if *A.offset(i as isize) == 0i32 as libc::c_uint { i = 1i32 }
@@ -1392,18 +1392,18 @@ pub unsafe extern "C" fn gf2x_transpose_in_place_sparse(mut sizeA:
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
 pub unsafe extern "C" fn gf2x_mod_mul_sparse(mut sizeR: libc::c_int,
-                                             mut Res: *mut uint32_t,
+                                             mut Res: *mut u32,
                                              mut sizeA: libc::c_int,
-                                             mut A: *const uint32_t,
+                                             mut A: *const u32,
                                              mut sizeB: libc::c_int,
-                                             mut B: *const uint32_t) {
+                                             mut B: *const u32) {
     /* compute all the coefficients, filling invalid positions with P*/
     let mut lastFilledPos: libc::c_uint = 0i32 as libc::c_uint;
     let mut i: libc::c_int = 0i32;
     while i < sizeA {
         let mut j: libc::c_int = 0i32;
         while j < sizeB {
-            let mut prod: uint32_t =
+            let mut prod: u32 =
                 (*A.offset(i as isize)).wrapping_add(*B.offset(j as isize));
             prod =
                 if prod >= 57899i32 as libc::c_uint {
@@ -1413,7 +1413,7 @@ pub unsafe extern "C" fn gf2x_mod_mul_sparse(mut sizeR: libc::c_int,
                    *B.offset(j as isize) != 57899i32 as libc::c_uint {
                 *Res.offset(lastFilledPos as isize) = prod
             } else {
-                *Res.offset(lastFilledPos as isize) = 57899i32 as uint32_t
+                *Res.offset(lastFilledPos as isize) = 57899i32 as u32
             }
             lastFilledPos = lastFilledPos.wrapping_add(1);
             j += 1
@@ -1421,12 +1421,12 @@ pub unsafe extern "C" fn gf2x_mod_mul_sparse(mut sizeR: libc::c_int,
         i += 1
     }
     while lastFilledPos < sizeR as libc::c_uint {
-        *Res.offset(lastFilledPos as isize) = 57899i32 as uint32_t;
+        *Res.offset(lastFilledPos as isize) = 57899i32 as u32;
         lastFilledPos = lastFilledPos.wrapping_add(1)
     }
     int32_sort(Res as *mut int32_t, sizeR as libc::c_longlong);
     /* eliminate duplicates */
-    let mut lastReadPos: uint32_t = *Res.offset(0);
+    let mut lastReadPos: u32 = *Res.offset(0);
     let mut duplicateCount: libc::c_int = 0;
     let mut write_idx: libc::c_int = 0i32;
     let mut read_idx: libc::c_int = 0i32;
@@ -1447,7 +1447,7 @@ pub unsafe extern "C" fn gf2x_mod_mul_sparse(mut sizeR: libc::c_int,
     }
     /* fill remaining cells with INVALID_POS_VALUE */
     while write_idx < sizeR {
-        *Res.offset(write_idx as isize) = 57899i32 as uint32_t;
+        *Res.offset(write_idx as isize) = 57899i32 as u32;
         write_idx += 1
     };
 }
@@ -1458,13 +1458,13 @@ pub unsafe extern "C" fn gf2x_mod_mul_sparse(mut sizeR: libc::c_int,
 /* PRE: A and B should be sorted and have INVALID_POS_VALUE at the end */
 #[no_mangle]
 pub unsafe extern "C" fn gf2x_mod_add_sparse(mut sizeR: libc::c_int,
-                                             mut Res: *mut uint32_t,
+                                             mut Res: *mut u32,
                                              mut sizeA: libc::c_int,
-                                             mut A: *mut uint32_t,
+                                             mut A: *mut u32,
                                              mut sizeB: libc::c_int,
-                                             mut B: *mut uint32_t) {
+                                             mut B: *mut u32) {
     let vla = sizeR as usize;
-    let mut tmpRes: Vec<uint32_t> = ::std::vec::from_elem(0, vla);
+    let mut tmpRes: Vec<u32> = ::std::vec::from_elem(0, vla);
     let mut idxA: libc::c_int = 0i32;
     let mut idxB: libc::c_int = 0i32;
     let mut idxR: libc::c_int = 0i32;
@@ -1500,12 +1500,12 @@ pub unsafe extern "C" fn gf2x_mod_add_sparse(mut sizeR: libc::c_int,
         idxR += 1
     }
     while idxR < sizeR {
-        *tmpRes.as_mut_ptr().offset(idxR as isize) = 57899i32 as uint32_t;
+        *tmpRes.as_mut_ptr().offset(idxR as isize) = 57899i32 as u32;
         idxR += 1
     }
     memcpy(Res as *mut libc::c_void,
            tmpRes.as_mut_ptr() as *const libc::c_void,
-           (::std::mem::size_of::<uint32_t>() as
+           (::std::mem::size_of::<u32>() as
                 libc::c_ulong).wrapping_mul(sizeR as libc::c_ulong));
 }
 // end gf2x_mod_add_sparse
@@ -1521,23 +1521,23 @@ unsafe extern "C" fn rand_range(n: libc::c_int, logn: libc::c_int,
     let mut required_rnd_bytes: libc::c_ulong =
         ((logn + 7i32) / 8i32) as libc::c_ulong;
     let mut rnd_char_buffer: [libc::c_uchar; 4] = [0; 4];
-    let mut rnd_value: uint32_t = 0;
-    let mut mask: uint32_t =
-        ((1i32 as uint32_t) << logn).wrapping_sub(1i32 as libc::c_uint);
+    let mut rnd_value: u32 = 0;
+    let mut mask: u32 =
+        ((1i32 as u32) << logn).wrapping_sub(1i32 as libc::c_uint);
     loop  {
         seedexpander(seed_expander_ctx, rnd_char_buffer.as_mut_ptr(),
                      required_rnd_bytes);
         /* obtain an endianness independent representation of the generated random
        bytes into an unsigned integer */
         rnd_value =
-            ((rnd_char_buffer[3] as uint32_t) <<
-                 24i32).wrapping_add((rnd_char_buffer[2] as uint32_t) <<
+            ((rnd_char_buffer[3] as u32) <<
+                 24i32).wrapping_add((rnd_char_buffer[2] as u32) <<
                                          16i32).wrapping_add((rnd_char_buffer[1]
-                                                                  as uint32_t)
+                                                                  as u32)
                                                                  <<
                                                                  8i32).wrapping_add((rnd_char_buffer[0]
                                                                                          as
-                                                                                         uint32_t)
+                                                                                         u32)
                                                                                         <<
                                                                                         0i32);
         rnd_value = mask & rnd_value;
@@ -1551,7 +1551,7 @@ unsafe extern "C" fn rand_range(n: libc::c_int, logn: libc::c_int,
  * for the '1's in the circulant block are obtained */
 #[no_mangle]
 pub unsafe extern "C" fn rand_circulant_sparse_block(mut pos_ones:
-                                                         *mut uint32_t,
+                                                         *mut u32,
                                                      countOnes: libc::c_int,
                                                      mut seed_expander_ctx:
                                                          *mut AES_XOF_struct) {
@@ -1766,7 +1766,7 @@ pub unsafe extern "C" fn rand_circulant_sparse_block(mut pos_ones:
             j += 1
         }
         if duplicated == 0i32 {
-            *pos_ones.offset(placedOnes as isize) = p as uint32_t;
+            *pos_ones.offset(placedOnes as isize) = p as u32;
             placedOnes += 1
         }
     };
@@ -2016,7 +2016,7 @@ pub unsafe extern "C" fn rand_circulant_blocks_sequence(mut sequence:
 // end rand_circulant_blocks_sequence
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn rand_error_pos(mut errorPos: *mut uint32_t,
+pub unsafe extern "C" fn rand_error_pos(mut errorPos: *mut u32,
                                         mut seed_expander_ctx:
                                             *mut AES_XOF_struct) {
     let mut duplicated: libc::c_int = 0;
@@ -2230,7 +2230,7 @@ pub unsafe extern "C" fn rand_error_pos(mut errorPos: *mut uint32_t,
             j += 1
         }
         if duplicated == 0i32 {
-            *errorPos.offset(counter as isize) = p as uint32_t;
+            *errorPos.offset(counter as isize) = p as u32;
             counter += 1
         }
     };
@@ -2316,7 +2316,7 @@ pub unsafe extern "C" fn rand_error_pos(mut errorPos: *mut uint32_t,
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
 pub unsafe extern "C" fn expand_error(mut sequence: *mut DIGIT,
-                                      mut errorPos: *mut uint32_t) {
+                                      mut errorPos: *mut u32) {
     memset(sequence as *mut libc::c_void, 0i32,
            (2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
                 8i32) as libc::c_ulong);
