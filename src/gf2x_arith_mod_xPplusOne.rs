@@ -1244,9 +1244,12 @@ unsafe extern "C" fn gf2x_fmac(mut Res: *mut DIGIT, mut operand: *const DIGIT,
                               + i) as libc::c_uint).wrapping_sub(digitShift)
                             as isize);
         *fresh7 ^= prevLo | tmp << inDigitShift;
-        prevLo =
-            tmp >> ((8i32 << 3i32) as libc::c_uint).wrapping_sub(inDigitShift)
+
+        if inDigitShift > 0 {
+            prevLo =
+                tmp >> ((8i32 << 3i32) as libc::c_uint).wrapping_sub(inDigitShift)
                 & inDigitShiftMask as libc::c_ulong;
+        }
         i -= 1
     }
     let ref mut fresh8 =
