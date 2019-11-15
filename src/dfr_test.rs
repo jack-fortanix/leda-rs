@@ -1,15 +1,8 @@
 #![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
          non_upper_case_globals, unused_assignments, unused_mut)]
-extern "C" {
-    /* ****************************************************************************
- *  Integer sorting routine code imported and adapted from djbsort
- *  https://sorting.cr.yp.to/index.html
- *  Original code available as public domain, the same licensing applies to 
- *  the modifications made to adapt it to the LEDAcrypt codebase.
-*****************************************************************************/
-    #[no_mangle]
-    fn int32_sort(x: *mut i32, n: libc::c_longlong);
-}
+
+use crate::djbsort::int32_sort;
+
 /*---------------------------------------------------------------------------*/
 /* Tests if the current code attains the desired DFR. If that is the case, 
  * computes the threshold for the second iteration of the decoder and stores

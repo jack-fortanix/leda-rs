@@ -1,9 +1,15 @@
 #![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
          non_upper_case_globals, unused_assignments, unused_mut)]
 
-#[no_mangle]
-pub unsafe extern "C" fn int32_sort(mut x: *mut i32,
-                                    mut n: libc::c_longlong) {
+/*****************************************************************************
+ *  Integer sorting routine code imported and adapted from djbsort
+ *  https://sorting.cr.yp.to/index.html
+ *  Original code available as public domain, the same licensing applies to
+ *  the modifications made to adapt it to the LEDAcrypt codebase.
+*****************************************************************************/
+
+pub unsafe fn int32_sort(mut x: *mut i32,
+                     mut n: libc::c_longlong) {
     let mut top: libc::c_longlong = 0;
     let mut p: libc::c_longlong = 0;
     let mut q: libc::c_longlong = 0;

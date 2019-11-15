@@ -23,15 +23,11 @@ extern "C" {
     #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64)
      -> *mut libc::c_void;
-    /* ****************************************************************************
- *  Integer sorting routine code imported and adapted from djbsort
- *  https://sorting.cr.yp.to/index.html
- *  Original code available as public domain, the same licensing applies to 
- *  the modifications made to adapt it to the LEDAcrypt codebase.
-*****************************************************************************/
-    #[no_mangle]
-    fn int32_sort(x: *mut i32, n: libc::c_longlong);
+
 }
+
+use crate::djbsort::int32_sort;
+
 /* *
  *
  * <gf2x_limbs.h>
