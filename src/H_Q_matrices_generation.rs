@@ -4,19 +4,17 @@ extern "C" {
     /*--------------------------------------------------------------------------*/
     #[no_mangle]
     fn rand_circulant_sparse_block(pos_ones: *mut u32,
-                                   countOnes: libc::c_int,
+                                   countOnes: i32,
                                    seed_expander_ctx: *mut AES_XOF_struct);
 }
-pub type __u32 = libc::c_uint;
-pub type u32 = __u32;
 #[derive ( Copy, Clone )]
 #[repr(C)]
 pub struct AES_XOF_struct {
-    pub buffer: [libc::c_uchar; 16],
-    pub buffer_pos: libc::c_int,
-    pub length_remaining: libc::c_ulong,
-    pub key: [libc::c_uchar; 32],
-    pub ctr: [libc::c_uchar; 16],
+    pub buffer: [u8; 16],
+    pub buffer_pos: i32,
+    pub length_remaining: u64,
+    pub key: [u8; 32],
+    pub ctr: [u8; 16],
 }
 /*----------------------------------------------------------------------------*/
 // We employ the parameters for Category 4 also in the case where the required
@@ -30,9 +28,9 @@ pub struct AES_XOF_struct {
 /*----------------------------------------------------------------------------*/
 // Derived parameters, they are useful for QC-LDPC algorithms
 // Circulant weight structure of the Q matrix, specialized per value of N0
-static mut qBlockWeights: [[libc::c_uchar; 2]; 2] =
-    [[6i32 as libc::c_uchar, 5i32 as libc::c_uchar],
-     [5i32 as libc::c_uchar, 6i32 as libc::c_uchar]];
+static mut qBlockWeights: [[u8; 2]; 2] =
+    [[6i32 as u8, 5i32 as u8],
+     [5i32 as u8, 6i32 as u8]];
 /* *
  *
  * <H_Q_matrices_generation.c>
@@ -69,7 +67,7 @@ static mut qBlockWeights: [[libc::c_uchar; 2]; 2] =
 pub unsafe extern "C" fn generateHPosOnes(mut HPosOnes: *mut [u32; 11],
                                           mut keys_expander:
                                               *mut AES_XOF_struct) {
-    let mut i: libc::c_int = 0i32;
+    let mut i: i32 = 0i32;
     while i < 2i32 {
         /* Generate a random block of Htr */
         rand_circulant_sparse_block(&mut *(*HPosOnes.offset(i as
@@ -84,19 +82,19 @@ pub unsafe extern "C" fn transposeHPosOnes(mut HtrPosOnes:
                                                *mut [u32; 11],
                                            mut HPosOnes:
                                                *mut [u32; 11]) {
-    let mut i: libc::c_int = 0i32;
+    let mut i: i32 = 0i32;
     while i < 2i32 {
         /* Obtain directly the sparse representation of the block of H */
-        let mut k: libc::c_int = 0i32;
+        let mut k: i32 = 0i32;
         while k < 11i32 {
             (*HtrPosOnes.offset(i as isize))[k as usize] =
                 (57899i32 as
-                     libc::c_uint).wrapping_sub((*HPosOnes.offset(i as
+                     u32).wrapping_sub((*HPosOnes.offset(i as
                                                                       isize))[k
                                                                                   as
                                                                                   usize]).wrapping_rem(57899i32
                                                                                                            as
-                                                                                                           libc::c_uint);
+                                                                                                           u32);
             k += 1
             /* transposes indexes */
         }
@@ -111,18 +109,18 @@ pub unsafe extern "C" fn transposeQPosOnes(mut QtrPosOnes:
                                                *mut [u32; 11],
                                            mut QPosOnes:
                                                *mut [u32; 11]) {
-    let mut transposed_ones_idx: [libc::c_uint; 2] =
-        [0i32 as libc::c_uint,
+    let mut transposed_ones_idx: [u32; 2] =
+        [0i32 as u32,
          0]; // position in the column of QtrPosOnes[][...]
-    let mut source_row_idx: libc::c_uint = 0i32 as libc::c_uint;
-    while source_row_idx < 2i32 as libc::c_uint {
-        let mut currQoneIdx: libc::c_int = 0i32;
-        let mut endQblockIdx: libc::c_int = 0i32;
-        let mut blockIdx: libc::c_int = 0i32;
+    let mut source_row_idx: u32 = 0i32 as u32;
+    while source_row_idx < 2i32 as u32 {
+        let mut currQoneIdx: i32 = 0i32;
+        let mut endQblockIdx: i32 = 0i32;
+        let mut blockIdx: i32 = 0i32;
         while blockIdx < 2i32 {
             endQblockIdx +=
                 qBlockWeights[source_row_idx as usize][blockIdx as usize] as
-                    libc::c_int;
+                    i32;
             while currQoneIdx < endQblockIdx {
                 (*QtrPosOnes.offset(blockIdx as
                                         isize))[transposed_ones_idx[blockIdx
@@ -130,13 +128,13 @@ pub unsafe extern "C" fn transposeQPosOnes(mut QtrPosOnes:
                                                                         usize]
                                                     as usize] =
                     (57899i32 as
-                         libc::c_uint).wrapping_sub((*QPosOnes.offset(source_row_idx
+                         u32).wrapping_sub((*QPosOnes.offset(source_row_idx
                                                                           as
                                                                           isize))[currQoneIdx
                                                                                       as
                                                                                       usize]).wrapping_rem(57899i32
                                                                                                                as
-                                                                                                               libc::c_uint);
+                                                                                                               u32);
                 transposed_ones_idx[blockIdx as usize] =
                     transposed_ones_idx[blockIdx as usize].wrapping_add(1);
                 currQoneIdx += 1
@@ -188,19 +186,19 @@ pub unsafe extern "C" fn transposeQPosOnes(mut QtrPosOnes:
 pub unsafe extern "C" fn generateQPosOnes(mut QPosOnes: *mut [u32; 11],
                                           mut keys_expander:
                                               *mut AES_XOF_struct) {
-    let mut i: libc::c_int = 0i32;
+    let mut i: i32 = 0i32;
     while i < 2i32 {
-        let mut placed_ones: libc::c_int = 0i32;
-        let mut j: libc::c_int = 0i32;
+        let mut placed_ones: i32 = 0i32;
+        let mut j: i32 = 0i32;
         while j < 2i32 {
             rand_circulant_sparse_block(&mut *(*QPosOnes.offset(i as
                                                                     isize)).as_mut_ptr().offset(placed_ones
                                                                                                     as
                                                                                                     isize),
                                         qBlockWeights[i as usize][j as usize]
-                                            as libc::c_int, keys_expander);
+                                            as i32, keys_expander);
             placed_ones +=
-                qBlockWeights[i as usize][j as usize] as libc::c_int;
+                qBlockWeights[i as usize][j as usize] as i32;
             j += 1
         }
         i += 1

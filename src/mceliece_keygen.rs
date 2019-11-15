@@ -2,27 +2,27 @@
          non_upper_case_globals, unused_assignments, unused_mut)]
 extern "C" {
     #[no_mangle]
-    fn randombytes(x: *mut libc::c_uchar, xlen: libc::c_ulonglong)
-     -> libc::c_int;
+    fn randombytes(x: *mut u8, xlen: u64)
+     -> i32;
     #[no_mangle]
     fn seedexpander_from_trng(ctx: *mut AES_XOF_struct,
-                              trng_entropy: *const libc::c_uchar);
+                              trng_entropy: *const u8);
     #[no_mangle]
-    fn gf2x_mod_inverse(out: *mut DIGIT, in_0: *const DIGIT) -> libc::c_int;
+    fn gf2x_mod_inverse(out: *mut DIGIT, in_0: *const DIGIT) -> i32;
     #[no_mangle]
     fn gf2x_transpose_in_place(A: *mut DIGIT);
     #[no_mangle]
-    fn gf2x_mod_add_sparse(sizeR: libc::c_int, Res: *mut u32,
-                           sizeA: libc::c_int, A: *mut u32,
-                           sizeB: libc::c_int, B: *mut u32);
+    fn gf2x_mod_add_sparse(sizeR: i32, Res: *mut u32,
+                           sizeA: i32, A: *mut u32,
+                           sizeB: i32, B: *mut u32);
     #[no_mangle]
-    fn gf2x_mod_mul_sparse(sizeR: libc::c_int, Res: *mut u32,
-                           sizeA: libc::c_int, A: *const u32,
-                           sizeB: libc::c_int, B: *const u32);
+    fn gf2x_mod_mul_sparse(sizeR: i32, Res: *mut u32,
+                           sizeA: i32, A: *const u32,
+                           sizeB: i32, B: *const u32);
     #[no_mangle]
     fn gf2x_mod_mul_dense_to_sparse(Res: *mut DIGIT, dense: *const DIGIT,
                                     sparse: *const u32,
-                                    nPos: libc::c_uint);
+                                    nPos: u32);
     /* *
  *
  * <H_Q_matrices_generation.h>
@@ -64,18 +64,11 @@ extern "C" {
                         keys_expander: *mut AES_XOF_struct);
     #[no_mangle]
     fn DFR_test(LSparse: *mut [u32; 121],
-                secondIterThreshold: *mut u8) -> libc::c_int;
+                secondIterThreshold: *mut u8) -> i32;
     #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong)
+    fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
 }
-pub type __u8 = libc::c_uchar;
-pub type __u32 = libc::c_uint;
-pub type __u64 = libc::c_ulong;
-pub type u8 = __u8;
-pub type u32 = __u32;
-pub type u64 = __u64;
-pub type size_t = libc::c_ulong;
 /* *
  *
  * <gf2x_limbs.h>
@@ -152,16 +145,16 @@ pub type DIGIT = u64;
 #[derive ( Copy, Clone )]
 #[repr(C)]
 pub struct AES_XOF_struct {
-    pub buffer: [libc::c_uchar; 16],
-    pub buffer_pos: libc::c_int,
-    pub length_remaining: libc::c_ulong,
-    pub key: [libc::c_uchar; 32],
-    pub ctr: [libc::c_uchar; 16],
+    pub buffer: [u8; 16],
+    pub buffer_pos: i32,
+    pub length_remaining: u64,
+    pub key: [u8; 32],
+    pub ctr: [u8; 16],
 }
 #[derive ( Copy, Clone )]
 #[repr(C)]
 pub struct privateKeyMcEliece_t {
-    pub prng_seed: [libc::c_uchar; 32],
+    pub prng_seed: [u8; 32],
     pub rejections: u8,
     pub secondIterThreshold: u8,
 }
@@ -182,29 +175,29 @@ pub struct publicKeyMcEliece_t {
 /*----------------------------------------------------------------------------*/
 // Derived parameters, they are useful for QC-LDPC algorithms
 // Circulant weight structure of the Q matrix, specialized per value of N0
-static mut qBlockWeights: [[libc::c_uchar; 2]; 2] =
-    [[6i32 as libc::c_uchar, 5i32 as libc::c_uchar],
-     [5i32 as libc::c_uchar, 6i32 as libc::c_uchar]];
+static mut qBlockWeights: [[u8; 2]; 2] =
+    [[6i32 as u8, 5i32 as u8],
+     [5i32 as u8, 6i32 as u8]];
 #[inline]
 unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
-                                    exponent: libc::c_uint,
+                                    exponent: u32,
                                     mut value: DIGIT) {
-    let mut straightIdx: libc::c_int =
+    let mut straightIdx: i32 =
         (((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
-              - 1i32) as libc::c_uint).wrapping_sub(exponent) as libc::c_int;
-    let mut digitIdx: libc::c_int = straightIdx / (8i32 << 3i32);
-    let mut inDigitIdx: libc::c_uint =
-        (straightIdx % (8i32 << 3i32)) as libc::c_uint;
+              - 1i32) as u32).wrapping_sub(exponent) as i32;
+    let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
+    let mut inDigitIdx: u32 =
+        (straightIdx % (8i32 << 3i32)) as u32;
     let mut mask: DIGIT =
         !((1i32 as DIGIT) <<
               (((8i32 << 3i32) - 1i32) as
-                   libc::c_uint).wrapping_sub(inDigitIdx));
+                   u32).wrapping_sub(inDigitIdx));
     *poly.offset(digitIdx as isize) = *poly.offset(digitIdx as isize) & mask;
     *poly.offset(digitIdx as isize) =
         *poly.offset(digitIdx as isize) |
             (value & 1i32 as DIGIT) <<
                 (((8i32 << 3i32) - 1i32) as
-                     libc::c_uint).wrapping_sub(inDigitIdx);
+                     u32).wrapping_sub(inDigitIdx);
 }
 /* *
  *
@@ -238,15 +231,15 @@ unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
 /*----------------------------------------------------------------------------*/
 /* Implementation that should never be optimized out by the compiler */
 #[inline]
-unsafe extern "C" fn zeroize(mut v: *mut libc::c_void, mut n: size_t) {
-    let mut p: *mut libc::c_uchar = v as *mut libc::c_uchar;
+unsafe extern "C" fn zeroize(mut v: *mut libc::c_void, mut n: usize) {
+    let mut p: *mut u8 = v as *mut u8;
     loop  {
         let fresh0 = n;
         n = n.wrapping_sub(1);
         if !(fresh0 != 0) { break ; }
         let fresh1 = p;
         p = p.offset(1);
-        ::std::ptr::write_volatile(fresh1, 0i32 as libc::c_uchar)
+        ::std::ptr::write_volatile(fresh1, 0i32 as u8)
     };
 }
 // end zeroize
@@ -261,8 +254,8 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
                        key: [0; 32],
                        ctr: [0; 16],};
     memset(&mut keys_expander as *mut AES_XOF_struct as *mut libc::c_void,
-           0i32, ::std::mem::size_of::<AES_XOF_struct>() as libc::c_ulong);
-    randombytes((*sk).prng_seed.as_mut_ptr(), 32i32 as libc::c_ulonglong);
+           0i32, ::std::mem::size_of::<AES_XOF_struct>() as u64);
+    randombytes((*sk).prng_seed.as_mut_ptr(), 32i32 as u64);
     /*
     dump(b"prng_seed\x00" as *const u8 as *const libc::c_char,
          (*sk).prng_seed.as_mut_ptr(), 32i32);
@@ -281,15 +274,15 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
     let mut QPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
     /*Rejection-sample for a full L*/
     let mut LPosOnes: [[u32; 121]; 2] = [[0; 121]; 2];
-    let mut is_L_full: libc::c_int = 0;
-    let mut isDFRok: libc::c_int = 0;
+    let mut is_L_full: i32 = 0;
+    let mut isDFRok: i32 = 0;
     (*sk).rejections = 0i32 as u8;
     loop  {
         generateHPosOnes(HPosOnes.as_mut_ptr(), &mut keys_expander);
         generateQPosOnes(QPosOnes.as_mut_ptr(), &mut keys_expander);
-        let mut i: libc::c_int = 0i32;
+        let mut i: i32 = 0i32;
         while i < 2i32 {
-            let mut j: libc::c_int = 0i32;
+            let mut j: i32 = 0i32;
             while j < 11i32 * 11i32 {
                 LPosOnes[i as usize][j as usize] = 57899i32 as u32;
                 j += 1
@@ -297,24 +290,24 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
             i += 1
         }
         let mut auxPosOnes: [u32; 121] = [0; 121];
-        let mut processedQOnes: [libc::c_uchar; 2] =
-            [0i32 as libc::c_uchar, 0];
-        let mut colQ: libc::c_int = 0i32;
+        let mut processedQOnes: [u8; 2] =
+            [0i32 as u8, 0];
+        let mut colQ: i32 = 0i32;
         while colQ < 2i32 {
-            let mut i_0: libc::c_int = 0i32;
+            let mut i_0: i32 = 0i32;
             while i_0 < 2i32 {
                 gf2x_mod_mul_sparse(11i32 * 11i32, auxPosOnes.as_mut_ptr(),
                                     11i32,
                                     HPosOnes[i_0 as usize].as_mut_ptr() as
                                         *const u32,
                                     qBlockWeights[i_0 as usize][colQ as usize]
-                                        as libc::c_int,
+                                        as i32,
                                     QPosOnes[i_0 as
                                                  usize].as_mut_ptr().offset(processedQOnes[i_0
                                                                                                as
                                                                                                usize]
                                                                                 as
-                                                                                libc::c_int
+                                                                                i32
                                                                                 as
                                                                                 isize)
                                         as *const u32);
@@ -324,24 +317,24 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
                                     LPosOnes[colQ as usize].as_mut_ptr(),
                                     11i32 * 11i32, auxPosOnes.as_mut_ptr());
                 processedQOnes[i_0 as usize] =
-                    (processedQOnes[i_0 as usize] as libc::c_int +
+                    (processedQOnes[i_0 as usize] as i32 +
                          qBlockWeights[i_0 as usize][colQ as usize] as
-                             libc::c_int) as libc::c_uchar;
+                             i32) as u8;
                 i_0 += 1
             }
             colQ += 1
         }
         is_L_full = 1i32;
-        let mut i_1: libc::c_int = 0i32;
+        let mut i_1: i32 = 0i32;
         while i_1 < 2i32 {
             is_L_full =
                 (is_L_full != 0 &&
                      LPosOnes[i_1 as usize][(11i32 * 11i32 - 1i32) as usize]
-                         != 57899i32 as libc::c_uint) as libc::c_int;
+                         != 57899i32 as u32) as i32;
             i_1 += 1
         }
         (*sk).rejections =
-            ((*sk).rejections as libc::c_int + 1i32) as u8;
+            ((*sk).rejections as i32 + 1i32) as u8;
         if is_L_full != 0 {
             isDFRok =
                 DFR_test(LPosOnes.as_mut_ptr(),
@@ -349,7 +342,7 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
         }
         if !(is_L_full == 0 || isDFRok == 0) { break ; }
     }
-    (*sk).rejections = ((*sk).rejections as libc::c_int - 1i32) as u8;
+    (*sk).rejections = ((*sk).rejections as i32 - 1i32) as u8;
     let mut Ln0dense: [DIGIT; 905] =
         [0i32 as DIGIT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -391,10 +384,10 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    let mut j_0: libc::c_int = 0i32;
+    let mut j_0: i32 = 0i32;
     while j_0 < 11i32 * 11i32 {
         if LPosOnes[(2i32 - 1i32) as usize][j_0 as usize] !=
-               57899i32 as libc::c_uint {
+               57899i32 as u32 {
             gf2x_set_coeff(Ln0dense.as_mut_ptr(),
                            LPosOnes[(2i32 - 1i32) as usize][j_0 as usize],
                            1i32 as DIGIT);
@@ -444,7 +437,7 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     gf2x_mod_inverse(Ln0Inv.as_mut_ptr(),
                      Ln0dense.as_mut_ptr() as *const DIGIT);
-    let mut i_2: libc::c_int = 0i32;
+    let mut i_2: i32 = 0i32;
     while i_2 < 2i32 - 1i32 {
         gf2x_mod_mul_dense_to_sparse((*pk).Mtr.as_mut_ptr().offset((i_2 *
                                                                         ((57899i32
@@ -463,10 +456,10 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
                                      Ln0Inv.as_mut_ptr() as *const DIGIT,
                                      LPosOnes[i_2 as usize].as_mut_ptr() as
                                          *const u32,
-                                     (11i32 * 11i32) as libc::c_uint);
+                                     (11i32 * 11i32) as u32);
         i_2 += 1
     }
-    let mut i_3: libc::c_int = 0i32;
+    let mut i_3: i32 = 0i32;
     while i_3 < 2i32 - 1i32 {
         gf2x_transpose_in_place((*pk).Mtr.as_mut_ptr().offset((i_3 *
                                                                    ((57899i32
@@ -491,7 +484,7 @@ pub unsafe extern "C" fn publicKey_deletion_McEliece(pk:
     zeroize((*pk).Mtr.as_mut_ptr() as *mut libc::c_void,
             ((2i32 - 1i32) *
                  ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32)
-                as size_t);
+                as usize);
 }
 /* *
  *
@@ -530,7 +523,7 @@ pub unsafe extern "C" fn publicKey_deletion_McEliece(pk:
 pub unsafe extern "C" fn privateKey_deletion_McEliece(sk:
                                                           *mut privateKeyMcEliece_t) {
     zeroize((*sk).prng_seed.as_mut_ptr() as *mut libc::c_void,
-            32i32 as size_t);
+            32i32 as usize);
 }
 /*----------------------------------------------------------------------------*/
 // privateKey_deletion_McEliece

@@ -2,15 +2,9 @@
          non_upper_case_globals, unused_assignments, unused_mut)]
 extern "C" {
     #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong)
+    fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
 }
-pub type __u8 = libc::c_uchar;
-pub type __u32 = libc::c_uint;
-pub type __u64 = libc::c_ulong;
-pub type u8 = __u8;
-pub type u32 = __u32;
-pub type u64 = __u64;
 pub type DIGIT = u64;
 /* *
  *
@@ -68,12 +62,12 @@ pub type DIGIT = u64;
 /*----------------------------------------------------------------------------*/
 // Derived parameters, they are useful for QC-LDPC algorithms
 // Circulant weight structure of the Q matrix, specialized per value of N0
-static mut qBlockWeights: [[libc::c_uchar; 2]; 2] =
-    [[6i32 as libc::c_uchar, 5i32 as libc::c_uchar],
-     [5i32 as libc::c_uchar, 6i32 as libc::c_uchar]];
+static mut qBlockWeights: [[u8; 2]; 2] =
+    [[6i32 as u8, 5i32 as u8],
+     [5i32 as u8, 6i32 as u8]];
 #[inline]
 unsafe extern "C" fn gf2x_copy(mut dest: *mut DIGIT, mut in_0: *const DIGIT) {
-    let mut i: libc::c_int =
+    let mut i: i32 =
         (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
     while i >= 0i32 {
         *dest.offset(i as isize) = *in_0.offset(i as isize);
@@ -82,31 +76,31 @@ unsafe extern "C" fn gf2x_copy(mut dest: *mut DIGIT, mut in_0: *const DIGIT) {
 }
 #[inline]
 unsafe extern "C" fn gf2x_get_coeff(mut poly: *const DIGIT,
-                                    exponent: libc::c_uint) -> DIGIT {
-    let mut straightIdx: libc::c_uint =
+                                    exponent: u32) -> DIGIT {
+    let mut straightIdx: u32 =
         (((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
-              - 1i32) as libc::c_uint).wrapping_sub(exponent);
-    let mut digitIdx: libc::c_uint =
-        straightIdx.wrapping_div((8i32 << 3i32) as libc::c_uint);
-    let mut inDigitIdx: libc::c_uint =
-        straightIdx.wrapping_rem((8i32 << 3i32) as libc::c_uint);
+              - 1i32) as u32).wrapping_sub(exponent);
+    let mut digitIdx: u32 =
+        straightIdx.wrapping_div((8i32 << 3i32) as u32);
+    let mut inDigitIdx: u32 =
+        straightIdx.wrapping_rem((8i32 << 3i32) as u32);
     return *poly.offset(digitIdx as isize) >>
                (((8i32 << 3i32) - 1i32) as
-                    libc::c_uint).wrapping_sub(inDigitIdx) & 1i32 as DIGIT;
+                    u32).wrapping_sub(inDigitIdx) & 1i32 as DIGIT;
 }
 #[inline]
 unsafe extern "C" fn gf2x_toggle_coeff(mut poly: *mut DIGIT,
-                                       exponent: libc::c_uint) {
-    let mut straightIdx: libc::c_int =
+                                       exponent: u32) {
+    let mut straightIdx: i32 =
         (((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
-              - 1i32) as libc::c_uint).wrapping_sub(exponent) as libc::c_int;
-    let mut digitIdx: libc::c_int = straightIdx / (8i32 << 3i32);
-    let mut inDigitIdx: libc::c_uint =
-        (straightIdx % (8i32 << 3i32)) as libc::c_uint;
+              - 1i32) as u32).wrapping_sub(exponent) as i32;
+    let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
+    let mut inDigitIdx: u32 =
+        (straightIdx % (8i32 << 3i32)) as u32;
     let mut mask: DIGIT =
         (1i32 as DIGIT) <<
             (((8i32 << 3i32) - 1i32) as
-                 libc::c_uint).wrapping_sub(inDigitIdx);
+                 u32).wrapping_sub(inDigitIdx);
     *poly.offset(digitIdx as isize) = *poly.offset(digitIdx as isize) ^ mask;
 }
 /* *
@@ -141,54 +135,54 @@ unsafe extern "C" fn gf2x_toggle_coeff(mut poly: *mut DIGIT,
  *
  **/
 #[no_mangle]
-pub static mut thresholds: [libc::c_int; 2] =
+pub static mut thresholds: [i32; 2] =
     [64i32, 11i32 * 11i32 / 2i32 + 1i32];
 #[no_mangle]
 pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
                                      mut HtrPosOnes: *const [u32; 11],
                                      mut QtrPosOnes: *const [u32; 11],
                                      mut privateSyndrome: *mut DIGIT)
- -> libc::c_int 
+ -> i32 
  //  1 polynomial
  {
     let mut unsatParityChecks: [u8; 115798] = [0; 115798];
     let mut currQBlkPos: [u32; 11] = [0; 11];
     let mut currQBitPos: [u32; 11] = [0; 11];
     let mut currSyndrome: [DIGIT; 905] = [0; 905];
-    let mut check: libc::c_int = 0;
-    let mut iteration: libc::c_int = 0i32;
+    let mut check: i32 = 0;
+    let mut iteration: i32 = 0i32;
     loop  {
         gf2x_copy(currSyndrome.as_mut_ptr(), privateSyndrome as *const DIGIT);
         memset(unsatParityChecks.as_mut_ptr() as *mut libc::c_void, 0i32,
                ((2i32 * 57899i32) as
-                    libc::c_ulong).wrapping_mul(::std::mem::size_of::<u8>()
-                                                    as libc::c_ulong));
-        let mut i: libc::c_int = 0i32;
+                    u64).wrapping_mul(::std::mem::size_of::<u8>()
+                                                    as u64));
+        let mut i: i32 = 0i32;
         while i < 2i32 {
-            let mut valueIdx: libc::c_int = 0i32;
+            let mut valueIdx: i32 = 0i32;
             while valueIdx < 57899i32 {
-                let mut HtrOneIdx: libc::c_int = 0i32;
+                let mut HtrOneIdx: i32 = 0i32;
                 while HtrOneIdx < 11i32 {
                     let mut tmp: u32 =
                         if (*HtrPosOnes.offset(i as
                                                    isize))[HtrOneIdx as
                                                                usize].wrapping_add(valueIdx
                                                                                        as
-                                                                                       libc::c_uint)
-                               >= 57899i32 as libc::c_uint {
+                                                                                       u32)
+                               >= 57899i32 as u32 {
                             (*HtrPosOnes.offset(i as
                                                     isize))[HtrOneIdx as
                                                                 usize].wrapping_add(valueIdx
                                                                                         as
-                                                                                        libc::c_uint).wrapping_sub(57899i32
+                                                                                        u32).wrapping_sub(57899i32
                                                                                                                        as
-                                                                                                                       libc::c_uint)
+                                                                                                                       u32)
                         } else {
                             (*HtrPosOnes.offset(i as
                                                     isize))[HtrOneIdx as
                                                                 usize].wrapping_add(valueIdx
                                                                                         as
-                                                                                        libc::c_uint)
+                                                                                        u32)
                         };
                     if gf2x_get_coeff(currSyndrome.as_mut_ptr() as
                                           *const DIGIT, tmp) != 0 {
@@ -204,32 +198,32 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
             i += 1
         }
         /* iteration based threshold determination*/
-        let mut corrt_syndrome_based: libc::c_int =
+        let mut corrt_syndrome_based: i32 =
             thresholds[iteration as usize];
         //Computation of correlation  with a full Q matrix
-        let mut i_0: libc::c_int = 0i32; // end for i
+        let mut i_0: i32 = 0i32; // end for i
         while i_0 < 2i32 {
-            let mut j: libc::c_int =
+            let mut j: i32 =
                 0i32; // position in the column of QtrPosOnes[][...]
             while j < 57899i32 {
-                let mut currQoneIdx: libc::c_int = 0i32;
-                let mut endQblockIdx: libc::c_int = 0i32;
-                let mut correlation: libc::c_int = 0i32;
-                let mut blockIdx: libc::c_int = 0i32;
+                let mut currQoneIdx: i32 = 0i32;
+                let mut endQblockIdx: i32 = 0i32;
+                let mut correlation: i32 = 0i32;
+                let mut blockIdx: i32 = 0i32;
                 while blockIdx < 2i32 {
                     endQblockIdx +=
                         qBlockWeights[blockIdx as usize][i_0 as usize] as
-                            libc::c_int;
-                    let mut currblockoffset: libc::c_int =
+                            i32;
+                    let mut currblockoffset: i32 =
                         blockIdx * 57899i32;
                     while currQoneIdx < endQblockIdx {
-                        let mut tmp_0: libc::c_int =
+                        let mut tmp_0: i32 =
                             (*QtrPosOnes.offset(i_0 as
                                                     isize))[currQoneIdx as
                                                                 usize].wrapping_add(j
                                                                                         as
-                                                                                        libc::c_uint)
-                                as libc::c_int;
+                                                                                        u32)
+                                as i32;
                         tmp_0 =
                             if tmp_0 >= 57899i32 {
                                 (tmp_0) - 57899i32
@@ -239,7 +233,7 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
                             blockIdx as u32;
                         correlation +=
                             unsatParityChecks[(tmp_0 + currblockoffset) as
-                                                  usize] as libc::c_int;
+                                                  usize] as i32;
                         currQoneIdx += 1
                     }
                     blockIdx += 1
@@ -249,11 +243,11 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
                     gf2x_toggle_coeff(out.offset(((57899i32 + (8i32 << 3i32) -
                                                        1i32) / (8i32 << 3i32)
                                                       * i_0) as isize),
-                                      j as libc::c_uint);
-                    let mut v: libc::c_int = 0i32;
+                                      j as u32);
+                    let mut v: i32 = 0i32;
                     while v < 11i32 {
-                        let mut syndromePosToFlip: libc::c_uint = 0;
-                        let mut HtrOneIdx_0: libc::c_int = 0i32;
+                        let mut syndromePosToFlip: u32 = 0;
+                        let mut HtrOneIdx_0: i32 = 0i32;
                         while HtrOneIdx_0 < 11i32 {
                             syndromePosToFlip =
                                 (*HtrPosOnes.offset(currQBlkPos[v as usize] as
@@ -263,9 +257,9 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
                                                                                                         usize]);
                             syndromePosToFlip =
                                 if syndromePosToFlip >=
-                                       57899i32 as libc::c_uint {
+                                       57899i32 as u32 {
                                     syndromePosToFlip.wrapping_sub(57899i32 as
-                                                                       libc::c_uint)
+                                                                       u32)
                                 } else { syndromePosToFlip };
                             gf2x_toggle_coeff(privateSyndrome,
                                               syndromePosToFlip);
@@ -287,7 +281,7 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
                       let fresh0 = check;
                       check = check + 1;
                       (*privateSyndrome.offset(fresh0 as isize)) ==
-                          0i32 as libc::c_ulong
+                          0i32 as u64
                   } {
         }
         if !(iteration < 2i32 &&
@@ -297,6 +291,6 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
         }
     }
     return (check == (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as
-               libc::c_int;
+               i32;
 }
 // end QdecodeSyndromeThresh_bitFlip_sparse

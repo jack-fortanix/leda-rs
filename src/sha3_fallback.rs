@@ -2,10 +2,10 @@
          non_upper_case_globals, unused_assignments, unused_mut)]
 extern "C" {
     #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong)
+    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64)
      -> *mut libc::c_void;
     #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong)
+    fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
 }
 /*
@@ -85,20 +85,20 @@ Technicalities
 ================================================================
 */
 /*----------------------------------------------------------------------------*/
-pub type UINT8 = libc::c_uchar;
+pub type UINT8 = u8;
 pub type tKeccakLane = UINT64;
-pub type UINT64 = libc::c_ulonglong;
+pub type UINT64 = u64;
 /*----------------------------------------------------------------------------*/
 /* * Function to load a 64-bit value using the little-endian (LE) convention.
   * On a LE platform, this could be greatly simplified using a cast.
   */
 unsafe extern "C" fn load64(mut x: *const UINT8) -> UINT64 {
-    let mut i: libc::c_int = 0;
+    let mut i: i32 = 0;
     let mut u: UINT64 = 0i32 as UINT64;
     i = 7i32;
     while i >= 0i32 {
         u <<= 8i32;
-        u |= *x.offset(i as isize) as libc::c_ulonglong;
+        u |= *x.offset(i as isize) as u64;
         i -= 1
     }
     return u;
@@ -108,9 +108,9 @@ unsafe extern "C" fn load64(mut x: *const UINT8) -> UINT64 {
   * On a LE platform, this could be greatly simplified using a cast.
   */
 unsafe extern "C" fn store64(mut x: *mut UINT8, mut u: UINT64) {
-    let mut i: libc::c_uint = 0;
-    i = 0i32 as libc::c_uint;
-    while i < 8i32 as libc::c_uint {
+    let mut i: u32 = 0;
+    i = 0i32 as u32;
+    while i < 8i32 as u32 {
         *x.offset(i as isize) = u as UINT8;
         u >>= 8i32;
         i = i.wrapping_add(1)
@@ -121,11 +121,11 @@ unsafe extern "C" fn store64(mut x: *mut UINT8, mut u: UINT64) {
   * On a LE platform, this could be greatly simplified using a cast.
   */
 unsafe extern "C" fn xor64(mut x: *mut UINT8, mut u: UINT64) {
-    let mut i: libc::c_uint = 0;
-    i = 0i32 as libc::c_uint;
-    while i < 8i32 as libc::c_uint {
+    let mut i: u32 = 0;
+    i = 0i32 as u32;
+    while i < 8i32 as u32 {
         let ref mut fresh0 = *x.offset(i as isize);
-        *fresh0 = (*fresh0 as libc::c_ulonglong ^ u) as UINT8;
+        *fresh0 = (*fresh0 as u64 ^ u) as UINT8;
         u >>= 8i32;
         i = i.wrapping_add(1)
     };
@@ -141,13 +141,13 @@ A readable and compact implementation of the Keccak-f[1600] permutation.
   * Function that computes the linear feedback shift register (LFSR) used to
   * define the round constants (see [Keccak Reference, Section 1.2]).
   */
-unsafe extern "C" fn LFSR86540(mut LFSR: *mut UINT8) -> libc::c_int {
-    let mut result: libc::c_int =
-        (*LFSR as libc::c_int & 0x1i32 != 0i32) as libc::c_int;
-    if *LFSR as libc::c_int & 0x80i32 != 0i32 {
+unsafe extern "C" fn LFSR86540(mut LFSR: *mut UINT8) -> i32 {
+    let mut result: i32 =
+        (*LFSR as i32 & 0x1i32 != 0i32) as i32;
+    if *LFSR as i32 & 0x80i32 != 0i32 {
         /* Primitive polynomial over GF(2): x^8+x^6+x^5+x^4+1 */
-        *LFSR = ((*LFSR as libc::c_int) << 1i32 ^ 0x71i32) as UINT8
-    } else { *LFSR = ((*LFSR as libc::c_int) << 1i32) as UINT8 }
+        *LFSR = ((*LFSR as i32) << 1i32 ^ 0x71i32) as UINT8
+    } else { *LFSR = ((*LFSR as i32) << 1i32) as UINT8 }
     return result;
 }
 /*----------------------------------------------------------------------------*/
@@ -155,106 +155,106 @@ unsafe extern "C" fn LFSR86540(mut LFSR: *mut UINT8) -> libc::c_int {
  * Function that computes the Keccak-f[1600] permutation on the given state.
  */
 unsafe extern "C" fn KeccakF1600_StatePermute(mut state: *mut libc::c_void) {
-    let mut round: libc::c_uint = 0;
-    let mut x: libc::c_uint = 0;
-    let mut y: libc::c_uint = 0;
-    let mut j: libc::c_uint = 0;
-    let mut t: libc::c_uint = 0;
+    let mut round: u32 = 0;
+    let mut x: u32 = 0;
+    let mut y: u32 = 0;
+    let mut j: u32 = 0;
+    let mut t: u32 = 0;
     let mut LFSRstate: UINT8 = 0x1i32 as UINT8;
-    round = 0i32 as libc::c_uint;
-    while round < 24i32 as libc::c_uint {
+    round = 0i32 as u32;
+    while round < 24i32 as u32 {
         /* === θ step (see [Keccak Reference, Section 2.3.2]) === */
         let mut C: [tKeccakLane; 5] = [0; 5];
         let mut D: tKeccakLane = 0;
         /* Compute the parity of the columns */
-        x = 0i32 as libc::c_uint;
-        while x < 5i32 as libc::c_uint {
+        x = 0i32 as u32;
+        while x < 5i32 as u32 {
             C[x as usize] =
                 load64((state as
                             *mut UINT8).offset((::std::mem::size_of::<tKeccakLane>()
                                                     as
-                                                    libc::c_ulong).wrapping_mul(x.wrapping_add((5i32
+                                                    u64).wrapping_mul(x.wrapping_add((5i32
                                                                                                     *
                                                                                                     0i32)
                                                                                                    as
-                                                                                                   libc::c_uint)
+                                                                                                   u32)
                                                                                     as
-                                                                                    libc::c_ulong)
+                                                                                    u64)
                                                    as isize)) ^
                     load64((state as
                                 *mut UINT8).offset((::std::mem::size_of::<tKeccakLane>()
                                                         as
-                                                        libc::c_ulong).wrapping_mul(x.wrapping_add((5i32
+                                                        u64).wrapping_mul(x.wrapping_add((5i32
                                                                                                         *
                                                                                                         1i32)
                                                                                                        as
-                                                                                                       libc::c_uint)
+                                                                                                       u32)
                                                                                         as
-                                                                                        libc::c_ulong)
+                                                                                        u64)
                                                        as isize)) ^
                     load64((state as
                                 *mut UINT8).offset((::std::mem::size_of::<tKeccakLane>()
                                                         as
-                                                        libc::c_ulong).wrapping_mul(x.wrapping_add((5i32
+                                                        u64).wrapping_mul(x.wrapping_add((5i32
                                                                                                         *
                                                                                                         2i32)
                                                                                                        as
-                                                                                                       libc::c_uint)
+                                                                                                       u32)
                                                                                         as
-                                                                                        libc::c_ulong)
+                                                                                        u64)
                                                        as isize)) ^
                     load64((state as
                                 *mut UINT8).offset((::std::mem::size_of::<tKeccakLane>()
                                                         as
-                                                        libc::c_ulong).wrapping_mul(x.wrapping_add((5i32
+                                                        u64).wrapping_mul(x.wrapping_add((5i32
                                                                                                         *
                                                                                                         3i32)
                                                                                                        as
-                                                                                                       libc::c_uint)
+                                                                                                       u32)
                                                                                         as
-                                                                                        libc::c_ulong)
+                                                                                        u64)
                                                        as isize)) ^
                     load64((state as
                                 *mut UINT8).offset((::std::mem::size_of::<tKeccakLane>()
                                                         as
-                                                        libc::c_ulong).wrapping_mul(x.wrapping_add((5i32
+                                                        u64).wrapping_mul(x.wrapping_add((5i32
                                                                                                         *
                                                                                                         4i32)
                                                                                                        as
-                                                                                                       libc::c_uint)
+                                                                                                       u32)
                                                                                         as
-                                                                                        libc::c_ulong)
+                                                                                        u64)
                                                        as isize));
             x = x.wrapping_add(1)
         }
-        x = 0i32 as libc::c_uint;
-        while x < 5i32 as libc::c_uint {
+        x = 0i32 as u32;
+        while x < 5i32 as u32 {
             /* Compute the θ effect for a given column */
             D =
                 C[x.wrapping_add(4i32 as
-                                     libc::c_uint).wrapping_rem(5i32 as
-                                                                    libc::c_uint)
+                                     u32).wrapping_rem(5i32 as
+                                                                    u32)
                       as usize] ^
                     (C[x.wrapping_add(1i32 as
-                                          libc::c_uint).wrapping_rem(5i32 as
-                                                                         libc::c_uint)
+                                          u32).wrapping_rem(5i32 as
+                                                                         u32)
                            as usize] << 1i32 ^
                          C[x.wrapping_add(1i32 as
-                                              libc::c_uint).wrapping_rem(5i32
+                                              u32).wrapping_rem(5i32
                                                                              as
-                                                                             libc::c_uint)
+                                                                             u32)
                                as usize] >> 64i32 - 1i32);
             /* Add the θ effect to the whole column */
-            y = 0i32 as libc::c_uint;
-            while y < 5i32 as libc::c_uint {
+            y = 0i32 as u32;
+            while y < 5i32 as u32 {
                 xor64((state as
                            *mut UINT8).offset((::std::mem::size_of::<tKeccakLane>()
                                                    as
-                                                   libc::c_ulong).wrapping_mul(x.wrapping_add((5i32
+                                                   u64).wrapping_mul(x.wrapping_add((5i32
                                                                                                    as
-                                                                                                   libc::c_uint).wrapping_mul(y))
+                                                                                                   u32).wrapping_mul(y))
                                                                                    as
-                                                                                   libc::c_ulong)
+                                                                                   u64)
                                                   as isize), D);
                 y = y.wrapping_add(1)
             }
@@ -264,38 +264,38 @@ unsafe extern "C" fn KeccakF1600_StatePermute(mut state: *mut libc::c_void) {
         let mut current: tKeccakLane = 0;
         let mut temp: tKeccakLane = 0;
         /* Start at coordinates (1 0) */
-        x = 1i32 as libc::c_uint;
-        y = 0i32 as libc::c_uint;
+        x = 1i32 as u32;
+        y = 0i32 as u32;
         current =
             load64((state as
                         *mut UINT8).offset((::std::mem::size_of::<tKeccakLane>()
                                                 as
-                                                libc::c_ulong).wrapping_mul(x.wrapping_add((5i32
+                                                u64).wrapping_mul(x.wrapping_add((5i32
                                                                                                 as
-                                                                                                libc::c_uint).wrapping_mul(y))
+                                                                                                u32).wrapping_mul(y))
                                                                                 as
-                                                                                libc::c_ulong)
+                                                                                u64)
                                                as isize));
         /* Iterate over ((0 1)(2 3))^t * (1 0) for 0 ≤ t ≤ 23 */
-        t = 0i32 as libc::c_uint;
-        while t < 24i32 as libc::c_uint {
+        t = 0i32 as u32;
+        while t < 24i32 as u32 {
             /* Compute the rotation constant r = (t+1)(t+2)/2 */
-            let mut r: libc::c_uint =
+            let mut r: u32 =
                 t.wrapping_add(1i32 as
-                                   libc::c_uint).wrapping_mul(t.wrapping_add(2i32
+                                   u32).wrapping_mul(t.wrapping_add(2i32
                                                                                  as
-                                                                                 libc::c_uint)).wrapping_div(2i32
+                                                                                 u32)).wrapping_div(2i32
                                                                                                                  as
-                                                                                                                 libc::c_uint).wrapping_rem(64i32
+                                                                                                                 u32).wrapping_rem(64i32
                                                                                                                                                 as
-                                                                                                                                                libc::c_uint);
+                                                                                                                                                u32);
             /* Compute ((0 1)(2 3)) * (x y) */
-            let mut Y: libc::c_uint =
+            let mut Y: u32 =
                 (2i32 as
-                     libc::c_uint).wrapping_mul(x).wrapping_add((3i32 as
-                                                                     libc::c_uint).wrapping_mul(y)).wrapping_rem(5i32
+                     u32).wrapping_mul(x).wrapping_add((3i32 as
+                                                                     u32).wrapping_mul(y)).wrapping_rem(5i32
                                                                                                                      as
-                                                                                                                     libc::c_uint);
+                                                                                                                     u32);
             x = y;
             y = Y;
             /* Swap current and state(x,y), and rotate */
@@ -303,88 +303,88 @@ unsafe extern "C" fn KeccakF1600_StatePermute(mut state: *mut libc::c_void) {
                 load64((state as
                             *mut UINT8).offset((::std::mem::size_of::<tKeccakLane>()
                                                     as
-                                                    libc::c_ulong).wrapping_mul(x.wrapping_add((5i32
+                                                    u64).wrapping_mul(x.wrapping_add((5i32
                                                                                                     as
-                                                                                                    libc::c_uint).wrapping_mul(y))
+                                                                                                    u32).wrapping_mul(y))
                                                                                     as
-                                                                                    libc::c_ulong)
+                                                                                    u64)
                                                    as isize));
             store64((state as
                          *mut UINT8).offset((::std::mem::size_of::<tKeccakLane>()
                                                  as
-                                                 libc::c_ulong).wrapping_mul(x.wrapping_add((5i32
+                                                 u64).wrapping_mul(x.wrapping_add((5i32
                                                                                                  as
-                                                                                                 libc::c_uint).wrapping_mul(y))
+                                                                                                 u32).wrapping_mul(y))
                                                                                  as
-                                                                                 libc::c_ulong)
+                                                                                 u64)
                                                 as isize),
                     current << r ^
-                        current >> (64i32 as libc::c_uint).wrapping_sub(r));
+                        current >> (64i32 as u32).wrapping_sub(r));
             current = temp;
             t = t.wrapping_add(1)
         }
         /* === χ step (see [Keccak Reference, Section 2.3.1]) === */
         let mut temp_0: [tKeccakLane; 5] = [0; 5];
-        y = 0i32 as libc::c_uint;
-        while y < 5i32 as libc::c_uint {
+        y = 0i32 as u32;
+        while y < 5i32 as u32 {
             /* Take a copy of the plane */
-            x = 0i32 as libc::c_uint;
-            while x < 5i32 as libc::c_uint {
+            x = 0i32 as u32;
+            while x < 5i32 as u32 {
                 temp_0[x as usize] =
                     load64((state as
                                 *mut UINT8).offset((::std::mem::size_of::<tKeccakLane>()
                                                         as
-                                                        libc::c_ulong).wrapping_mul(x.wrapping_add((5i32
+                                                        u64).wrapping_mul(x.wrapping_add((5i32
                                                                                                         as
-                                                                                                        libc::c_uint).wrapping_mul(y))
+                                                                                                        u32).wrapping_mul(y))
                                                                                         as
-                                                                                        libc::c_ulong)
+                                                                                        u64)
                                                        as isize));
                 x = x.wrapping_add(1)
             }
             /* Compute χ on the plane */
-            x = 0i32 as libc::c_uint;
-            while x < 5i32 as libc::c_uint {
+            x = 0i32 as u32;
+            while x < 5i32 as u32 {
                 store64((state as
                              *mut UINT8).offset((::std::mem::size_of::<tKeccakLane>()
                                                      as
-                                                     libc::c_ulong).wrapping_mul(x.wrapping_add((5i32
+                                                     u64).wrapping_mul(x.wrapping_add((5i32
                                                                                                      as
-                                                                                                     libc::c_uint).wrapping_mul(y))
+                                                                                                     u32).wrapping_mul(y))
                                                                                      as
-                                                                                     libc::c_ulong)
+                                                                                     u64)
                                                     as isize),
                         temp_0[x as usize] ^
                             !temp_0[x.wrapping_add(1i32 as
-                                                       libc::c_uint).wrapping_rem(5i32
+                                                       u32).wrapping_rem(5i32
                                                                                       as
-                                                                                      libc::c_uint)
+                                                                                      u32)
                                         as usize] &
                                 temp_0[x.wrapping_add(2i32 as
-                                                          libc::c_uint).wrapping_rem(5i32
+                                                          u32).wrapping_rem(5i32
                                                                                          as
-                                                                                         libc::c_uint)
+                                                                                         u32)
                                            as usize]);
                 x = x.wrapping_add(1)
             }
             y = y.wrapping_add(1)
         }
         /* === ι step (see [Keccak Reference, Section 2.3.5]) === */
-        j = 0i32 as libc::c_uint; /* 2^j-1 */
-        while j < 7i32 as libc::c_uint {
-            let mut bitPosition: libc::c_uint =
-                ((1i32 << j) - 1i32) as libc::c_uint;
+        j = 0i32 as u32; /* 2^j-1 */
+        while j < 7i32 as u32 {
+            let mut bitPosition: u32 =
+                ((1i32 << j) - 1i32) as u32;
             if LFSR86540(&mut LFSRstate) != 0 {
                 xor64((state as
                            *mut UINT8).offset((::std::mem::size_of::<tKeccakLane>()
                                                    as
-                                                   libc::c_ulong).wrapping_mul((0i32
+                                                   u64).wrapping_mul((0i32
                                                                                     +
                                                                                     5i32
                                                                                         *
                                                                                         0i32)
                                                                                    as
-                                                                                   libc::c_ulong)
+                                                                                   u64)
                                                   as isize),
                       (1i32 as tKeccakLane) << bitPosition);
             }
@@ -401,75 +401,75 @@ that use the Keccak-f[1600] permutation.
 ================================================================
 */
 #[no_mangle]
-pub unsafe extern "C" fn Keccak(mut rate: libc::c_uint,
-                                mut capacity: libc::c_uint,
-                                mut input: *const libc::c_uchar,
-                                mut inputByteLen: libc::c_ulonglong,
-                                mut delimitedSuffix: libc::c_uchar,
-                                mut output: *mut libc::c_uchar,
-                                mut outputByteLen: libc::c_ulonglong) {
+pub unsafe extern "C" fn Keccak(mut rate: u32,
+                                mut capacity: u32,
+                                mut input: *const u8,
+                                mut inputByteLen: u64,
+                                mut delimitedSuffix: u8,
+                                mut output: *mut u8,
+                                mut outputByteLen: u64) {
     let mut state: [UINT8; 200] = [0; 200];
-    let mut rateInBytes: libc::c_uint =
-        rate.wrapping_div(8i32 as libc::c_uint);
-    let mut blockSize: libc::c_uint = 0i32 as libc::c_uint;
-    let mut i: libc::c_uint = 0;
-    if rate.wrapping_add(capacity) != 1600i32 as libc::c_uint ||
-           rate.wrapping_rem(8i32 as libc::c_uint) != 0i32 as libc::c_uint {
+    let mut rateInBytes: u32 =
+        rate.wrapping_div(8i32 as u32);
+    let mut blockSize: u32 = 0i32 as u32;
+    let mut i: u32 = 0;
+    if rate.wrapping_add(capacity) != 1600i32 as u32 ||
+           rate.wrapping_rem(8i32 as u32) != 0i32 as u32 {
         return
     }
     /* === Initialize the state === */
     memset(state.as_mut_ptr() as *mut libc::c_void, 0i32,
-           ::std::mem::size_of::<[UINT8; 200]>() as libc::c_ulong);
+           ::std::mem::size_of::<[UINT8; 200]>() as u64);
     /* === Absorb all the input blocks === */
-    while inputByteLen > 0i32 as libc::c_ulonglong {
+    while inputByteLen > 0i32 as u64 {
         blockSize =
-            if inputByteLen < rateInBytes as libc::c_ulonglong {
+            if inputByteLen < rateInBytes as u64 {
                 inputByteLen
-            } else { rateInBytes as libc::c_ulonglong } as libc::c_uint;
-        i = 0i32 as libc::c_uint;
+            } else { rateInBytes as u64 } as u32;
+        i = 0i32 as u32;
         while i < blockSize {
             state[i as usize] =
-                (state[i as usize] as libc::c_int ^
-                     *input.offset(i as isize) as libc::c_int) as UINT8;
+                (state[i as usize] as i32 ^
+                     *input.offset(i as isize) as i32) as UINT8;
             i = i.wrapping_add(1)
         }
         input = input.offset(blockSize as isize);
         inputByteLen =
-            inputByteLen.wrapping_sub(blockSize as libc::c_ulonglong);
+            inputByteLen.wrapping_sub(blockSize as u64);
         if blockSize == rateInBytes {
             KeccakF1600_StatePermute(state.as_mut_ptr() as *mut libc::c_void);
-            blockSize = 0i32 as libc::c_uint
+            blockSize = 0i32 as u32
         }
     }
     /* === Do the padding and switch to the squeezing phase === */
    /* Absorb the last few bits and add the first bit of padding (which coincides with the delimiter in delimitedSuffix) */
     state[blockSize as usize] =
-        (state[blockSize as usize] as libc::c_int ^
-             delimitedSuffix as libc::c_int) as UINT8;
+        (state[blockSize as usize] as i32 ^
+             delimitedSuffix as i32) as UINT8;
     /* If the first bit of padding is at position rate-1, we need a whole new block for the second bit of padding */
-    if delimitedSuffix as libc::c_int & 0x80i32 != 0i32 &&
-           blockSize == rateInBytes.wrapping_sub(1i32 as libc::c_uint) {
+    if delimitedSuffix as i32 & 0x80i32 != 0i32 &&
+           blockSize == rateInBytes.wrapping_sub(1i32 as u32) {
         KeccakF1600_StatePermute(state.as_mut_ptr() as *mut libc::c_void);
     }
     /* Add the second bit of padding */
-    state[rateInBytes.wrapping_sub(1i32 as libc::c_uint) as usize] =
-        (state[rateInBytes.wrapping_sub(1i32 as libc::c_uint) as usize] as
-             libc::c_int ^ 0x80i32) as UINT8;
+    state[rateInBytes.wrapping_sub(1i32 as u32) as usize] =
+        (state[rateInBytes.wrapping_sub(1i32 as u32) as usize] as
+             i32 ^ 0x80i32) as UINT8;
     /* Switch to the squeezing phase */
     KeccakF1600_StatePermute(state.as_mut_ptr() as *mut libc::c_void);
     /* === Squeeze out all the output blocks === */
-    while outputByteLen > 0i32 as libc::c_ulonglong {
+    while outputByteLen > 0i32 as u64 {
         blockSize =
-            if outputByteLen < rateInBytes as libc::c_ulonglong {
+            if outputByteLen < rateInBytes as u64 {
                 outputByteLen
-            } else { rateInBytes as libc::c_ulonglong } as libc::c_uint;
+            } else { rateInBytes as u64 } as u32;
         memcpy(output as *mut libc::c_void,
                state.as_mut_ptr() as *const libc::c_void,
-               blockSize as libc::c_ulong);
+               blockSize as u64);
         output = output.offset(blockSize as isize);
         outputByteLen =
-            outputByteLen.wrapping_sub(blockSize as libc::c_ulonglong);
-        if outputByteLen > 0i32 as libc::c_ulonglong {
+            outputByteLen.wrapping_sub(blockSize as u64);
+        if outputByteLen > 0i32 as u64 {
             KeccakF1600_StatePermute(state.as_mut_ptr() as *mut libc::c_void);
         }
     };

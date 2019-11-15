@@ -20,17 +20,17 @@ extern "C" {
  *           sk is the secret key
  */
     #[no_mangle]
-    fn crypto_encrypt_open(m: *mut libc::c_uchar,
-                           mlen: *mut libc::c_ulonglong,
-                           c: *const libc::c_uchar, clen: libc::c_ulonglong,
-                           sk: *const libc::c_uchar) -> libc::c_int;
+    fn crypto_encrypt_open(m: *mut u8,
+                           mlen: *mut u64,
+                           c: *const u8, clen: u64,
+                           sk: *const u8) -> i32;
     #[no_mangle]
-    fn crypto_encrypt(c: *mut libc::c_uchar, clen: *mut libc::c_ulonglong,
-                      m: *const libc::c_uchar, mlen: libc::c_ulonglong,
-                      pk: *const libc::c_uchar) -> libc::c_int;
+    fn crypto_encrypt(c: *mut u8, clen: *mut u64,
+                      m: *const u8, mlen: u64,
+                      pk: *const u8) -> i32;
     #[no_mangle]
-    fn crypto_encrypt_keypair(pk: *mut libc::c_uchar, sk: *mut libc::c_uchar)
-     -> libc::c_int;
+    fn crypto_encrypt_keypair(pk: *mut u8, sk: *mut u8)
+     -> i32;
 }
 
 /* *
@@ -77,7 +77,7 @@ pub type DIGIT = u64;
 #[derive ( Copy, Clone )]
 #[repr(C)]
 pub struct privateKeyMcEliece_t {
-    pub prng_seed: [libc::c_uchar; 32],
+    pub prng_seed: [u8; 32],
     pub rejections: u8,
     pub secondIterThreshold: u8,
 }
@@ -100,18 +100,18 @@ pub fn kat() {
     let ptext: [u8; 5] = [1, 2, 3, 4, 5];
     dump("ptext", &ptext, 5);
     let mut ctext = vec![0u8; 14485];
-    let mut mlen: libc::c_ulonglong =
-        ::std::mem::size_of::<[u8; 5]>() as libc::c_ulong as
-            libc::c_ulonglong;
-    let mut clen: libc::c_ulonglong = 0;
+    let mut mlen: u64 =
+        ::std::mem::size_of::<[u8; 5]>() as u64 as
+            u64;
+    let mut clen: u64 = 0;
     unsafe { crypto_encrypt(ctext.as_mut_ptr(), &mut clen, ptext.as_ptr(), mlen,
                             pk.as_mut_ptr()); }
     dump("ctext", &ctext, clen as usize);
     let mut decr: [u8; 16] =
         [0i32 as u8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    let mut dlen: libc::c_ulonglong =
-        ::std::mem::size_of::<[u8; 16]>() as libc::c_ulong as
-            libc::c_ulonglong;
+    let mut dlen: u64 =
+        ::std::mem::size_of::<[u8; 16]>() as u64 as
+            u64;
     unsafe { crypto_encrypt_open(decr.as_mut_ptr(), &mut dlen, ctext.as_mut_ptr(),
                                  clen, sk.as_mut_ptr()); }
     dump("recovered", &decr, dlen as usize);

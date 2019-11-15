@@ -3,13 +3,13 @@
 #![feature(label_break_value)]
 extern "C" {
     #[no_mangle]
-    fn randombytes(x: *mut libc::c_uchar, xlen: libc::c_ulonglong)
-     -> libc::c_int;
+    fn randombytes(x: *mut u8, xlen: u64)
+     -> i32;
     #[no_mangle]
-    fn deterministic_random_byte_generator(output: *mut libc::c_uchar,
-                                           output_len: libc::c_ulonglong,
-                                           seed: *const libc::c_uchar,
-                                           seed_length: libc::c_ulonglong);
+    fn deterministic_random_byte_generator(output: *mut u8,
+                                           output_len: u64,
+                                           seed: *const u8,
+                                           seed_length: u64);
     // end gf2x_copy
     /*---------------------------------------------------------------------------*/
     // void gf2x_mod(DIGIT out[],
@@ -20,37 +20,27 @@ extern "C" {
     #[no_mangle]
     fn binary_to_constant_weight_approximate(constantWeightOut: *mut DIGIT,
                                              bitstreamIn:
-                                                 *const libc::c_uchar,
-                                             bitLength: libc::c_int)
-     -> libc::c_int;
+                                                 *const u8,
+                                             bitLength: i32)
+     -> i32;
     #[no_mangle]
-    fn bitstream_read(stream: *const libc::c_uchar, bit_amount: libc::c_uint,
-                      bit_cursor: *mut libc::c_uint) -> u64;
+    fn bitstream_read(stream: *const u8, bit_amount: u32,
+                      bit_cursor: *mut u32) -> u64;
     #[no_mangle]
-    fn Keccak(rate: libc::c_uint, capacity: libc::c_uint,
-              input: *const libc::c_uchar, inputByteLen: libc::c_ulonglong,
-              delimitedSuffix: libc::c_uchar, output: *mut libc::c_uchar,
-              outputByteLen: libc::c_ulonglong);
+    fn Keccak(rate: u32, capacity: u32,
+              input: *const u8, inputByteLen: u64,
+              delimitedSuffix: u8, output: *mut u8,
+              outputByteLen: u64);
     #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong)
+    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64)
      -> *mut libc::c_void;
     #[no_mangle]
-    fn memmove(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong)
+    fn memmove(_: *mut libc::c_void, _: *const libc::c_void, _: u64)
      -> *mut libc::c_void;
     #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong)
+    fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
-    #[no_mangle]
-    fn __assert_fail(__assertion: *const libc::c_char,
-                     __file: *const libc::c_char, __line: libc::c_uint,
-                     __function: *const libc::c_char) -> !;
 }
-pub type __u8 = libc::c_uchar;
-pub type __u32 = libc::c_uint;
-pub type __u64 = libc::c_ulong;
-pub type u8 = __u8;
-pub type u32 = __u32;
-pub type u64 = __u64;
 /* *
  *
  * <gf2x_limbs.h>
@@ -166,11 +156,11 @@ pub struct publicKeyMcEliece_t {
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
 #[inline]
-unsafe extern "C" fn gf2x_add(nr: libc::c_int, mut Res: *mut DIGIT,
-                              na: libc::c_int, mut A: *const DIGIT,
-                              nb: libc::c_int, mut B: *const DIGIT) {
-    let mut i: libc::c_uint = 0i32 as libc::c_uint;
-    while i < nr as libc::c_uint {
+unsafe extern "C" fn gf2x_add(nr: i32, mut Res: *mut DIGIT,
+                              na: i32, mut A: *const DIGIT,
+                              nb: i32, mut B: *const DIGIT) {
+    let mut i: u32 = 0i32 as u32;
+    while i < nr as u32 {
         *Res.offset(i as isize) =
             *A.offset(i as isize) ^ *B.offset(i as isize);
         i = i.wrapping_add(1)
@@ -188,37 +178,37 @@ unsafe extern "C" fn gf2x_mod_add(mut Res: *mut DIGIT, mut A: *const DIGIT,
 /* sets the coefficient of the x^exponent term as the LSB of a digit */
 #[inline]
 unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
-                                    exponent: libc::c_uint,
+                                    exponent: u32,
                                     mut value: DIGIT) {
-    let mut straightIdx: libc::c_int =
+    let mut straightIdx: i32 =
         (((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
-              - 1i32) as libc::c_uint).wrapping_sub(exponent) as libc::c_int;
-    let mut digitIdx: libc::c_int = straightIdx / (8i32 << 3i32);
-    let mut inDigitIdx: libc::c_uint =
-        (straightIdx % (8i32 << 3i32)) as libc::c_uint;
+              - 1i32) as u32).wrapping_sub(exponent) as i32;
+    let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
+    let mut inDigitIdx: u32 =
+        (straightIdx % (8i32 << 3i32)) as u32;
     /* clear given coefficient */
     let mut mask: DIGIT =
         !((1i32 as DIGIT) <<
               (((8i32 << 3i32) - 1i32) as
-                   libc::c_uint).wrapping_sub(inDigitIdx));
+                   u32).wrapping_sub(inDigitIdx));
     *poly.offset(digitIdx as isize) = *poly.offset(digitIdx as isize) & mask;
     *poly.offset(digitIdx as isize) =
         *poly.offset(digitIdx as isize) |
             (value & 1i32 as DIGIT) <<
                 (((8i32 << 3i32) - 1i32) as
-                     libc::c_uint).wrapping_sub(inDigitIdx);
+                     u32).wrapping_sub(inDigitIdx);
 }
 /* *
   *  Function to compute SHA3-384 on the input message.
   *  The output length is fixed to 48 bytes.
   */
 #[inline]
-unsafe extern "C" fn sha3_384(mut input: *const libc::c_uchar,
-                              mut inputByteLen: libc::c_uint,
-                              mut output: *mut libc::c_uchar) {
-    Keccak(832i32 as libc::c_uint, 768i32 as libc::c_uint, input,
-           inputByteLen as libc::c_ulonglong, 0x6i32 as libc::c_uchar, output,
-           48i32 as libc::c_ulonglong);
+unsafe extern "C" fn sha3_384(mut input: *const u8,
+                              mut inputByteLen: u32,
+                              mut output: *mut u8) {
+    Keccak(832i32 as u32, 768i32 as u32, input,
+           inputByteLen as u64, 0x6i32 as u8, output,
+           48i32 as u64);
 }
 /* *
  *
@@ -260,19 +250,19 @@ unsafe extern "C" fn encrypt_McEliece(mut codeword: *mut DIGIT,
     memcpy(codeword as *mut libc::c_void, ptx as *const libc::c_void,
            ((2i32 - 1i32) *
                 ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32)
-               as libc::c_ulong);
+               as u64);
     memset(codeword.offset(((2i32 - 1i32) *
                                 ((57899i32 + (8i32 << 3i32) - 1i32) /
                                      (8i32 << 3i32))) as isize) as
                *mut libc::c_void, 0i32,
            ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as
-               libc::c_ulong);
+               u64);
     let mut saux: [DIGIT; 905] = [0; 905];
-    let mut i: libc::c_int = 0i32;
+    let mut i: i32 = 0i32;
     while i < 2i32 - 1i32 {
         memset(saux.as_mut_ptr() as *mut libc::c_void, 0i32,
                ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as
-                   libc::c_ulong);
+                   u64);
         gf2x_mod_mul(saux.as_mut_ptr(),
                      (*pk).Mtr.as_ptr().offset((i *
                                                     ((57899i32 +
@@ -292,7 +282,7 @@ unsafe extern "C" fn encrypt_McEliece(mut codeword: *mut DIGIT,
                          *const DIGIT, saux.as_mut_ptr() as *const DIGIT);
         i += 1
     }
-    let mut i_0: libc::c_int = 0i32;
+    let mut i_0: i32 = 0i32;
     while i_0 < 2i32 {
         gf2x_mod_add(codeword.offset((i_0 *
                                           ((57899i32 + (8i32 << 3i32) - 1i32)
@@ -310,65 +300,65 @@ unsafe extern "C" fn encrypt_McEliece(mut codeword: *mut DIGIT,
 // end encrypt_McEliece
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn char_right_bit_shift_n(length: libc::c_int,
+pub unsafe extern "C" fn char_right_bit_shift_n(length: i32,
                                                 mut in_0: *mut u8,
-                                                amount: libc::c_int) {
+                                                amount: i32) {
     if amount > 8i32 {
         panic!("bad amount");
     }
     if amount == 0i32 { return }
-    let mut j: libc::c_int = 0;
+    let mut j: i32 = 0;
     let mut mask: u8 = 0;
-    mask = (((0x1i32 as u8 as libc::c_int) << amount) - 1i32) as u8;
+    mask = (((0x1i32 as u8 as i32) << amount) - 1i32) as u8;
     j = length - 1i32;
     while j > 0i32 {
         let ref mut fresh0 = *in_0.offset(j as isize);
-        *fresh0 = (*fresh0 as libc::c_int >> amount) as u8;
+        *fresh0 = (*fresh0 as i32 >> amount) as u8;
         let ref mut fresh1 = *in_0.offset(j as isize);
         *fresh1 =
-            (*fresh1 as libc::c_int |
-                 (*in_0.offset((j - 1i32) as isize) as libc::c_int &
-                      mask as libc::c_int) << 8i32 - amount) as u8;
+            (*fresh1 as i32 |
+                 (*in_0.offset((j - 1i32) as isize) as i32 &
+                      mask as i32) << 8i32 - amount) as u8;
         j -= 1
     }
     let ref mut fresh2 = *in_0.offset(j as isize);
-    *fresh2 = (*fresh2 as libc::c_int >> amount) as u8;
+    *fresh2 = (*fresh2 as i32 >> amount) as u8;
 }
 /*----------------------------------------------------------------------------*/
 /*  shifts the input stream so that the bytewise pad is on the left before
  * conversion */
 unsafe extern "C" fn bytestream_into_poly_seq(mut polySeq: *mut DIGIT,
-                                              mut numPoly: libc::c_int,
-                                              mut S: *mut libc::c_uchar,
-                                              byteLenS: libc::c_ulong)
- -> libc::c_int {
-    let mut padsize: libc::c_int =
+                                              mut numPoly: i32,
+                                              mut S: *mut u8,
+                                              byteLenS: u64)
+ -> i32 {
+    let mut padsize: i32 =
         if (2i32 - 1i32) * 57899i32 % 8i32 != 0 {
             (8i32) - (2i32 - 1i32) * 57899i32 % 8i32
         } else { 0i32 };
-    char_right_bit_shift_n(byteLenS as libc::c_int, S, padsize);
-    if numPoly <= 0i32 || byteLenS <= 0i32 as libc::c_ulong ||
-           byteLenS < ((numPoly * 57899i32 + 7i32) / 8i32) as libc::c_ulong {
+    char_right_bit_shift_n(byteLenS as i32, S, padsize);
+    if numPoly <= 0i32 || byteLenS <= 0i32 as u64 ||
+           byteLenS < ((numPoly * 57899i32 + 7i32) / 8i32) as u64 {
         return 0i32
     }
-    let mut slack_bits: libc::c_uint =
+    let mut slack_bits: u32 =
         byteLenS.wrapping_mul(8i32 as
-                                  libc::c_ulong).wrapping_sub((numPoly *
+                                  u64).wrapping_sub((numPoly *
                                                                    57899i32)
                                                                   as
-                                                                  libc::c_ulong)
-            as libc::c_uint;
-    let mut bitCursor: libc::c_uint = slack_bits;
+                                                                  u64)
+            as u32;
+    let mut bitCursor: u32 = slack_bits;
     let mut buffer: u64 = 0i32 as u64;
-    let mut polyIdx: libc::c_uint = 0i32 as libc::c_uint;
-    while polyIdx < numPoly as libc::c_uint {
-        let mut exponent: libc::c_uint = 0i32 as libc::c_uint;
-        while exponent < 57899i32 as libc::c_uint {
-            buffer = bitstream_read(S, 1i32 as libc::c_uint, &mut bitCursor);
+    let mut polyIdx: u32 = 0i32 as u32;
+    while polyIdx < numPoly as u32 {
+        let mut exponent: u32 = 0i32 as u32;
+        while exponent < 57899i32 as u32 {
+            buffer = bitstream_read(S, 1i32 as u32, &mut bitCursor);
             gf2x_set_coeff(&mut *polySeq.offset((((57899i32 + (8i32 << 3i32) -
                                                        1i32) / (8i32 << 3i32))
                                                      as
-                                                     libc::c_uint).wrapping_mul(polyIdx)
+                                                     u32).wrapping_mul(polyIdx)
                                                     as isize), exponent,
                            buffer);
             exponent = exponent.wrapping_add(1)
@@ -412,25 +402,25 @@ unsafe extern "C" fn bytestream_into_poly_seq(mut polySeq: *mut DIGIT,
 // end bytestream_into_poly_seq
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn encrypt_Kobara_Imai(output: *mut libc::c_uchar,
+pub unsafe extern "C" fn encrypt_Kobara_Imai(output: *mut u8,
                                              pk: *const publicKeyMcEliece_t,
                                              bytePtxLen: u32,
-                                             ptx: *const libc::c_uchar)
- -> libc::c_int {
+                                             ptx: *const u8)
+ -> i32 {
     /* Generate PRNG pad */
-    let mut secretSeed: [libc::c_uchar; 32] = [0; 32];
+    let mut secretSeed: [u8; 32] = [0; 32];
     let mut paddedSequenceLen: u64 = 0;
-    let mut isPaddedSequenceOnlyKBits: libc::c_int = 0i32;
-    if bytePtxLen as libc::c_ulong <=
+    let mut isPaddedSequenceOnlyKBits: i32 = 0i32;
+    if bytePtxLen as u64 <=
            (((2i32 - 1i32) * 57899i32) as
-                libc::c_ulong).wrapping_sub((8i32 as
-                                                 libc::c_ulong).wrapping_mul((32i32
+                u64).wrapping_sub((8i32 as
+                                                 u64).wrapping_mul((32i32
                                                                                   as
-                                                                                  libc::c_ulong).wrapping_add(::std::mem::size_of::<u64>()
+                                                                                  u64).wrapping_add(::std::mem::size_of::<u64>()
                                                                                                                   as
-                                                                                                                  libc::c_ulong))).wrapping_div(8i32
+                                                                                                                  u64))).wrapping_div(8i32
                                                                                                                                                     as
-                                                                                                                                                    libc::c_ulong)
+                                                                                                                                                    u64)
        {
         /*warning, in this case the padded sequence is exactly K bits*/
         paddedSequenceLen =
@@ -439,85 +429,85 @@ pub unsafe extern "C" fn encrypt_Kobara_Imai(output: *mut libc::c_uchar,
     } else {
         paddedSequenceLen =
             (32i32 as
-                 libc::c_ulong).wrapping_add(::std::mem::size_of::<u64>()
+                 u64).wrapping_add(::std::mem::size_of::<u64>()
                                                  as
-                                                 libc::c_ulong).wrapping_add(bytePtxLen
+                                                 u64).wrapping_add(bytePtxLen
                                                                                  as
-                                                                                 libc::c_ulong)
+                                                                                 u64)
     }
     let vla = paddedSequenceLen as usize;
-    let mut prngSequence: Vec<libc::c_uchar> = ::std::vec::from_elem(0, vla);
-    randombytes(secretSeed.as_mut_ptr(), 32i32 as libc::c_ulonglong);
+    let mut prngSequence: Vec<u8> = ::std::vec::from_elem(0, vla);
+    randombytes(secretSeed.as_mut_ptr(), 32i32 as u64);
     deterministic_random_byte_generator(prngSequence.as_mut_ptr(),
                                         (vla *
-                                             ::std::mem::size_of::<libc::c_uchar>())
-                                            as libc::c_ulong as
-                                            libc::c_ulonglong,
+                                             ::std::mem::size_of::<u8>())
+                                            as u64 as
+                                            u64,
                                         secretSeed.as_mut_ptr(),
-                                        32i32 as libc::c_ulonglong);
+                                        32i32 as u64);
     /*to avoid the use of additional memory, exploit the memory allocated for
     * the ciphertext to host the prng-padded ptx+const+len. */
     memset(output as *mut libc::c_void, 0i32,
            (2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
-                8i32) as libc::c_ulong);
+                8i32) as u64);
     let mut correctlySizedBytePtxLen: u64 = bytePtxLen as u64;
     memcpy(output.offset(32) as *mut libc::c_void,
            &mut correctlySizedBytePtxLen as *mut u64 as
                *const libc::c_void,
-           ::std::mem::size_of::<u64>() as libc::c_ulong);
+           ::std::mem::size_of::<u64>() as u64);
     memcpy(output.offset(32).offset(::std::mem::size_of::<u64>() as
-                                        libc::c_ulong as isize) as
+                                        u64 as isize) as
                *mut libc::c_void, ptx as *const libc::c_void,
-           bytePtxLen as libc::c_ulong);
-    let mut i: libc::c_int = 0i32;
-    while (i as libc::c_ulong) < paddedSequenceLen {
+           bytePtxLen as u64);
+    let mut i: i32 = 0i32;
+    while (i as u64) < paddedSequenceLen {
         let ref mut fresh3 = *output.offset(i as isize);
         *fresh3 =
-            (*fresh3 as libc::c_int ^
-                 *prngSequence.as_mut_ptr().offset(i as isize) as libc::c_int)
-                as libc::c_uchar;
+            (*fresh3 as i32 ^
+                 *prngSequence.as_mut_ptr().offset(i as isize) as i32)
+                as u8;
         i += 1
     }
     if isPaddedSequenceOnlyKBits == 1i32 {
         let ref mut fresh4 =
             *output.offset(paddedSequenceLen.wrapping_sub(1i32 as
-                                                              libc::c_ulong)
+                                                              u64)
                                as isize);
         *fresh4 =
-            (*fresh4 as libc::c_int &
-                 !(0xffi32 as u8 as libc::c_int >>
-                       (2i32 - 1i32) * 57899i32 % 8i32)) as libc::c_uchar
+            (*fresh4 as i32 &
+                 !(0xffi32 as u8 as i32 >>
+                       (2i32 - 1i32) * 57899i32 % 8i32)) as u8
     }
     /* prepare buffer which will be translated in the information word */
-    if (((2i32 - 1i32) * 57899i32 + 7i32) / 8i32) as libc::c_ulong ==
+    if (((2i32 - 1i32) * 57899i32 + 7i32) / 8i32) as u64 ==
            (32i32 as
-                libc::c_ulong).wrapping_add(::std::mem::size_of::<u64>()
+                u64).wrapping_add(::std::mem::size_of::<u64>()
                                                 as
-                                                libc::c_ulong).wrapping_add((((2i32
+                                                u64).wrapping_add((((2i32
                                                                                    -
                                                                                    1i32)
                                                                                   *
                                                                                   57899i32)
                                                                                  as
-                                                                                 libc::c_ulong).wrapping_sub((8i32
+                                                                                 u64).wrapping_sub((8i32
                                                                                                                   as
-                                                                                                                  libc::c_ulong).wrapping_mul((32i32
+                                                                                                                  u64).wrapping_mul((32i32
                                                                                                                                                    as
-                                                                                                                                                   libc::c_ulong).wrapping_add(::std::mem::size_of::<u64>()
+                                                                                                                                                   u64).wrapping_add(::std::mem::size_of::<u64>()
                                                                                                                                                                                    as
-                                                                                                                                                                                   libc::c_ulong))).wrapping_div(8i32
+                                                                                                                                                                                   u64))).wrapping_div(8i32
                                                                                                                                                                                                                      as
-                                                                                                                                                                                                                     libc::c_ulong)).wrapping_add(1i32
+                                                                                                                                                                                                                     u64)).wrapping_add(1i32
                                                                                                                                                                                                                                                       as
-                                                                                                                                                                                                                                                      libc::c_ulong)
+                                                                                                                                                                                                                                                      u64)
        {
        } else {
            panic!("(K+7)/8 !=  KOBARA_IMAI_CONSTANT_LENGTH_B+KI_LENGTH_FIELD_SIZE+MAX_BYTES_IN_IWORD+1");
     }
-    let mut iwordBuffer: [libc::c_uchar; 7238] = [0; 7238];
+    let mut iwordBuffer: [u8; 7238] = [0; 7238];
     memcpy(iwordBuffer.as_mut_ptr() as *mut libc::c_void,
            output as *const libc::c_void,
-           ::std::mem::size_of::<[libc::c_uchar; 7238]>() as libc::c_ulong);
+           ::std::mem::size_of::<[u8; 7238]>() as u64);
     /* transform into an information word poly sequence */
     let mut informationWord: [DIGIT; 905] =
         [0i32 as DIGIT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -563,84 +553,84 @@ pub unsafe extern "C" fn encrypt_Kobara_Imai(output: *mut libc::c_uchar,
     bytestream_into_poly_seq(informationWord.as_mut_ptr(), 2i32 - 1i32,
                              iwordBuffer.as_mut_ptr(),
                              (((2i32 - 1i32) * 57899i32 + 7i32) / 8i32) as
-                                 libc::c_ulong);
+                                 u64);
     /* prepare hash of padded sequence, before leftover is moved to its final place */
-    let mut hashDigest: [libc::c_uchar; 48] =
-        [0i32 as libc::c_uchar, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    let mut hashDigest: [u8; 48] =
+        [0i32 as u8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0]; // output
-    sha3_384(output, paddedSequenceLen as libc::c_uint,
+    sha3_384(output, paddedSequenceLen as u32,
              hashDigest.as_mut_ptr());
     /* move leftover padded string (if present) onto its final position*/
-    if bytePtxLen as libc::c_ulong >
+    if bytePtxLen as u64 >
            (((2i32 - 1i32) * 57899i32) as
-                libc::c_ulong).wrapping_sub((8i32 as
-                                                 libc::c_ulong).wrapping_mul((32i32
+                u64).wrapping_sub((8i32 as
+                                                 u64).wrapping_mul((32i32
                                                                                   as
-                                                                                  libc::c_ulong).wrapping_add(::std::mem::size_of::<u64>()
+                                                                                  u64).wrapping_add(::std::mem::size_of::<u64>()
                                                                                                                   as
-                                                                                                                  libc::c_ulong))).wrapping_div(8i32
+                                                                                                                  u64))).wrapping_div(8i32
                                                                                                                                                     as
-                                                                                                                                                    libc::c_ulong)
+                                                                                                                                                    u64)
        {
         memmove(output.offset((2i32 *
                                    ((57899i32 + (8i32 << 3i32) - 1i32) /
                                         (8i32 << 3i32)) * 8i32) as isize) as
                     *mut libc::c_void,
-                output.offset(::std::mem::size_of::<[libc::c_uchar; 7238]>()
-                                  as libc::c_ulong as isize).offset(-1) as
+                output.offset(::std::mem::size_of::<[u8; 7238]>()
+                                  as u64 as isize).offset(-1) as
                     *const libc::c_void,
                 (bytePtxLen as
-                     libc::c_ulong).wrapping_sub((((2i32 - 1i32) * 57899i32)
+                     u64).wrapping_sub((((2i32 - 1i32) * 57899i32)
                                                       as
-                                                      libc::c_ulong).wrapping_sub((8i32
+                                                      u64).wrapping_sub((8i32
                                                                                        as
-                                                                                       libc::c_ulong).wrapping_mul((32i32
+                                                                                       u64).wrapping_mul((32i32
                                                                                                                         as
-                                                                                                                        libc::c_ulong).wrapping_add(::std::mem::size_of::<u64>()
+                                                                                                                        u64).wrapping_add(::std::mem::size_of::<u64>()
                                                                                                                                                         as
-                                                                                                                                                        libc::c_ulong))).wrapping_div(8i32
+                                                                                                                                                        u64))).wrapping_div(8i32
                                                                                                                                                                                           as
-                                                                                                                                                                                          libc::c_ulong)));
+                                                                                                                                                                                          u64)));
         /*clear partial leakage from leftover string, only happens if K%8 !=0 */
         let mut initialLeftoverMask: u8 =
-            (0xffi32 as u8 as libc::c_int >>
+            (0xffi32 as u8 as i32 >>
                  (2i32 - 1i32) * 57899i32 % 8i32) as u8;
         let ref mut fresh5 =
             *output.offset((2i32 *
                                 ((57899i32 + (8i32 << 3i32) - 1i32) /
                                      (8i32 << 3i32)) * 8i32) as isize);
         *fresh5 =
-            (*fresh5 as libc::c_int & initialLeftoverMask as libc::c_int) as
-                libc::c_uchar
+            (*fresh5 as i32 & initialLeftoverMask as i32) as
+                u8
     }
     /*prepare CWEnc input as zero extended seed ^ hash of */
-    let mut cwEncInputBuffer: [libc::c_uchar; 1072] = [0; 1072];
+    let mut cwEncInputBuffer: [u8; 1072] = [0; 1072];
     memcpy(cwEncInputBuffer.as_mut_ptr() as *mut libc::c_void,
            hashDigest.as_mut_ptr() as *const libc::c_void,
-           48i32 as libc::c_ulong);
-    let mut i_0: libc::c_uint = 0i32 as libc::c_uint;
-    while i_0 < 32i32 as libc::c_uint {
+           48i32 as u64);
+    let mut i_0: u32 = 0i32 as u32;
+    while i_0 < 32i32 as u32 {
         cwEncInputBuffer[i_0 as usize] =
-            (cwEncInputBuffer[i_0 as usize] as libc::c_int ^
-                 secretSeed[i_0 as usize] as libc::c_int) as libc::c_uchar;
+            (cwEncInputBuffer[i_0 as usize] as i32 ^
+                 secretSeed[i_0 as usize] as i32) as u8;
         i_0 = i_0.wrapping_add(1)
     }
     let mut cwEncodedError: [DIGIT; 1810] = [0; 1810];
     /* continue drawing fresh randomness in case the constant weight encoding
     * fails */
-    let mut binaryToConstantWeightOk: libc::c_int = 0i32;
+    let mut binaryToConstantWeightOk: i32 = 0i32;
     loop  {
         /* blank cwenc destination buffer */
         memset(cwEncodedError.as_mut_ptr() as *mut libc::c_void, 0i32,
                (2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
-                    8i32) as libc::c_ulong);
+                    8i32) as u64);
         /* draw filler randomness for cwenc input from an independent random*/
-        randombytes(secretSeed.as_mut_ptr(), 32i32 as libc::c_ulonglong);
+        randombytes(secretSeed.as_mut_ptr(), 32i32 as u64);
         deterministic_random_byte_generator(cwEncInputBuffer.as_mut_ptr().offset(48),
-                                            1024i32 as libc::c_ulonglong,
+                                            1024i32 as u64,
                                             secretSeed.as_mut_ptr(),
-                                            32i32 as libc::c_ulonglong);
+                                            32i32 as u64);
         binaryToConstantWeightOk =
             binary_to_constant_weight_approximate(cwEncodedError.as_mut_ptr(),
                                                   cwEncInputBuffer.as_mut_ptr(),
@@ -737,7 +727,7 @@ pub unsafe extern "C" fn encrypt_Kobara_Imai(output: *mut libc::c_uchar,
     memcpy(output as *mut libc::c_void,
            codeword.as_mut_ptr() as *const libc::c_void,
            (2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
-                8i32) as libc::c_ulong);
+                8i32) as u64);
     return 1i32;
 }
 /*----------------------------------------------------------------------------*/

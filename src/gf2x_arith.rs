@@ -3,18 +3,12 @@
 #![feature(label_break_value)]
 extern "C" {
     #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong)
+    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64)
      -> *mut libc::c_void;
     #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong)
+    fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
-    #[no_mangle]
-    fn __assert_fail(__assertion: *const libc::c_char,
-                     __file: *const libc::c_char, __line: libc::c_uint,
-                     __function: *const libc::c_char) -> !;
 }
-pub type __u64 = libc::c_ulong;
-pub type u64 = __u64;
 pub type DIGIT = u64;
 /* *
  *
@@ -89,11 +83,11 @@ pub type DIGIT = u64;
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
 #[inline]
-unsafe extern "C" fn gf2x_add(nr: libc::c_int, mut Res: *mut DIGIT,
-                              na: libc::c_int, mut A: *const DIGIT,
-                              nb: libc::c_int, mut B: *const DIGIT) {
-    let mut i: libc::c_uint = 0i32 as libc::c_uint;
-    while i < nr as libc::c_uint {
+unsafe extern "C" fn gf2x_add(nr: i32, mut Res: *mut DIGIT,
+                              na: i32, mut A: *const DIGIT,
+                              nb: i32, mut B: *const DIGIT) {
+    let mut i: u32 = 0i32 as u32;
+    while i < nr as u32 {
         *Res.offset(i as isize) =
             *A.offset(i as isize) ^ *B.offset(i as isize);
         i = i.wrapping_add(1)
@@ -133,18 +127,18 @@ unsafe extern "C" fn gf2x_add(nr: libc::c_int, mut Res: *mut DIGIT,
 // memset(...)
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn gf2x_mul_comb(nr: libc::c_int, mut Res: *mut DIGIT,
-                                       na: libc::c_int, mut A: *const DIGIT,
-                                       nb: libc::c_int, mut B: *const DIGIT) {
-    let mut i: libc::c_int = 0;
-    let mut j: libc::c_int = 0;
-    let mut k: libc::c_int = 0;
+pub unsafe extern "C" fn gf2x_mul_comb(nr: i32, mut Res: *mut DIGIT,
+                                       na: i32, mut A: *const DIGIT,
+                                       nb: i32, mut B: *const DIGIT) {
+    let mut i: i32 = 0;
+    let mut j: i32 = 0;
+    let mut k: i32 = 0;
     let mut u: DIGIT = 0;
     let mut h: DIGIT = 0;
     memset(Res as *mut libc::c_void, 0i32,
            (nr as
-                libc::c_ulong).wrapping_mul(::std::mem::size_of::<DIGIT>() as
-                                                libc::c_ulong));
+                u64).wrapping_mul(::std::mem::size_of::<DIGIT>() as
+                                                u64));
     k = (8i32 << 3i32) - 1i32;
     while k > 0i32 {
         i = na - 1i32;
@@ -187,12 +181,12 @@ pub unsafe extern "C" fn gf2x_mul_comb(nr: libc::c_int, mut Res: *mut DIGIT,
 /* allows the second operand to be shorter than the first */
 /* the result should be as large as the first operand*/
 #[inline]
-unsafe extern "C" fn gf2x_add_asymm(nr: libc::c_int, mut Res: *mut DIGIT,
-                                    na: libc::c_int, mut A: *const DIGIT,
-                                    nb: libc::c_int, mut B: *const DIGIT) {
-    let mut delta: libc::c_int = na - nb;
+unsafe extern "C" fn gf2x_add_asymm(nr: i32, mut Res: *mut DIGIT,
+                                    na: i32, mut A: *const DIGIT,
+                                    nb: i32, mut B: *const DIGIT) {
+    let mut delta: i32 = na - nb;
     memcpy(Res as *mut libc::c_void, A as *const libc::c_void,
-           (delta * 8i32) as libc::c_ulong);
+           (delta * 8i32) as u64);
     gf2x_add(nb, Res.offset(delta as isize), nb, A.offset(delta as isize), nb,
              B);
 }
@@ -200,22 +194,16 @@ unsafe extern "C" fn gf2x_add_asymm(nr: libc::c_int, mut Res: *mut DIGIT,
 /*----------------------------------------------------------------------------*/
 /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
 #[no_mangle]
-pub unsafe extern "C" fn right_bit_shift_n(length: libc::c_int,
+pub unsafe extern "C" fn right_bit_shift_n(length: i32,
                                            mut in_0: *mut DIGIT,
-                                           amount: libc::c_int) {
-    if amount < 8i32 << 3i32 {
-    } else {
-        __assert_fail(b"amount < DIGIT_SIZE_b\x00" as *const u8 as
-                          *const libc::c_char,
-                      b"gf2x_arith.c\x00" as *const u8 as *const libc::c_char,
-                      85i32 as libc::c_uint,
-                      (*::std::mem::transmute::<&[u8; 54],
-                                                &[libc::c_char; 54]>(b"void right_bit_shift_n(const int, DIGIT *, const int)\x00")).as_ptr());
+                                           amount: i32) {
+    if amount >= 8i32 << 3i32 {
+        panic!("amount > DIGIT_SIZE");
     }
     if amount == 0i32 { return }
-    let mut j: libc::c_int = 0;
+    let mut j: i32 = 0;
     let mut mask: DIGIT = 0;
-    mask = ((0x1i32 as DIGIT) << amount).wrapping_sub(1i32 as libc::c_ulong);
+    mask = ((0x1i32 as DIGIT) << amount).wrapping_sub(1i32 as u64);
     j = length - 1i32;
     while j > 0i32 {
         *in_0.offset(j as isize) >>= amount;
@@ -233,24 +221,18 @@ pub unsafe extern "C" fn right_bit_shift_n(length: libc::c_int,
 /*----------------------------------------------------------------------------*/
 /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
 #[no_mangle]
-pub unsafe extern "C" fn left_bit_shift_n(length: libc::c_int,
+pub unsafe extern "C" fn left_bit_shift_n(length: i32,
                                           mut in_0: *mut DIGIT,
-                                          amount: libc::c_int) {
-    if amount < 8i32 << 3i32 {
-    } else {
-        __assert_fail(b"amount < DIGIT_SIZE_b\x00" as *const u8 as
-                          *const libc::c_char,
-                      b"gf2x_arith.c\x00" as *const u8 as *const libc::c_char,
-                      101i32 as libc::c_uint,
-                      (*::std::mem::transmute::<&[u8; 53],
-                                                &[libc::c_char; 53]>(b"void left_bit_shift_n(const int, DIGIT *, const int)\x00")).as_ptr());
+                                          amount: i32) {
+    if amount > 8i32 << 3i32 {
+        panic!("amount > DIGIT_SIZE_b");
     }
     if amount == 0i32 { return }
-    let mut j: libc::c_int = 0;
+    let mut j: i32 = 0;
     let mut mask: DIGIT = 0;
     mask =
         !((0x1i32 as DIGIT) <<
-              (8i32 << 3i32) - amount).wrapping_sub(1i32 as libc::c_ulong);
+              (8i32 << 3i32) - amount).wrapping_sub(1i32 as u64);
     j = 0i32;
     while j < length - 1i32 {
         *in_0.offset(j as isize) <<= amount;
@@ -265,15 +247,15 @@ pub unsafe extern "C" fn left_bit_shift_n(length: libc::c_int,
 // end left_bit_shift_n
 /*----------------------------------------------------------------------------*/
 #[inline]
-unsafe extern "C" fn gf2x_exact_div_x_plus_one(na: libc::c_int,
+unsafe extern "C" fn gf2x_exact_div_x_plus_one(na: i32,
                                                mut A: *mut DIGIT) {
     let mut t: DIGIT = 0i32 as DIGIT;
-    let mut i: libc::c_int = na - 1i32;
+    let mut i: i32 = na - 1i32;
     while i >= 0i32 {
         t ^= *A.offset(i as isize);
-        let mut j: libc::c_int = 1i32;
+        let mut j: i32 = 1i32;
         while j <= (8i32 << 3i32) / 2i32 {
-            t ^= t << j as libc::c_uint;
+            t ^= t << j as u32;
             j = j * 2i32
         }
         *A.offset(i as isize) = t;
@@ -284,123 +266,123 @@ unsafe extern "C" fn gf2x_exact_div_x_plus_one(na: libc::c_int,
 // end gf2x_exact_div_x_plus_one
 /*---------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn gf2x_mul_Kar(nr: libc::c_int, mut Res: *mut DIGIT,
-                                      na: libc::c_int, mut A: *const DIGIT,
-                                      nb: libc::c_int, mut B: *const DIGIT) {
+pub unsafe extern "C" fn gf2x_mul_Kar(nr: i32, mut Res: *mut DIGIT,
+                                      na: i32, mut A: *const DIGIT,
+                                      nb: i32, mut B: *const DIGIT) {
     if na < 9i32 || nb < 9i32 {
         /* fall back to schoolbook */
         gf2x_mul_comb(nr, Res, na, A, nb, B);
         return
     }
     if na % 2i32 == 0i32 {
-        let mut bih: libc::c_uint = (na / 2i32) as libc::c_uint;
-        let vla = (2i32 as libc::c_uint).wrapping_mul(bih) as usize;
+        let mut bih: u32 = (na / 2i32) as u32;
+        let vla = (2i32 as u32).wrapping_mul(bih) as usize;
         let mut middle: Vec<DIGIT> = ::std::vec::from_elem(0, vla);
         let vla_0 = bih as usize;
         let mut sumA: Vec<DIGIT> = ::std::vec::from_elem(0, vla_0);
         let vla_1 = bih as usize;
         let mut sumB: Vec<DIGIT> = ::std::vec::from_elem(0, vla_1);
-        gf2x_add(bih as libc::c_int, sumA.as_mut_ptr(), bih as libc::c_int, A,
-                 bih as libc::c_int, A.offset(bih as isize));
-        gf2x_add(bih as libc::c_int, sumB.as_mut_ptr(), bih as libc::c_int, B,
-                 bih as libc::c_int, B.offset(bih as isize));
-        gf2x_mul_Kar((2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
-                     middle.as_mut_ptr(), bih as libc::c_int,
-                     sumA.as_mut_ptr() as *const DIGIT, bih as libc::c_int,
+        gf2x_add(bih as i32, sumA.as_mut_ptr(), bih as i32, A,
+                 bih as i32, A.offset(bih as isize));
+        gf2x_add(bih as i32, sumB.as_mut_ptr(), bih as i32, B,
+                 bih as i32, B.offset(bih as isize));
+        gf2x_mul_Kar((2i32 as u32).wrapping_mul(bih) as i32,
+                     middle.as_mut_ptr(), bih as i32,
+                     sumA.as_mut_ptr() as *const DIGIT, bih as i32,
                      sumB.as_mut_ptr() as *const DIGIT);
-        gf2x_mul_Kar((2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
-                     Res.offset((2i32 as libc::c_uint).wrapping_mul(bih) as
-                                    isize), bih as libc::c_int,
-                     A.offset(bih as isize), bih as libc::c_int,
+        gf2x_mul_Kar((2i32 as u32).wrapping_mul(bih) as i32,
+                     Res.offset((2i32 as u32).wrapping_mul(bih) as
+                                    isize), bih as i32,
+                     A.offset(bih as isize), bih as i32,
                      B.offset(bih as isize));
-        gf2x_add((2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+        gf2x_add((2i32 as u32).wrapping_mul(bih) as i32,
                  middle.as_mut_ptr(),
-                 (2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+                 (2i32 as u32).wrapping_mul(bih) as i32,
                  middle.as_mut_ptr() as *const DIGIT,
-                 (2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
-                 Res.offset((2i32 as libc::c_uint).wrapping_mul(bih) as isize)
+                 (2i32 as u32).wrapping_mul(bih) as i32,
+                 Res.offset((2i32 as u32).wrapping_mul(bih) as isize)
                      as *const DIGIT);
-        gf2x_mul_Kar((2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
-                     Res, bih as libc::c_int, A, bih as libc::c_int, B);
-        gf2x_add((2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+        gf2x_mul_Kar((2i32 as u32).wrapping_mul(bih) as i32,
+                     Res, bih as i32, A, bih as i32, B);
+        gf2x_add((2i32 as u32).wrapping_mul(bih) as i32,
                  middle.as_mut_ptr(),
-                 (2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+                 (2i32 as u32).wrapping_mul(bih) as i32,
                  middle.as_mut_ptr() as *const DIGIT,
-                 (2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+                 (2i32 as u32).wrapping_mul(bih) as i32,
                  Res as *const DIGIT);
-        gf2x_add((2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+        gf2x_add((2i32 as u32).wrapping_mul(bih) as i32,
                  Res.offset(bih as isize),
-                 (2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+                 (2i32 as u32).wrapping_mul(bih) as i32,
                  Res.offset(bih as isize) as *const DIGIT,
-                 (2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+                 (2i32 as u32).wrapping_mul(bih) as i32,
                  middle.as_mut_ptr() as *const DIGIT);
     } else {
-        let mut bih_0: libc::c_uint = (na / 2i32 + 1i32) as libc::c_uint;
-        let vla_2 = (2i32 as libc::c_uint).wrapping_mul(bih_0) as usize;
+        let mut bih_0: u32 = (na / 2i32 + 1i32) as u32;
+        let vla_2 = (2i32 as u32).wrapping_mul(bih_0) as usize;
         let mut middle_0: Vec<DIGIT> = ::std::vec::from_elem(0, vla_2);
         let vla_3 = bih_0 as usize;
         let mut sumA_0: Vec<DIGIT> = ::std::vec::from_elem(0, vla_3);
         let vla_4 = bih_0 as usize;
         let mut sumB_0: Vec<DIGIT> = ::std::vec::from_elem(0, vla_4);
-        gf2x_add_asymm(bih_0 as libc::c_int, sumA_0.as_mut_ptr(),
-                       bih_0 as libc::c_int,
+        gf2x_add_asymm(bih_0 as i32, sumA_0.as_mut_ptr(),
+                       bih_0 as i32,
                        A.offset(bih_0 as isize).offset(-1),
-                       bih_0.wrapping_sub(1i32 as libc::c_uint) as
-                           libc::c_int, A);
-        gf2x_add_asymm(bih_0 as libc::c_int, sumB_0.as_mut_ptr(),
-                       bih_0 as libc::c_int,
+                       bih_0.wrapping_sub(1i32 as u32) as
+                           i32, A);
+        gf2x_add_asymm(bih_0 as i32, sumB_0.as_mut_ptr(),
+                       bih_0 as i32,
                        B.offset(bih_0 as isize).offset(-1),
-                       bih_0.wrapping_sub(1i32 as libc::c_uint) as
-                           libc::c_int, B);
-        gf2x_mul_Kar((2i32 as libc::c_uint).wrapping_mul(bih_0) as
-                         libc::c_int, middle_0.as_mut_ptr(),
-                     bih_0 as libc::c_int,
+                       bih_0.wrapping_sub(1i32 as u32) as
+                           i32, B);
+        gf2x_mul_Kar((2i32 as u32).wrapping_mul(bih_0) as
+                         i32, middle_0.as_mut_ptr(),
+                     bih_0 as i32,
                      sumA_0.as_mut_ptr() as *const DIGIT,
-                     bih_0 as libc::c_int,
+                     bih_0 as i32,
                      sumB_0.as_mut_ptr() as *const DIGIT);
-        gf2x_mul_Kar((2i32 as libc::c_uint).wrapping_mul(bih_0) as
-                         libc::c_int,
+        gf2x_mul_Kar((2i32 as u32).wrapping_mul(bih_0) as
+                         i32,
                      Res.offset((2i32 as
-                                     libc::c_uint).wrapping_mul(bih_0.wrapping_sub(1i32
+                                     u32).wrapping_mul(bih_0.wrapping_sub(1i32
                                                                                        as
-                                                                                       libc::c_uint))
-                                    as isize), bih_0 as libc::c_int,
+                                                                                       u32))
+                                    as isize), bih_0 as i32,
                      A.offset(bih_0 as isize).offset(-1),
-                     bih_0 as libc::c_int,
+                     bih_0 as i32,
                      B.offset(bih_0 as isize).offset(-1));
-        gf2x_add((2i32 as libc::c_uint).wrapping_mul(bih_0) as libc::c_int,
+        gf2x_add((2i32 as u32).wrapping_mul(bih_0) as i32,
                  middle_0.as_mut_ptr(),
-                 (2i32 as libc::c_uint).wrapping_mul(bih_0) as libc::c_int,
+                 (2i32 as u32).wrapping_mul(bih_0) as i32,
                  middle_0.as_mut_ptr() as *const DIGIT,
-                 (2i32 as libc::c_uint).wrapping_mul(bih_0) as libc::c_int,
+                 (2i32 as u32).wrapping_mul(bih_0) as i32,
                  Res.offset((2i32 as
-                                 libc::c_uint).wrapping_mul(bih_0.wrapping_sub(1i32
+                                 u32).wrapping_mul(bih_0.wrapping_sub(1i32
                                                                                    as
-                                                                                   libc::c_uint))
+                                                                                   u32))
                                 as isize) as *const DIGIT);
         gf2x_mul_Kar((2i32 as
-                          libc::c_uint).wrapping_mul(bih_0.wrapping_sub(1i32
+                          u32).wrapping_mul(bih_0.wrapping_sub(1i32
                                                                             as
-                                                                            libc::c_uint))
-                         as libc::c_int, Res,
-                     bih_0.wrapping_sub(1i32 as libc::c_uint) as libc::c_int,
+                                                                            u32))
+                         as i32, Res,
+                     bih_0.wrapping_sub(1i32 as u32) as i32,
                      A,
-                     bih_0.wrapping_sub(1i32 as libc::c_uint) as libc::c_int,
+                     bih_0.wrapping_sub(1i32 as u32) as i32,
                      B);
-        gf2x_add_asymm((2i32 as libc::c_uint).wrapping_mul(bih_0) as
-                           libc::c_int, middle_0.as_mut_ptr(),
-                       (2i32 as libc::c_uint).wrapping_mul(bih_0) as
-                           libc::c_int, middle_0.as_mut_ptr() as *const DIGIT,
+        gf2x_add_asymm((2i32 as u32).wrapping_mul(bih_0) as
+                           i32, middle_0.as_mut_ptr(),
+                       (2i32 as u32).wrapping_mul(bih_0) as
+                           i32, middle_0.as_mut_ptr() as *const DIGIT,
                        (2i32 as
-                            libc::c_uint).wrapping_mul(bih_0.wrapping_sub(1i32
+                            u32).wrapping_mul(bih_0.wrapping_sub(1i32
                                                                               as
-                                                                              libc::c_uint))
-                           as libc::c_int, Res as *const DIGIT);
-        gf2x_add((2i32 as libc::c_uint).wrapping_mul(bih_0) as libc::c_int,
+                                                                              u32))
+                           as i32, Res as *const DIGIT);
+        gf2x_add((2i32 as u32).wrapping_mul(bih_0) as i32,
                  Res.offset(bih_0 as isize).offset(-2),
-                 (2i32 as libc::c_uint).wrapping_mul(bih_0) as libc::c_int,
+                 (2i32 as u32).wrapping_mul(bih_0) as i32,
                  Res.offset(bih_0 as isize).offset(-2) as *const DIGIT,
-                 (2i32 as libc::c_uint).wrapping_mul(bih_0) as libc::c_int,
+                 (2i32 as u32).wrapping_mul(bih_0) as i32,
                  middle_0.as_mut_ptr() as *const DIGIT);
     };
 }
@@ -411,32 +393,32 @@ pub unsafe extern "C" fn gf2x_mul_Kar(nr: libc::c_int, mut Res: *mut DIGIT,
  * Marco Bodrato: "Towards Optimal Toom-Cook Multiplication for Univariate and
  * Multivariate Polynomials in Characteristic 2 and 0". WAIFI 2007: 116-133   */
 #[no_mangle]
-pub unsafe extern "C" fn gf2x_mul_TC3(nr: libc::c_int, mut Res: *mut DIGIT,
-                                      na: libc::c_int, mut A: *const DIGIT,
-                                      nb: libc::c_int, mut B: *const DIGIT) {
+pub unsafe extern "C" fn gf2x_mul_TC3(nr: i32, mut Res: *mut DIGIT,
+                                      na: i32, mut A: *const DIGIT,
+                                      nb: i32, mut B: *const DIGIT) {
     if na < 50i32 || nb < 50i32 {
         /* fall back to schoolbook */
         gf2x_mul_Kar(nr, Res, na, A, nb, B); //number of limbs for each part.
         return
     }
-    let mut bih: libc::c_uint = 0;
+    let mut bih: u32 = 0;
     if na % 3i32 == 0i32 {
-        bih = (na / 3i32) as libc::c_uint
-    } else { bih = (na / 3i32 + 1i32) as libc::c_uint }
+        bih = (na / 3i32) as u32
+    } else { bih = (na / 3i32 + 1i32) as u32 }
     let vla = bih as usize;
     let mut u2: Vec<DIGIT> = ::std::vec::from_elem(0, vla);
     let mut u1: *mut DIGIT = 0 as *mut DIGIT;
     let mut u0: *mut DIGIT = 0 as *mut DIGIT;
-    let mut leading_slack: libc::c_int = (3i32 - na % 3i32) % 3i32;
+    let mut leading_slack: i32 = (3i32 - na % 3i32) % 3i32;
     //     printf("leading slack %d",leading_slack);
-    let mut i: libc::c_int = 0; /* partitioned inputs */
+    let mut i: i32 = 0; /* partitioned inputs */
     i = 0i32; /*bih digit wide*/
     while i < leading_slack {
         *u2.as_mut_ptr().offset(i as isize) =
             0i32 as DIGIT; /*bih digit wide*/
         i += 1
     }
-    while (i as libc::c_uint) < bih {
+    while (i as u32) < bih {
         *u2.as_mut_ptr().offset(i as isize) =
             *A.offset((i - leading_slack) as isize);
         i += 1
@@ -445,7 +427,7 @@ pub unsafe extern "C" fn gf2x_mul_TC3(nr: libc::c_int, mut Res: *mut DIGIT,
         A.offset(bih as isize).offset(-(leading_slack as isize)) as
             *mut DIGIT;
     u0 =
-        A.offset((2i32 as libc::c_uint).wrapping_mul(bih) as
+        A.offset((2i32 as u32).wrapping_mul(bih) as
                      isize).offset(-(leading_slack as isize)) as *mut DIGIT;
     let vla_0 = bih as usize;
     let mut v2: Vec<DIGIT> = ::std::vec::from_elem(0, vla_0);
@@ -456,7 +438,7 @@ pub unsafe extern "C" fn gf2x_mul_TC3(nr: libc::c_int, mut Res: *mut DIGIT,
         *v2.as_mut_ptr().offset(i as isize) = 0i32 as DIGIT;
         i += 1
     }
-    while (i as libc::c_uint) < bih {
+    while (i as u32) < bih {
         *v2.as_mut_ptr().offset(i as isize) =
             *B.offset((i - leading_slack) as isize);
         i += 1
@@ -465,389 +447,389 @@ pub unsafe extern "C" fn gf2x_mul_TC3(nr: libc::c_int, mut Res: *mut DIGIT,
         B.offset(bih as isize).offset(-(leading_slack as isize)) as
             *mut DIGIT;
     v0 =
-        B.offset((2i32 as libc::c_uint).wrapping_mul(bih) as
+        B.offset((2i32 as u32).wrapping_mul(bih) as
                      isize).offset(-(leading_slack as isize)) as *mut DIGIT;
     let vla_1 = bih as usize;
     let mut sum_u: Vec<DIGIT> = ::std::vec::from_elem(0, vla_1);
-    gf2x_add(bih as libc::c_int, sum_u.as_mut_ptr(), bih as libc::c_int,
-             u0 as *const DIGIT, bih as libc::c_int, u1 as *const DIGIT);
-    gf2x_add(bih as libc::c_int, sum_u.as_mut_ptr(), bih as libc::c_int,
-             sum_u.as_mut_ptr() as *const DIGIT, bih as libc::c_int,
+    gf2x_add(bih as i32, sum_u.as_mut_ptr(), bih as i32,
+             u0 as *const DIGIT, bih as i32, u1 as *const DIGIT);
+    gf2x_add(bih as i32, sum_u.as_mut_ptr(), bih as i32,
+             sum_u.as_mut_ptr() as *const DIGIT, bih as i32,
              u2.as_mut_ptr() as *const DIGIT);
     let vla_2 = bih as usize;
     let mut sum_v: Vec<DIGIT> = ::std::vec::from_elem(0, vla_2);
-    gf2x_add(bih as libc::c_int, sum_v.as_mut_ptr(), bih as libc::c_int,
-             v0 as *const DIGIT, bih as libc::c_int, v1 as *const DIGIT);
-    gf2x_add(bih as libc::c_int, sum_v.as_mut_ptr(), bih as libc::c_int,
-             sum_v.as_mut_ptr() as *const DIGIT, bih as libc::c_int,
+    gf2x_add(bih as i32, sum_v.as_mut_ptr(), bih as i32,
+             v0 as *const DIGIT, bih as i32, v1 as *const DIGIT);
+    gf2x_add(bih as i32, sum_v.as_mut_ptr(), bih as i32,
+             sum_v.as_mut_ptr() as *const DIGIT, bih as i32,
              v2.as_mut_ptr() as *const DIGIT);
-    let vla_3 = (2i32 as libc::c_uint).wrapping_mul(bih) as usize;
+    let vla_3 = (2i32 as u32).wrapping_mul(bih) as usize;
     let mut w1: Vec<DIGIT> = ::std::vec::from_elem(0, vla_3);
-    gf2x_mul_TC3((2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
-                 w1.as_mut_ptr(), bih as libc::c_int,
-                 sum_u.as_mut_ptr() as *const DIGIT, bih as libc::c_int,
+    gf2x_mul_TC3((2i32 as u32).wrapping_mul(bih) as i32,
+                 w1.as_mut_ptr(), bih as i32,
+                 sum_u.as_mut_ptr() as *const DIGIT, bih as i32,
                  sum_v.as_mut_ptr() as *const DIGIT);
-    let vla_4 = bih.wrapping_add(1i32 as libc::c_uint) as usize;
+    let vla_4 = bih.wrapping_add(1i32 as u32) as usize;
     let mut u2_x2: Vec<DIGIT> = ::std::vec::from_elem(0, vla_4);
     *u2_x2.as_mut_ptr().offset(0) = 0i32 as DIGIT;
     memcpy(u2_x2.as_mut_ptr().offset(1) as *mut libc::c_void,
            u2.as_mut_ptr() as *const libc::c_void,
-           bih.wrapping_mul(8i32 as libc::c_uint) as libc::c_ulong);
-    left_bit_shift_n(bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+           bih.wrapping_mul(8i32 as u32) as u64);
+    left_bit_shift_n(bih.wrapping_add(1i32 as u32) as i32,
                      u2_x2.as_mut_ptr(), 2i32);
-    let vla_5 = bih.wrapping_add(1i32 as libc::c_uint) as usize;
+    let vla_5 = bih.wrapping_add(1i32 as u32) as usize;
     let mut u1_x: Vec<DIGIT> = ::std::vec::from_elem(0, vla_5);
     *u1_x.as_mut_ptr().offset(0) = 0i32 as DIGIT;
     memcpy(u1_x.as_mut_ptr().offset(1) as *mut libc::c_void,
            u1 as *const libc::c_void,
-           bih.wrapping_mul(8i32 as libc::c_uint) as libc::c_ulong);
-    left_bit_shift_n(bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+           bih.wrapping_mul(8i32 as u32) as u64);
+    left_bit_shift_n(bih.wrapping_add(1i32 as u32) as i32,
                      u1_x.as_mut_ptr(), 1i32);
-    let vla_6 = bih.wrapping_add(1i32 as libc::c_uint) as usize;
+    let vla_6 = bih.wrapping_add(1i32 as u32) as usize;
     let mut u1_x1_u2_x2: Vec<DIGIT> = ::std::vec::from_elem(0, vla_6);
-    gf2x_add(bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+    gf2x_add(bih.wrapping_add(1i32 as u32) as i32,
              u1_x1_u2_x2.as_mut_ptr(),
-             bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+             bih.wrapping_add(1i32 as u32) as i32,
              u1_x.as_mut_ptr() as *const DIGIT,
-             bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+             bih.wrapping_add(1i32 as u32) as i32,
              u2_x2.as_mut_ptr() as *const DIGIT);
-    let vla_7 = bih.wrapping_add(1i32 as libc::c_uint) as usize;
+    let vla_7 = bih.wrapping_add(1i32 as u32) as usize;
     let mut temp_u_components: Vec<DIGIT> = ::std::vec::from_elem(0, vla_7);
-    gf2x_add_asymm(bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+    gf2x_add_asymm(bih.wrapping_add(1i32 as u32) as i32,
                    temp_u_components.as_mut_ptr(),
-                   bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+                   bih.wrapping_add(1i32 as u32) as i32,
                    u1_x1_u2_x2.as_mut_ptr() as *const DIGIT,
-                   bih as libc::c_int, sum_u.as_mut_ptr() as *const DIGIT);
-    let vla_8 = bih.wrapping_add(1i32 as libc::c_uint) as usize;
+                   bih as i32, sum_u.as_mut_ptr() as *const DIGIT);
+    let vla_8 = bih.wrapping_add(1i32 as u32) as usize;
     let mut v2_x2: Vec<DIGIT> = ::std::vec::from_elem(0, vla_8);
     *v2_x2.as_mut_ptr().offset(0) = 0i32 as DIGIT;
     memcpy(v2_x2.as_mut_ptr().offset(1) as *mut libc::c_void,
            v2.as_mut_ptr() as *const libc::c_void,
-           bih.wrapping_mul(8i32 as libc::c_uint) as libc::c_ulong);
-    left_bit_shift_n(bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+           bih.wrapping_mul(8i32 as u32) as u64);
+    left_bit_shift_n(bih.wrapping_add(1i32 as u32) as i32,
                      v2_x2.as_mut_ptr(), 2i32);
-    let vla_9 = bih.wrapping_add(1i32 as libc::c_uint) as usize;
+    let vla_9 = bih.wrapping_add(1i32 as u32) as usize;
     let mut v1_x: Vec<DIGIT> = ::std::vec::from_elem(0, vla_9);
     *v1_x.as_mut_ptr().offset(0) = 0i32 as DIGIT;
     memcpy(v1_x.as_mut_ptr().offset(1) as *mut libc::c_void,
            v1 as *const libc::c_void,
-           bih.wrapping_mul(8i32 as libc::c_uint) as libc::c_ulong);
-    left_bit_shift_n(bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+           bih.wrapping_mul(8i32 as u32) as u64);
+    left_bit_shift_n(bih.wrapping_add(1i32 as u32) as i32,
                      v1_x.as_mut_ptr(), 1i32);
-    let vla_10 = bih.wrapping_add(1i32 as libc::c_uint) as usize;
+    let vla_10 = bih.wrapping_add(1i32 as u32) as usize;
     let mut v1_x1_v2_x2: Vec<DIGIT> = ::std::vec::from_elem(0, vla_10);
-    gf2x_add(bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+    gf2x_add(bih.wrapping_add(1i32 as u32) as i32,
              v1_x1_v2_x2.as_mut_ptr(),
-             bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+             bih.wrapping_add(1i32 as u32) as i32,
              v1_x.as_mut_ptr() as *const DIGIT,
-             bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+             bih.wrapping_add(1i32 as u32) as i32,
              v2_x2.as_mut_ptr() as *const DIGIT);
-    let vla_11 = bih.wrapping_add(1i32 as libc::c_uint) as usize;
+    let vla_11 = bih.wrapping_add(1i32 as u32) as usize;
     let mut temp_v_components: Vec<DIGIT> = ::std::vec::from_elem(0, vla_11);
-    gf2x_add_asymm(bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+    gf2x_add_asymm(bih.wrapping_add(1i32 as u32) as i32,
                    temp_v_components.as_mut_ptr(),
-                   bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+                   bih.wrapping_add(1i32 as u32) as i32,
                    v1_x1_v2_x2.as_mut_ptr() as *const DIGIT,
-                   bih as libc::c_int, sum_v.as_mut_ptr() as *const DIGIT);
+                   bih as i32, sum_v.as_mut_ptr() as *const DIGIT);
     let vla_12 =
         (2i32 as
-             libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                              libc::c_uint) as
+             u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                              u32) as
             usize;
     let mut w3: Vec<DIGIT> = ::std::vec::from_elem(0, vla_12);
     gf2x_mul_TC3((2i32 as
-                      libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                       libc::c_uint)
-                     as libc::c_int, w3.as_mut_ptr(),
-                 bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+                      u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                       u32)
+                     as i32, w3.as_mut_ptr(),
+                 bih.wrapping_add(1i32 as u32) as i32,
                  temp_u_components.as_mut_ptr() as *const DIGIT,
-                 bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+                 bih.wrapping_add(1i32 as u32) as i32,
                  temp_v_components.as_mut_ptr() as *const DIGIT);
-    gf2x_add_asymm(bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+    gf2x_add_asymm(bih.wrapping_add(1i32 as u32) as i32,
                    u1_x1_u2_x2.as_mut_ptr(),
-                   bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+                   bih.wrapping_add(1i32 as u32) as i32,
                    u1_x1_u2_x2.as_mut_ptr() as *const DIGIT,
-                   bih as libc::c_int, u0 as *const DIGIT);
-    gf2x_add_asymm(bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+                   bih as i32, u0 as *const DIGIT);
+    gf2x_add_asymm(bih.wrapping_add(1i32 as u32) as i32,
                    v1_x1_v2_x2.as_mut_ptr(),
-                   bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+                   bih.wrapping_add(1i32 as u32) as i32,
                    v1_x1_v2_x2.as_mut_ptr() as *const DIGIT,
-                   bih as libc::c_int, v0 as *const DIGIT);
+                   bih as i32, v0 as *const DIGIT);
     let vla_13 =
         (2i32 as
-             libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                              libc::c_uint) as
+             u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                              u32) as
             usize;
     let mut w2: Vec<DIGIT> = ::std::vec::from_elem(0, vla_13);
     gf2x_mul_TC3((2i32 as
-                      libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                       libc::c_uint)
-                     as libc::c_int, w2.as_mut_ptr(),
-                 bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+                      u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                       u32)
+                     as i32, w2.as_mut_ptr(),
+                 bih.wrapping_add(1i32 as u32) as i32,
                  u1_x1_u2_x2.as_mut_ptr() as *const DIGIT,
-                 bih.wrapping_add(1i32 as libc::c_uint) as libc::c_int,
+                 bih.wrapping_add(1i32 as u32) as i32,
                  v1_x1_v2_x2.as_mut_ptr() as *const DIGIT);
-    let vla_14 = (2i32 as libc::c_uint).wrapping_mul(bih) as usize;
+    let vla_14 = (2i32 as u32).wrapping_mul(bih) as usize;
     let mut w4: Vec<DIGIT> = ::std::vec::from_elem(0, vla_14);
-    gf2x_mul_TC3((2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
-                 w4.as_mut_ptr(), bih as libc::c_int,
-                 u2.as_mut_ptr() as *const DIGIT, bih as libc::c_int,
+    gf2x_mul_TC3((2i32 as u32).wrapping_mul(bih) as i32,
+                 w4.as_mut_ptr(), bih as i32,
+                 u2.as_mut_ptr() as *const DIGIT, bih as i32,
                  v2.as_mut_ptr() as *const DIGIT);
-    let vla_15 = (2i32 as libc::c_uint).wrapping_mul(bih) as usize;
+    let vla_15 = (2i32 as u32).wrapping_mul(bih) as usize;
     let mut w0: Vec<DIGIT> = ::std::vec::from_elem(0, vla_15);
-    gf2x_mul_TC3((2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
-                 w0.as_mut_ptr(), bih as libc::c_int, u0 as *const DIGIT,
-                 bih as libc::c_int, v0 as *const DIGIT);
+    gf2x_mul_TC3((2i32 as u32).wrapping_mul(bih) as i32,
+                 w0.as_mut_ptr(), bih as i32, u0 as *const DIGIT,
+                 bih as i32, v0 as *const DIGIT);
     // Interpolation starts
     gf2x_add((2i32 as
-                  libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                   libc::c_uint)
-                 as libc::c_int, w3.as_mut_ptr(),
+                  u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                   u32)
+                 as i32, w3.as_mut_ptr(),
              (2i32 as
-                  libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                   libc::c_uint)
-                 as libc::c_int, w2.as_mut_ptr() as *const DIGIT,
+                  u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                   u32)
+                 as i32, w2.as_mut_ptr() as *const DIGIT,
              (2i32 as
-                  libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                   libc::c_uint)
-                 as libc::c_int, w3.as_mut_ptr() as *const DIGIT);
+                  u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                   u32)
+                 as i32, w3.as_mut_ptr() as *const DIGIT);
     gf2x_add_asymm((2i32 as
-                        libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                         libc::c_uint)
-                       as libc::c_int, w2.as_mut_ptr(),
+                        u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                         u32)
+                       as i32, w2.as_mut_ptr(),
                    (2i32 as
-                        libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                         libc::c_uint)
-                       as libc::c_int, w2.as_mut_ptr() as *const DIGIT,
-                   (2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+                        u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                         u32)
+                       as i32, w2.as_mut_ptr() as *const DIGIT,
+                   (2i32 as u32).wrapping_mul(bih) as i32,
                    w0.as_mut_ptr() as *const DIGIT);
     right_bit_shift_n((2i32 as
-                           libc::c_uint).wrapping_mul(bih).wrapping_add(2i32
+                           u32).wrapping_mul(bih).wrapping_add(2i32
                                                                             as
-                                                                            libc::c_uint)
-                          as libc::c_int, w2.as_mut_ptr(), 1i32);
+                                                                            u32)
+                          as i32, w2.as_mut_ptr(), 1i32);
     gf2x_add((2i32 as
-                  libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                   libc::c_uint)
-                 as libc::c_int, w2.as_mut_ptr(),
+                  u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                   u32)
+                 as i32, w2.as_mut_ptr(),
              (2i32 as
-                  libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                   libc::c_uint)
-                 as libc::c_int, w2.as_mut_ptr() as *const DIGIT,
+                  u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                   u32)
+                 as i32, w2.as_mut_ptr() as *const DIGIT,
              (2i32 as
-                  libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                   libc::c_uint)
-                 as libc::c_int, w3.as_mut_ptr() as *const DIGIT);
+                  u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                   u32)
+                 as i32, w3.as_mut_ptr() as *const DIGIT);
     // w2 + (w4 * x^3+1) = w2 + w4 + w4 << 3
     let vla_16 =
         (2i32 as
-             libc::c_uint).wrapping_mul(bih).wrapping_add(1i32 as
-                                                              libc::c_uint) as
+             u32).wrapping_mul(bih).wrapping_add(1i32 as
+                                                              u32) as
             usize;
     let mut w4_x3_plus_1: Vec<DIGIT> = ::std::vec::from_elem(0, vla_16);
     *w4_x3_plus_1.as_mut_ptr().offset(0) = 0i32 as DIGIT;
     memcpy(w4_x3_plus_1.as_mut_ptr().offset(1) as *mut libc::c_void,
            w4.as_mut_ptr() as *const libc::c_void,
            (2i32 as
-                libc::c_uint).wrapping_mul(bih).wrapping_mul(8i32 as
-                                                                 libc::c_uint)
-               as libc::c_ulong);
+                u32).wrapping_mul(bih).wrapping_mul(8i32 as
+                                                                 u32)
+               as u64);
     left_bit_shift_n((2i32 as
-                          libc::c_uint).wrapping_mul(bih).wrapping_add(1i32 as
-                                                                           libc::c_uint)
-                         as libc::c_int, w4_x3_plus_1.as_mut_ptr(), 3i32);
+                          u32).wrapping_mul(bih).wrapping_add(1i32 as
+                                                                           u32)
+                         as i32, w4_x3_plus_1.as_mut_ptr(), 3i32);
     gf2x_add_asymm((2i32 as
-                        libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                         libc::c_uint)
-                       as libc::c_int, w2.as_mut_ptr(),
+                        u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                         u32)
+                       as i32, w2.as_mut_ptr(),
                    (2i32 as
-                        libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                         libc::c_uint)
-                       as libc::c_int, w2.as_mut_ptr() as *const DIGIT,
-                   (2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+                        u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                         u32)
+                       as i32, w2.as_mut_ptr() as *const DIGIT,
+                   (2i32 as u32).wrapping_mul(bih) as i32,
                    w4.as_mut_ptr() as *const DIGIT);
     gf2x_add_asymm((2i32 as
-                        libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                         libc::c_uint)
-                       as libc::c_int, w2.as_mut_ptr(),
+                        u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                         u32)
+                       as i32, w2.as_mut_ptr(),
                    (2i32 as
-                        libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                         libc::c_uint)
-                       as libc::c_int, w2.as_mut_ptr() as *const DIGIT,
+                        u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                         u32)
+                       as i32, w2.as_mut_ptr() as *const DIGIT,
                    (2i32 as
-                        libc::c_uint).wrapping_mul(bih).wrapping_add(1i32 as
-                                                                         libc::c_uint)
-                       as libc::c_int,
+                        u32).wrapping_mul(bih).wrapping_add(1i32 as
+                                                                         u32)
+                       as i32,
                    w4_x3_plus_1.as_mut_ptr() as *const DIGIT);
     gf2x_exact_div_x_plus_one((2i32 as
-                                   libc::c_uint).wrapping_mul(bih).wrapping_add(2i32
+                                   u32).wrapping_mul(bih).wrapping_add(2i32
                                                                                     as
-                                                                                    libc::c_uint)
-                                  as libc::c_int, w2.as_mut_ptr());
-    gf2x_add((2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+                                                                                    u32)
+                                  as i32, w2.as_mut_ptr());
+    gf2x_add((2i32 as u32).wrapping_mul(bih) as i32,
              w1.as_mut_ptr(),
-             (2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+             (2i32 as u32).wrapping_mul(bih) as i32,
              w1.as_mut_ptr() as *const DIGIT,
-             (2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+             (2i32 as u32).wrapping_mul(bih) as i32,
              w0.as_mut_ptr() as *const DIGIT);
     gf2x_add_asymm((2i32 as
-                        libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                         libc::c_uint)
-                       as libc::c_int, w3.as_mut_ptr(),
+                        u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                         u32)
+                       as i32, w3.as_mut_ptr(),
                    (2i32 as
-                        libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                         libc::c_uint)
-                       as libc::c_int, w3.as_mut_ptr() as *const DIGIT,
-                   (2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+                        u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                         u32)
+                       as i32, w3.as_mut_ptr() as *const DIGIT,
+                   (2i32 as u32).wrapping_mul(bih) as i32,
                    w1.as_mut_ptr() as *const DIGIT);
     right_bit_shift_n((2i32 as
-                           libc::c_uint).wrapping_mul(bih).wrapping_add(2i32
+                           u32).wrapping_mul(bih).wrapping_add(2i32
                                                                             as
-                                                                            libc::c_uint)
-                          as libc::c_int, w3.as_mut_ptr(), 1i32);
+                                                                            u32)
+                          as i32, w3.as_mut_ptr(), 1i32);
     gf2x_exact_div_x_plus_one((2i32 as
-                                   libc::c_uint).wrapping_mul(bih).wrapping_add(2i32
+                                   u32).wrapping_mul(bih).wrapping_add(2i32
                                                                                     as
-                                                                                    libc::c_uint)
-                                  as libc::c_int, w3.as_mut_ptr());
-    gf2x_add((2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+                                                                                    u32)
+                                  as i32, w3.as_mut_ptr());
+    gf2x_add((2i32 as u32).wrapping_mul(bih) as i32,
              w1.as_mut_ptr(),
-             (2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+             (2i32 as u32).wrapping_mul(bih) as i32,
              w1.as_mut_ptr() as *const DIGIT,
-             (2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+             (2i32 as u32).wrapping_mul(bih) as i32,
              w4.as_mut_ptr() as *const DIGIT);
     let vla_17 =
         (2i32 as
-             libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                              libc::c_uint) as
+             u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                              u32) as
             usize;
     let mut w1_final: Vec<DIGIT> = ::std::vec::from_elem(0, vla_17);
     gf2x_add_asymm((2i32 as
-                        libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                         libc::c_uint)
-                       as libc::c_int, w1_final.as_mut_ptr(),
+                        u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                         u32)
+                       as i32, w1_final.as_mut_ptr(),
                    (2i32 as
-                        libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                         libc::c_uint)
-                       as libc::c_int, w2.as_mut_ptr() as *const DIGIT,
-                   (2i32 as libc::c_uint).wrapping_mul(bih) as libc::c_int,
+                        u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                         u32)
+                       as i32, w2.as_mut_ptr() as *const DIGIT,
+                   (2i32 as u32).wrapping_mul(bih) as i32,
                    w1.as_mut_ptr() as *const DIGIT);
     gf2x_add((2i32 as
-                  libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                   libc::c_uint)
-                 as libc::c_int, w2.as_mut_ptr(),
+                  u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                   u32)
+                 as i32, w2.as_mut_ptr(),
              (2i32 as
-                  libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                   libc::c_uint)
-                 as libc::c_int, w2.as_mut_ptr() as *const DIGIT,
+                  u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                   u32)
+                 as i32, w2.as_mut_ptr() as *const DIGIT,
              (2i32 as
-                  libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                   libc::c_uint)
-                 as libc::c_int, w3.as_mut_ptr() as *const DIGIT);
+                  u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                   u32)
+                 as i32, w3.as_mut_ptr() as *const DIGIT);
     // Result recombination starts here
-    memset(Res as *mut libc::c_void, 0i32, (nr * 8i32) as libc::c_ulong);
+    memset(Res as *mut libc::c_void, 0i32, (nr * 8i32) as u64);
     /* optimization: topmost slack digits should be computed, and not addedd,
      * zeroization can be avoided altogether with a proper merge of the
      * results */
-    let mut leastSignifDigitIdx: libc::c_int = nr - 1i32;
-    let mut i_0: libc::c_int = 0i32;
-    while (i_0 as libc::c_uint) < (2i32 as libc::c_uint).wrapping_mul(bih) {
+    let mut leastSignifDigitIdx: i32 = nr - 1i32;
+    let mut i_0: i32 = 0i32;
+    while (i_0 as u32) < (2i32 as u32).wrapping_mul(bih) {
         let ref mut fresh4 =
             *Res.offset((leastSignifDigitIdx - i_0) as isize);
         *fresh4 ^=
             *w0.as_mut_ptr().offset((2i32 as
-                                         libc::c_uint).wrapping_mul(bih).wrapping_sub(1i32
+                                         u32).wrapping_mul(bih).wrapping_sub(1i32
                                                                                           as
-                                                                                          libc::c_uint).wrapping_sub(i_0
+                                                                                          u32).wrapping_sub(i_0
                                                                                                                          as
-                                                                                                                         libc::c_uint)
+                                                                                                                         u32)
                                         as isize);
         i_0 += 1
     }
     leastSignifDigitIdx =
-        (leastSignifDigitIdx as libc::c_uint).wrapping_sub(bih) as libc::c_int
-            as libc::c_int;
-    let mut i_1: libc::c_int = 0i32;
-    while (i_1 as libc::c_uint) <
+        (leastSignifDigitIdx as u32).wrapping_sub(bih) as i32
+            as i32;
+    let mut i_1: i32 = 0i32;
+    while (i_1 as u32) <
               (2i32 as
-                   libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                    libc::c_uint)
+                   u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                    u32)
           {
         let ref mut fresh5 =
             *Res.offset((leastSignifDigitIdx - i_1) as isize);
         *fresh5 ^=
             *w1_final.as_mut_ptr().offset((2i32 as
-                                               libc::c_uint).wrapping_mul(bih).wrapping_add(2i32
+                                               u32).wrapping_mul(bih).wrapping_add(2i32
                                                                                                 as
-                                                                                                libc::c_uint).wrapping_sub(1i32
+                                                                                                u32).wrapping_sub(1i32
                                                                                                                                as
-                                                                                                                               libc::c_uint).wrapping_sub(i_1
+                                                                                                                               u32).wrapping_sub(i_1
                                                                                                                                                               as
-                                                                                                                                                              libc::c_uint)
+                                                                                                                                                              u32)
                                               as isize);
         i_1 += 1
     }
     leastSignifDigitIdx =
-        (leastSignifDigitIdx as libc::c_uint).wrapping_sub(bih) as libc::c_int
-            as libc::c_int;
-    let mut i_2: libc::c_int = 0i32;
-    while (i_2 as libc::c_uint) <
+        (leastSignifDigitIdx as u32).wrapping_sub(bih) as i32
+            as i32;
+    let mut i_2: i32 = 0i32;
+    while (i_2 as u32) <
               (2i32 as
-                   libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                    libc::c_uint)
+                   u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                    u32)
           {
         let ref mut fresh6 =
             *Res.offset((leastSignifDigitIdx - i_2) as isize);
         *fresh6 ^=
             *w2.as_mut_ptr().offset((2i32 as
-                                         libc::c_uint).wrapping_mul(bih).wrapping_add(2i32
+                                         u32).wrapping_mul(bih).wrapping_add(2i32
                                                                                           as
-                                                                                          libc::c_uint).wrapping_sub(1i32
+                                                                                          u32).wrapping_sub(1i32
                                                                                                                          as
-                                                                                                                         libc::c_uint).wrapping_sub(i_2
+                                                                                                                         u32).wrapping_sub(i_2
                                                                                                                                                         as
-                                                                                                                                                        libc::c_uint)
+                                                                                                                                                        u32)
                                         as isize);
         i_2 += 1
     }
     leastSignifDigitIdx =
-        (leastSignifDigitIdx as libc::c_uint).wrapping_sub(bih) as libc::c_int
-            as libc::c_int;
-    let mut i_3: libc::c_int = 0i32;
-    while (i_3 as libc::c_uint) <
+        (leastSignifDigitIdx as u32).wrapping_sub(bih) as i32
+            as i32;
+    let mut i_3: i32 = 0i32;
+    while (i_3 as u32) <
               (2i32 as
-                   libc::c_uint).wrapping_mul(bih).wrapping_add(2i32 as
-                                                                    libc::c_uint)
+                   u32).wrapping_mul(bih).wrapping_add(2i32 as
+                                                                    u32)
           {
         let ref mut fresh7 =
             *Res.offset((leastSignifDigitIdx - i_3) as isize);
         *fresh7 ^=
             *w3.as_mut_ptr().offset((2i32 as
-                                         libc::c_uint).wrapping_mul(bih).wrapping_add(2i32
+                                         u32).wrapping_mul(bih).wrapping_add(2i32
                                                                                           as
-                                                                                          libc::c_uint).wrapping_sub(1i32
+                                                                                          u32).wrapping_sub(1i32
                                                                                                                          as
-                                                                                                                         libc::c_uint).wrapping_sub(i_3
+                                                                                                                         u32).wrapping_sub(i_3
                                                                                                                                                         as
-                                                                                                                                                        libc::c_uint)
+                                                                                                                                                        u32)
                                         as isize);
         i_3 += 1
     }
     leastSignifDigitIdx =
-        (leastSignifDigitIdx as libc::c_uint).wrapping_sub(bih) as libc::c_int
-            as libc::c_int;
-    let mut i_4: libc::c_int = 0i32;
-    while (i_4 as libc::c_uint) < (2i32 as libc::c_uint).wrapping_mul(bih) &&
+        (leastSignifDigitIdx as u32).wrapping_sub(bih) as i32
+            as i32;
+    let mut i_4: i32 = 0i32;
+    while (i_4 as u32) < (2i32 as u32).wrapping_mul(bih) &&
               leastSignifDigitIdx - i_4 >= 0i32 {
         let ref mut fresh8 =
             *Res.offset((leastSignifDigitIdx - i_4) as isize);
         *fresh8 ^=
             *w4.as_mut_ptr().offset((2i32 as
-                                         libc::c_uint).wrapping_mul(bih).wrapping_sub(1i32
+                                         u32).wrapping_mul(bih).wrapping_sub(1i32
                                                                                           as
-                                                                                          libc::c_uint).wrapping_sub(i_4
+                                                                                          u32).wrapping_sub(i_4
                                                                                                                          as
-                                                                                                                         libc::c_uint)
+                                                                                                                         u32)
                                         as isize);
         i_4 += 1
     };

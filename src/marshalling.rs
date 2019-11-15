@@ -1,9 +1,5 @@
 #![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
          non_upper_case_globals, unused_assignments, unused_mut)]
-pub type __u8 = libc::c_uchar;
-pub type __u64 = libc::c_ulong;
-pub type u8 = __u8;
-pub type u64 = __u64;
 pub type DIGIT = u64;
 /* *
  *
@@ -40,11 +36,11 @@ pub type DIGIT = u64;
 #[no_mangle]
 pub unsafe extern "C" fn poly_to_byte_seq(mut bs: *mut u8,
                                           mut y: *mut DIGIT) {
-    let mut i: libc::c_int = 0i32;
+    let mut i: i32 = 0i32;
     while i < (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) {
         let mut a: DIGIT = *y.offset(i as isize);
-        let mut v: libc::c_int = 0i32;
-        let mut u: libc::c_int = 8i32 - 1i32;
+        let mut v: i32 = 0i32;
+        let mut u: i32 = 8i32 - 1i32;
         while u >= 0i32 {
             *bs.offset((i * 8i32 + v) as isize) = (a >> u * 8i32) as u8;
             v += 1;
@@ -92,15 +88,15 @@ pub unsafe extern "C" fn poly_to_byte_seq(mut bs: *mut u8,
 #[no_mangle]
 pub unsafe extern "C" fn byte_seq_to_poly(mut y: *mut DIGIT,
                                           mut bs: *mut u8) {
-    let mut b: libc::c_int = 0i32;
+    let mut b: i32 = 0i32;
     while b < (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32 {
         let mut a: DIGIT = 0i32 as DIGIT;
-        let mut v: libc::c_int = 0i32;
-        let mut u: libc::c_int = 8i32 - 1i32;
+        let mut v: i32 = 0i32;
+        let mut u: i32 = 8i32 - 1i32;
         while u >= 0i32 {
             a =
                 (a as
-                     libc::c_ulong).wrapping_add((*bs.offset((b + v) as isize)
+                     u64).wrapping_add((*bs.offset((b + v) as isize)
                                                       as DIGIT) << u * 8i32)
                     as DIGIT as DIGIT;
             v += 1;

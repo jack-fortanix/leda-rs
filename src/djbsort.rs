@@ -1,9 +1,8 @@
 #![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
          non_upper_case_globals, unused_assignments, unused_mut)]
-pub type __int32_t = libc::c_int;
-pub type int32_t = __int32_t;
+
 #[no_mangle]
-pub unsafe extern "C" fn int32_sort(mut x: *mut int32_t,
+pub unsafe extern "C" fn int32_sort(mut x: *mut i32,
                                     mut n: libc::c_longlong) {
     let mut top: libc::c_longlong = 0;
     let mut p: libc::c_longlong = 0;
@@ -20,9 +19,9 @@ pub unsafe extern "C" fn int32_sort(mut x: *mut int32_t,
         while i + 2i32 as libc::c_longlong * p <= n {
             j = i;
             while j < i + p {
-                let mut ab: int32_t =
+                let mut ab: i32 =
                     *x.offset((j + p) as isize) ^ *x.offset(j as isize);
-                let mut c: int32_t =
+                let mut c: i32 =
                     *x.offset((j + p) as isize) - *x.offset(j as isize);
                 c ^= ab & (c ^ *x.offset((j + p) as isize));
                 c >>= 31i32;
@@ -37,9 +36,9 @@ pub unsafe extern "C" fn int32_sort(mut x: *mut int32_t,
         }
         j = i;
         while j < n - p {
-            let mut ab_0: int32_t =
+            let mut ab_0: i32 =
                 *x.offset((j + p) as isize) ^ *x.offset(j as isize);
-            let mut c_0: int32_t =
+            let mut c_0: i32 =
                 *x.offset((j + p) as isize) - *x.offset(j as isize);
             c_0 ^= ab_0 & (c_0 ^ *x.offset((j + p) as isize));
             c_0 >>= 31i32;
@@ -61,12 +60,12 @@ pub unsafe extern "C" fn int32_sort(mut x: *mut int32_t,
                         current_block_73 = 5722677567366458307;
                         break ;
                     }
-                    let mut a: int32_t = *x.offset((j + p) as isize);
+                    let mut a: i32 = *x.offset((j + p) as isize);
                     r = q;
                     while r > p {
-                        let mut ab_1: int32_t =
+                        let mut ab_1: i32 =
                             *x.offset((j + r) as isize) ^ a;
-                        let mut c_1: int32_t =
+                        let mut c_1: i32 =
                             *x.offset((j + r) as isize) - a;
                         c_1 ^= ab_1 & (c_1 ^ *x.offset((j + r) as isize));
                         c_1 >>= 31i32;
@@ -89,13 +88,13 @@ pub unsafe extern "C" fn int32_sort(mut x: *mut int32_t,
                     while i + p <= n - q {
                         j = i;
                         while j < i + p {
-                            let mut a_0: int32_t =
+                            let mut a_0: i32 =
                                 *x.offset((j + p) as isize);
                             r = q;
                             while r > p {
-                                let mut ab_2: int32_t =
+                                let mut ab_2: i32 =
                                     *x.offset((j + r) as isize) ^ a_0;
-                                let mut c_2: int32_t =
+                                let mut c_2: i32 =
                                     *x.offset((j + r) as isize) - a_0;
                                 c_2 ^=
                                     ab_2 &
@@ -116,12 +115,12 @@ pub unsafe extern "C" fn int32_sort(mut x: *mut int32_t,
                     /* now i + p > n - q */
                     j = i;
                     while j < n - q {
-                        let mut a_1: int32_t = *x.offset((j + p) as isize);
+                        let mut a_1: i32 = *x.offset((j + p) as isize);
                         r = q;
                         while r > p {
-                            let mut ab_3: int32_t =
+                            let mut ab_3: i32 =
                                 *x.offset((j + r) as isize) ^ a_1;
-                            let mut c_3: int32_t =
+                            let mut c_3: i32 =
                                 *x.offset((j + r) as isize) - a_1;
                             c_3 ^= ab_3 & (c_3 ^ *x.offset((j + r) as isize));
                             c_3 >>= 31i32;

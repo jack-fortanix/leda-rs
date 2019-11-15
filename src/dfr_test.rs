@@ -8,14 +8,8 @@ extern "C" {
  *  the modifications made to adapt it to the LEDAcrypt codebase.
 *****************************************************************************/
     #[no_mangle]
-    fn int32_sort(x: *mut int32_t, n: libc::c_longlong);
+    fn int32_sort(x: *mut i32, n: libc::c_longlong);
 }
-pub type __u8 = libc::c_uchar;
-pub type __int32_t = libc::c_int;
-pub type __u32 = libc::c_uint;
-pub type int32_t = __int32_t;
-pub type u8 = __u8;
-pub type u32 = __u32;
 /*---------------------------------------------------------------------------*/
 /* Tests if the current code attains the desired DFR. If that is the case, 
  * computes the threshold for the second iteration of the decoder and stores
@@ -23,26 +17,26 @@ pub type u32 = __u32;
 #[no_mangle]
 pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [u32; 121],
                                   mut secondIterThreshold: *mut u8)
- -> libc::c_int {
+ -> i32 {
     let mut LSparse_loc: [[u32; 121]; 2] =
         [[0; 121]; 2]; /* vector of N_0 sparse blocks */
     /* transpose blocks of L, we need its columns */
-    let mut i: libc::c_int = 0i32;
+    let mut i: i32 = 0i32;
     while i < 2i32 {
-        let mut j: libc::c_int = 0i32;
+        let mut j: i32 = 0i32;
         while j < 11i32 * 11i32 {
             if (*LSparse.offset(i as isize))[j as usize] !=
-                   0i32 as libc::c_uint {
+                   0i32 as u32 {
                 LSparse_loc[i as usize][j as usize] =
                     (57899i32 as
-                         libc::c_uint).wrapping_sub((*LSparse.offset(i as
+                         u32).wrapping_sub((*LSparse.offset(i as
                                                                          isize))[j
                                                                                      as
                                                                                      usize])
             }
             j += 1
         }
-        int32_sort(LSparse_loc[i as usize].as_mut_ptr() as *mut int32_t,
+        int32_sort(LSparse_loc[i as usize].as_mut_ptr() as *mut i32,
                    (11i32 * 11i32) as libc::c_longlong);
         i += 1
     }
@@ -50,7 +44,7 @@ pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [u32; 121],
      * gamma[a][b][c] stores the intersection of the first column of the a-th
      * block of L  with the c-th column of the b-th block of L */
     /* Gamma computation can be accelerated employing symmetry and QC properties */
-    let mut gamma: [[[libc::c_int; 57899]; 2]; 2] =
+    let mut gamma: [[[i32; 57899]; 2]; 2] =
         [[[0i32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -2684,18 +2678,18 @@ pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [u32; 121],
            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0; 57899]],
          [[0; 57899]; 2]];
-    let mut i_0: libc::c_int = 0i32;
+    let mut i_0: i32 = 0i32;
     while i_0 < 2i32 {
-        let mut j_0: libc::c_int = 0i32;
+        let mut j_0: i32 = 0i32;
         while j_0 < 2i32 {
-            let mut k: libc::c_int = 0i32;
+            let mut k: i32 = 0i32;
             while k < 11i32 * 11i32 {
-                let mut l: libc::c_int = 0i32;
+                let mut l: i32 = 0i32;
                 while l < 11i32 * 11i32 {
                     gamma[i_0 as
                               usize][j_0 as
                                          usize][(57899i32 as
-                                                     libc::c_uint).wrapping_add(LSparse_loc[i_0
+                                                     u32).wrapping_add(LSparse_loc[i_0
                                                                                                 as
                                                                                                 usize][k
                                                                                                            as
@@ -2705,7 +2699,7 @@ pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [u32; 121],
                                                                                                                                                            as
                                                                                                                                                            usize]).wrapping_rem(57899i32
                                                                                                                                                                                     as
-                                                                                                                                                                                    libc::c_uint)
+                                                                                                                                                                                    u32)
                                                     as usize] += 1;
                     l += 1
                 }
@@ -2715,9 +2709,9 @@ pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [u32; 121],
         }
         i_0 += 1
     }
-    let mut i_1: libc::c_int = 0i32;
+    let mut i_1: i32 = 0i32;
     while i_1 < 2i32 {
-        let mut j_1: libc::c_int = 0i32;
+        let mut j_1: i32 = 0i32;
         while j_1 < 2i32 {
             gamma[i_1 as usize][j_1 as usize][0] = 0i32;
             j_1 += 1
@@ -2725,18 +2719,18 @@ pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [u32; 121],
         i_1 += 1
     }
     /* build histogram of values in gamma */
-    let mut gammaHist: [[libc::c_uint; 122]; 2] =
-        [[0i32 as libc::c_uint, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    let mut gammaHist: [[u32; 122]; 2] =
+        [[0i32 as u32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0; 122]];
-    let mut i_2: libc::c_int = 0i32;
+    let mut i_2: i32 = 0i32;
     while i_2 < 2i32 {
-        let mut j_2: libc::c_int = 0i32;
+        let mut j_2: i32 = 0i32;
         while j_2 < 2i32 {
-            let mut k_0: libc::c_int = 0i32;
+            let mut k_0: i32 = 0i32;
             while k_0 < 57899i32 {
                 gammaHist[i_2 as
                               usize][gamma[i_2 as
@@ -2755,38 +2749,38 @@ pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [u32; 121],
         }
         i_2 += 1
     }
-    let mut maxMut: [libc::c_int; 2] = [0; 2];
-    let mut maxMutMinusOne: [libc::c_int; 2] = [0; 2];
-    let mut allBlockMaxSumst: libc::c_int = 0;
-    let mut allBlockMaxSumstMinusOne: libc::c_int = 0;
-    let mut gammaBlockRowIdx: libc::c_int = 0i32;
+    let mut maxMut: [i32; 2] = [0; 2];
+    let mut maxMutMinusOne: [i32; 2] = [0; 2];
+    let mut allBlockMaxSumst: i32 = 0;
+    let mut allBlockMaxSumstMinusOne: i32 = 0;
+    let mut gammaBlockRowIdx: i32 = 0i32;
     while gammaBlockRowIdx < 2i32 {
-        let mut toAdd: libc::c_int = 5i32 - 1i32;
+        let mut toAdd: i32 = 5i32 - 1i32;
         maxMutMinusOne[gammaBlockRowIdx as usize] = 0i32;
-        let mut histIdx: libc::c_int = 11i32 * 11i32;
+        let mut histIdx: i32 = 11i32 * 11i32;
         while histIdx > 0i32 && toAdd > 0i32 {
             if gammaHist[gammaBlockRowIdx as usize][histIdx as usize] >
-                   toAdd as libc::c_uint {
+                   toAdd as u32 {
                 maxMutMinusOne[gammaBlockRowIdx as usize] += histIdx * toAdd;
                 toAdd = 0i32
             } else {
                 maxMutMinusOne[gammaBlockRowIdx as usize] =
                     (maxMutMinusOne[gammaBlockRowIdx as usize] as
-                         libc::c_uint).wrapping_add((histIdx as
-                                                         libc::c_uint).wrapping_mul(gammaHist[gammaBlockRowIdx
+                         u32).wrapping_add((histIdx as
+                                                         u32).wrapping_mul(gammaHist[gammaBlockRowIdx
                                                                                                   as
                                                                                                   usize][histIdx
                                                                                                              as
                                                                                                              usize]))
-                        as libc::c_int as libc::c_int;
+                        as i32 as i32;
                 toAdd =
                     (toAdd as
-                         libc::c_uint).wrapping_sub(gammaHist[gammaBlockRowIdx
+                         u32).wrapping_sub(gammaHist[gammaBlockRowIdx
                                                                   as
                                                                   usize][histIdx
                                                                              as
                                                                              usize])
-                        as libc::c_int as libc::c_int;
+                        as i32 as i32;
                 histIdx -= 1
             }
         }
@@ -2797,7 +2791,7 @@ pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [u32; 121],
     /*seek max values across all gamma blocks */
     allBlockMaxSumst = maxMut[0];
     allBlockMaxSumstMinusOne = maxMutMinusOne[0];
-    let mut gammaBlockRowIdx_0: libc::c_int = 0i32;
+    let mut gammaBlockRowIdx_0: i32 = 0i32;
     while gammaBlockRowIdx_0 < 2i32 {
         allBlockMaxSumst =
             if allBlockMaxSumst < maxMut[gammaBlockRowIdx_0 as usize] {

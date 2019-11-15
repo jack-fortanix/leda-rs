@@ -1,9 +1,5 @@
 #![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
          non_upper_case_globals, unused_assignments, unused_mut)]
-pub type __u8 = libc::c_uchar;
-pub type __u32 = libc::c_uint;
-pub type u8 = __u8;
-pub type u32 = __u32;
 /* *
  * AES-256 self contained implementation derived from :
  *
@@ -397,9 +393,9 @@ static mut rcon: [u32; 10] =
 #[no_mangle]
 pub unsafe extern "C" fn rijndaelKeySetupEnc(mut rk: *mut u32,
                                              mut cipherKey: *const u8,
-                                             mut keyBits: libc::c_int)
- -> libc::c_int {
-    let mut i: libc::c_int = 0i32;
+                                             mut keyBits: i32)
+ -> i32 {
+    let mut i: i32 = 0i32;
     let mut temp: u32 = 0;
     *rk.offset(0) =
         (*cipherKey.offset(0) as u32) << 24i32 ^
@@ -445,13 +441,13 @@ pub unsafe extern "C" fn rijndaelKeySetupEnc(mut rk: *mut u32,
         temp = *rk.offset(7);
         *rk.offset(8) =
             *rk.offset(0) ^
-                Te4[(temp >> 16i32 & 0xffi32 as libc::c_uint) as usize] &
+                Te4[(temp >> 16i32 & 0xffi32 as u32) as usize] &
                     0xff000000u32 ^
-                Te4[(temp >> 8i32 & 0xffi32 as libc::c_uint) as usize] &
-                    0xff0000i32 as libc::c_uint ^
-                Te4[(temp & 0xffi32 as libc::c_uint) as usize] &
-                    0xff00i32 as libc::c_uint ^
-                Te4[(temp >> 24i32) as usize] & 0xffi32 as libc::c_uint ^
+                Te4[(temp >> 8i32 & 0xffi32 as u32) as usize] &
+                    0xff0000i32 as u32 ^
+                Te4[(temp & 0xffi32 as u32) as usize] &
+                    0xff00i32 as u32 ^
+                Te4[(temp >> 24i32) as usize] & 0xffi32 as u32 ^
                 rcon[i as usize];
         *rk.offset(9) = *rk.offset(1) ^ *rk.offset(8);
         *rk.offset(10) = *rk.offset(2) ^ *rk.offset(9);
@@ -461,12 +457,12 @@ pub unsafe extern "C" fn rijndaelKeySetupEnc(mut rk: *mut u32,
         temp = *rk.offset(11);
         *rk.offset(12) =
             *rk.offset(4) ^ Te4[(temp >> 24i32) as usize] & 0xff000000u32 ^
-                Te4[(temp >> 16i32 & 0xffi32 as libc::c_uint) as usize] &
-                    0xff0000i32 as libc::c_uint ^
-                Te4[(temp >> 8i32 & 0xffi32 as libc::c_uint) as usize] &
-                    0xff00i32 as libc::c_uint ^
-                Te4[(temp & 0xffi32 as libc::c_uint) as usize] &
-                    0xffi32 as libc::c_uint;
+                Te4[(temp >> 16i32 & 0xffi32 as u32) as usize] &
+                    0xff0000i32 as u32 ^
+                Te4[(temp >> 8i32 & 0xffi32 as u32) as usize] &
+                    0xff00i32 as u32 ^
+                Te4[(temp & 0xffi32 as u32) as usize] &
+                    0xffi32 as u32;
         *rk.offset(13) = *rk.offset(5) ^ *rk.offset(12);
         *rk.offset(14) = *rk.offset(6) ^ *rk.offset(13);
         *rk.offset(15) = *rk.offset(7) ^ *rk.offset(14);
@@ -475,7 +471,7 @@ pub unsafe extern "C" fn rijndaelKeySetupEnc(mut rk: *mut u32,
 }
 #[no_mangle]
 pub unsafe extern "C" fn rijndaelEncrypt(mut rk: *const u32,
-                                         mut Nr: libc::c_int,
+                                         mut Nr: i32,
                                          mut pt: *const u8,
                                          mut ct: *mut u8) {
     let mut s0: u32 = 0;
@@ -513,276 +509,276 @@ pub unsafe extern "C" fn rijndaelEncrypt(mut rk: *const u32,
     /* round 1: */
     t0 =
         Te0[(s0 >> 24i32) as usize] ^
-            Te1[(s1 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s2 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s3 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(4);
+            Te1[(s1 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s2 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s3 & 0xffi32 as u32) as usize] ^ *rk.offset(4);
     t1 =
         Te0[(s1 >> 24i32) as usize] ^
-            Te1[(s2 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s3 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s0 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(5);
+            Te1[(s2 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s3 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s0 & 0xffi32 as u32) as usize] ^ *rk.offset(5);
     t2 =
         Te0[(s2 >> 24i32) as usize] ^
-            Te1[(s3 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s0 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s1 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(6);
+            Te1[(s3 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s0 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s1 & 0xffi32 as u32) as usize] ^ *rk.offset(6);
     t3 =
         Te0[(s3 >> 24i32) as usize] ^
-            Te1[(s0 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s1 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s2 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(7);
+            Te1[(s0 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s1 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s2 & 0xffi32 as u32) as usize] ^ *rk.offset(7);
     /* round 2: */
     s0 =
         Te0[(t0 >> 24i32) as usize] ^
-            Te1[(t1 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t2 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t3 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(8);
+            Te1[(t1 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t2 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t3 & 0xffi32 as u32) as usize] ^ *rk.offset(8);
     s1 =
         Te0[(t1 >> 24i32) as usize] ^
-            Te1[(t2 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t3 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t0 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(9);
+            Te1[(t2 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t3 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t0 & 0xffi32 as u32) as usize] ^ *rk.offset(9);
     s2 =
         Te0[(t2 >> 24i32) as usize] ^
-            Te1[(t3 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t0 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t1 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(10);
+            Te1[(t3 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t0 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t1 & 0xffi32 as u32) as usize] ^ *rk.offset(10);
     s3 =
         Te0[(t3 >> 24i32) as usize] ^
-            Te1[(t0 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t1 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t2 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(11);
+            Te1[(t0 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t1 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t2 & 0xffi32 as u32) as usize] ^ *rk.offset(11);
     /* round 3: */
     t0 =
         Te0[(s0 >> 24i32) as usize] ^
-            Te1[(s1 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s2 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s3 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(12);
+            Te1[(s1 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s2 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s3 & 0xffi32 as u32) as usize] ^ *rk.offset(12);
     t1 =
         Te0[(s1 >> 24i32) as usize] ^
-            Te1[(s2 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s3 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s0 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(13);
+            Te1[(s2 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s3 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s0 & 0xffi32 as u32) as usize] ^ *rk.offset(13);
     t2 =
         Te0[(s2 >> 24i32) as usize] ^
-            Te1[(s3 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s0 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s1 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(14);
+            Te1[(s3 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s0 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s1 & 0xffi32 as u32) as usize] ^ *rk.offset(14);
     t3 =
         Te0[(s3 >> 24i32) as usize] ^
-            Te1[(s0 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s1 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s2 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(15);
+            Te1[(s0 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s1 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s2 & 0xffi32 as u32) as usize] ^ *rk.offset(15);
     /* round 4: */
     s0 =
         Te0[(t0 >> 24i32) as usize] ^
-            Te1[(t1 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t2 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t3 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(16);
+            Te1[(t1 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t2 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t3 & 0xffi32 as u32) as usize] ^ *rk.offset(16);
     s1 =
         Te0[(t1 >> 24i32) as usize] ^
-            Te1[(t2 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t3 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t0 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(17);
+            Te1[(t2 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t3 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t0 & 0xffi32 as u32) as usize] ^ *rk.offset(17);
     s2 =
         Te0[(t2 >> 24i32) as usize] ^
-            Te1[(t3 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t0 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t1 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(18);
+            Te1[(t3 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t0 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t1 & 0xffi32 as u32) as usize] ^ *rk.offset(18);
     s3 =
         Te0[(t3 >> 24i32) as usize] ^
-            Te1[(t0 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t1 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t2 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(19);
+            Te1[(t0 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t1 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t2 & 0xffi32 as u32) as usize] ^ *rk.offset(19);
     /* round 5: */
     t0 =
         Te0[(s0 >> 24i32) as usize] ^
-            Te1[(s1 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s2 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s3 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(20);
+            Te1[(s1 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s2 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s3 & 0xffi32 as u32) as usize] ^ *rk.offset(20);
     t1 =
         Te0[(s1 >> 24i32) as usize] ^
-            Te1[(s2 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s3 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s0 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(21);
+            Te1[(s2 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s3 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s0 & 0xffi32 as u32) as usize] ^ *rk.offset(21);
     t2 =
         Te0[(s2 >> 24i32) as usize] ^
-            Te1[(s3 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s0 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s1 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(22);
+            Te1[(s3 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s0 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s1 & 0xffi32 as u32) as usize] ^ *rk.offset(22);
     t3 =
         Te0[(s3 >> 24i32) as usize] ^
-            Te1[(s0 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s1 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s2 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(23);
+            Te1[(s0 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s1 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s2 & 0xffi32 as u32) as usize] ^ *rk.offset(23);
     /* round 6: */
     s0 =
         Te0[(t0 >> 24i32) as usize] ^
-            Te1[(t1 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t2 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t3 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(24);
+            Te1[(t1 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t2 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t3 & 0xffi32 as u32) as usize] ^ *rk.offset(24);
     s1 =
         Te0[(t1 >> 24i32) as usize] ^
-            Te1[(t2 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t3 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t0 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(25);
+            Te1[(t2 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t3 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t0 & 0xffi32 as u32) as usize] ^ *rk.offset(25);
     s2 =
         Te0[(t2 >> 24i32) as usize] ^
-            Te1[(t3 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t0 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t1 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(26);
+            Te1[(t3 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t0 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t1 & 0xffi32 as u32) as usize] ^ *rk.offset(26);
     s3 =
         Te0[(t3 >> 24i32) as usize] ^
-            Te1[(t0 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t1 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t2 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(27);
+            Te1[(t0 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t1 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t2 & 0xffi32 as u32) as usize] ^ *rk.offset(27);
     /* round 7: */
     t0 =
         Te0[(s0 >> 24i32) as usize] ^
-            Te1[(s1 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s2 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s3 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(28);
+            Te1[(s1 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s2 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s3 & 0xffi32 as u32) as usize] ^ *rk.offset(28);
     t1 =
         Te0[(s1 >> 24i32) as usize] ^
-            Te1[(s2 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s3 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s0 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(29);
+            Te1[(s2 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s3 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s0 & 0xffi32 as u32) as usize] ^ *rk.offset(29);
     t2 =
         Te0[(s2 >> 24i32) as usize] ^
-            Te1[(s3 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s0 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s1 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(30);
+            Te1[(s3 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s0 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s1 & 0xffi32 as u32) as usize] ^ *rk.offset(30);
     t3 =
         Te0[(s3 >> 24i32) as usize] ^
-            Te1[(s0 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s1 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s2 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(31);
+            Te1[(s0 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s1 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s2 & 0xffi32 as u32) as usize] ^ *rk.offset(31);
     /* round 8: */
     s0 =
         Te0[(t0 >> 24i32) as usize] ^
-            Te1[(t1 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t2 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t3 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(32);
+            Te1[(t1 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t2 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t3 & 0xffi32 as u32) as usize] ^ *rk.offset(32);
     s1 =
         Te0[(t1 >> 24i32) as usize] ^
-            Te1[(t2 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t3 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t0 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(33);
+            Te1[(t2 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t3 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t0 & 0xffi32 as u32) as usize] ^ *rk.offset(33);
     s2 =
         Te0[(t2 >> 24i32) as usize] ^
-            Te1[(t3 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t0 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t1 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(34);
+            Te1[(t3 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t0 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t1 & 0xffi32 as u32) as usize] ^ *rk.offset(34);
     s3 =
         Te0[(t3 >> 24i32) as usize] ^
-            Te1[(t0 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t1 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t2 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(35);
+            Te1[(t0 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t1 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t2 & 0xffi32 as u32) as usize] ^ *rk.offset(35);
     /* round 9: */
     t0 =
         Te0[(s0 >> 24i32) as usize] ^
-            Te1[(s1 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s2 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s3 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(36);
+            Te1[(s1 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s2 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s3 & 0xffi32 as u32) as usize] ^ *rk.offset(36);
     t1 =
         Te0[(s1 >> 24i32) as usize] ^
-            Te1[(s2 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s3 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s0 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(37);
+            Te1[(s2 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s3 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s0 & 0xffi32 as u32) as usize] ^ *rk.offset(37);
     t2 =
         Te0[(s2 >> 24i32) as usize] ^
-            Te1[(s3 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s0 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s1 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(38);
+            Te1[(s3 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s0 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s1 & 0xffi32 as u32) as usize] ^ *rk.offset(38);
     t3 =
         Te0[(s3 >> 24i32) as usize] ^
-            Te1[(s0 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s1 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s2 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(39);
+            Te1[(s0 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s1 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s2 & 0xffi32 as u32) as usize] ^ *rk.offset(39);
     /* round 10: */
     s0 =
         Te0[(t0 >> 24i32) as usize] ^
-            Te1[(t1 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t2 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t3 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(40);
+            Te1[(t1 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t2 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t3 & 0xffi32 as u32) as usize] ^ *rk.offset(40);
     s1 =
         Te0[(t1 >> 24i32) as usize] ^
-            Te1[(t2 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t3 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t0 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(41);
+            Te1[(t2 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t3 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t0 & 0xffi32 as u32) as usize] ^ *rk.offset(41);
     s2 =
         Te0[(t2 >> 24i32) as usize] ^
-            Te1[(t3 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t0 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t1 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(42);
+            Te1[(t3 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t0 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t1 & 0xffi32 as u32) as usize] ^ *rk.offset(42);
     s3 =
         Te0[(t3 >> 24i32) as usize] ^
-            Te1[(t0 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t1 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t2 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(43);
+            Te1[(t0 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t1 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t2 & 0xffi32 as u32) as usize] ^ *rk.offset(43);
     /* round 11: */
     t0 =
         Te0[(s0 >> 24i32) as usize] ^
-            Te1[(s1 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s2 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s3 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(44);
+            Te1[(s1 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s2 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s3 & 0xffi32 as u32) as usize] ^ *rk.offset(44);
     t1 =
         Te0[(s1 >> 24i32) as usize] ^
-            Te1[(s2 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s3 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s0 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(45);
+            Te1[(s2 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s3 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s0 & 0xffi32 as u32) as usize] ^ *rk.offset(45);
     t2 =
         Te0[(s2 >> 24i32) as usize] ^
-            Te1[(s3 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s0 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s1 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(46);
+            Te1[(s3 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s0 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s1 & 0xffi32 as u32) as usize] ^ *rk.offset(46);
     t3 =
         Te0[(s3 >> 24i32) as usize] ^
-            Te1[(s0 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s1 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s2 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(47);
+            Te1[(s0 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s1 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s2 & 0xffi32 as u32) as usize] ^ *rk.offset(47);
     /* round 12: */
     s0 =
         Te0[(t0 >> 24i32) as usize] ^
-            Te1[(t1 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t2 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t3 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(48);
+            Te1[(t1 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t2 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t3 & 0xffi32 as u32) as usize] ^ *rk.offset(48);
     s1 =
         Te0[(t1 >> 24i32) as usize] ^
-            Te1[(t2 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t3 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t0 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(49);
+            Te1[(t2 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t3 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t0 & 0xffi32 as u32) as usize] ^ *rk.offset(49);
     s2 =
         Te0[(t2 >> 24i32) as usize] ^
-            Te1[(t3 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t0 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t1 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(50);
+            Te1[(t3 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t0 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t1 & 0xffi32 as u32) as usize] ^ *rk.offset(50);
     s3 =
         Te0[(t3 >> 24i32) as usize] ^
-            Te1[(t0 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(t1 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(t2 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(51);
+            Te1[(t0 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(t1 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(t2 & 0xffi32 as u32) as usize] ^ *rk.offset(51);
     /* round 13: */
     t0 =
         Te0[(s0 >> 24i32) as usize] ^
-            Te1[(s1 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s2 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s3 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(52);
+            Te1[(s1 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s2 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s3 & 0xffi32 as u32) as usize] ^ *rk.offset(52);
     t1 =
         Te0[(s1 >> 24i32) as usize] ^
-            Te1[(s2 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s3 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s0 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(53);
+            Te1[(s2 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s3 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s0 & 0xffi32 as u32) as usize] ^ *rk.offset(53);
     t2 =
         Te0[(s2 >> 24i32) as usize] ^
-            Te1[(s3 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s0 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s1 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(54);
+            Te1[(s3 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s0 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s1 & 0xffi32 as u32) as usize] ^ *rk.offset(54);
     t3 =
         Te0[(s3 >> 24i32) as usize] ^
-            Te1[(s0 >> 16i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te2[(s1 >> 8i32 & 0xffi32 as libc::c_uint) as usize] ^
-            Te3[(s2 & 0xffi32 as libc::c_uint) as usize] ^ *rk.offset(55);
+            Te1[(s0 >> 16i32 & 0xffi32 as u32) as usize] ^
+            Te2[(s1 >> 8i32 & 0xffi32 as u32) as usize] ^
+            Te3[(s2 & 0xffi32 as u32) as usize] ^ *rk.offset(55);
     rk = rk.offset((Nr << 2i32) as isize);
     /*
    * apply last round and
@@ -790,48 +786,48 @@ pub unsafe extern "C" fn rijndaelEncrypt(mut rk: *const u32,
    */
     s0 =
         Te4[(t0 >> 24i32) as usize] & 0xff000000u32 ^
-            Te4[(t1 >> 16i32 & 0xffi32 as libc::c_uint) as usize] &
-                0xff0000i32 as libc::c_uint ^
-            Te4[(t2 >> 8i32 & 0xffi32 as libc::c_uint) as usize] &
-                0xff00i32 as libc::c_uint ^
-            Te4[(t3 & 0xffi32 as libc::c_uint) as usize] &
-                0xffi32 as libc::c_uint ^ *rk.offset(0);
+            Te4[(t1 >> 16i32 & 0xffi32 as u32) as usize] &
+                0xff0000i32 as u32 ^
+            Te4[(t2 >> 8i32 & 0xffi32 as u32) as usize] &
+                0xff00i32 as u32 ^
+            Te4[(t3 & 0xffi32 as u32) as usize] &
+                0xffi32 as u32 ^ *rk.offset(0);
     *ct.offset(0) = (s0 >> 24i32) as u8;
     *ct.offset(1) = (s0 >> 16i32) as u8;
     *ct.offset(2) = (s0 >> 8i32) as u8;
     *ct.offset(3) = s0 as u8;
     s1 =
         Te4[(t1 >> 24i32) as usize] & 0xff000000u32 ^
-            Te4[(t2 >> 16i32 & 0xffi32 as libc::c_uint) as usize] &
-                0xff0000i32 as libc::c_uint ^
-            Te4[(t3 >> 8i32 & 0xffi32 as libc::c_uint) as usize] &
-                0xff00i32 as libc::c_uint ^
-            Te4[(t0 & 0xffi32 as libc::c_uint) as usize] &
-                0xffi32 as libc::c_uint ^ *rk.offset(1);
+            Te4[(t2 >> 16i32 & 0xffi32 as u32) as usize] &
+                0xff0000i32 as u32 ^
+            Te4[(t3 >> 8i32 & 0xffi32 as u32) as usize] &
+                0xff00i32 as u32 ^
+            Te4[(t0 & 0xffi32 as u32) as usize] &
+                0xffi32 as u32 ^ *rk.offset(1);
     *ct.offset(4).offset(0) = (s1 >> 24i32) as u8;
     *ct.offset(4).offset(1) = (s1 >> 16i32) as u8;
     *ct.offset(4).offset(2) = (s1 >> 8i32) as u8;
     *ct.offset(4).offset(3) = s1 as u8;
     s2 =
         Te4[(t2 >> 24i32) as usize] & 0xff000000u32 ^
-            Te4[(t3 >> 16i32 & 0xffi32 as libc::c_uint) as usize] &
-                0xff0000i32 as libc::c_uint ^
-            Te4[(t0 >> 8i32 & 0xffi32 as libc::c_uint) as usize] &
-                0xff00i32 as libc::c_uint ^
-            Te4[(t1 & 0xffi32 as libc::c_uint) as usize] &
-                0xffi32 as libc::c_uint ^ *rk.offset(2);
+            Te4[(t3 >> 16i32 & 0xffi32 as u32) as usize] &
+                0xff0000i32 as u32 ^
+            Te4[(t0 >> 8i32 & 0xffi32 as u32) as usize] &
+                0xff00i32 as u32 ^
+            Te4[(t1 & 0xffi32 as u32) as usize] &
+                0xffi32 as u32 ^ *rk.offset(2);
     *ct.offset(8).offset(0) = (s2 >> 24i32) as u8;
     *ct.offset(8).offset(1) = (s2 >> 16i32) as u8;
     *ct.offset(8).offset(2) = (s2 >> 8i32) as u8;
     *ct.offset(8).offset(3) = s2 as u8;
     s3 =
         Te4[(t3 >> 24i32) as usize] & 0xff000000u32 ^
-            Te4[(t0 >> 16i32 & 0xffi32 as libc::c_uint) as usize] &
-                0xff0000i32 as libc::c_uint ^
-            Te4[(t1 >> 8i32 & 0xffi32 as libc::c_uint) as usize] &
-                0xff00i32 as libc::c_uint ^
-            Te4[(t2 & 0xffi32 as libc::c_uint) as usize] &
-                0xffi32 as libc::c_uint ^ *rk.offset(3);
+            Te4[(t0 >> 16i32 & 0xffi32 as u32) as usize] &
+                0xff0000i32 as u32 ^
+            Te4[(t1 >> 8i32 & 0xffi32 as u32) as usize] &
+                0xff00i32 as u32 ^
+            Te4[(t2 & 0xffi32 as u32) as usize] &
+                0xffi32 as u32 ^ *rk.offset(3);
     *ct.offset(12).offset(0) = (s3 >> 24i32) as u8;
     *ct.offset(12).offset(1) = (s3 >> 16i32) as u8;
     *ct.offset(12).offset(2) = (s3 >> 8i32) as u8;

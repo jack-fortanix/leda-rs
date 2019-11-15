@@ -2,50 +2,47 @@
          non_upper_case_globals, unused_assignments, unused_mut)]
 extern "C" {
     #[no_mangle]
-    fn atoi(__nptr: *const libc::c_char) -> libc::c_int;
+    fn atoi(__nptr: *const libc::c_char) -> i32;
     #[no_mangle]
-    fn rand() -> libc::c_int;
+    fn rand() -> i32;
     #[no_mangle]
-    fn srand(__seed: libc::c_uint);
+    fn srand(__seed: u32);
     #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong)
+    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64)
      -> *mut libc::c_void;
     #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong)
+    fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
     #[no_mangle]
     fn clock_gettime(__clock_id: clockid_t, __tp: *mut timespec)
-     -> libc::c_int;
+     -> i32;
     #[no_mangle]
     fn rijndaelKeySetupEnc(rk: *mut u32, cipherKey: *const u8,
-                           keyBits: libc::c_int) -> libc::c_int;
+                           keyBits: i32) -> i32;
     #[no_mangle]
-    fn rijndaelEncrypt(rk: *const u32, Nr: libc::c_int,
+    fn rijndaelEncrypt(rk: *const u32, Nr: i32,
                        pt: *const u8, ct: *mut u8);
 }
-pub type __u8 = libc::c_uchar;
-pub type __u32 = libc::c_uint;
 pub type __time_t = libc::c_long;
-pub type __clockid_t = libc::c_int;
+pub type __clockid_t = i32;
 pub type __syscall_slong_t = libc::c_long;
 #[derive ( Copy, Clone )]
 #[repr(C)]
 pub struct AES_XOF_struct {
-    pub buffer: [libc::c_uchar; 16],
-    pub buffer_pos: libc::c_int,
-    pub length_remaining: libc::c_ulong,
-    pub key: [libc::c_uchar; 32],
-    pub ctr: [libc::c_uchar; 16],
+    pub buffer: [u8; 16],
+    pub buffer_pos: i32,
+    pub length_remaining: u64,
+    pub key: [u8; 32],
+    pub ctr: [u8; 16],
 }
 #[derive ( Copy, Clone )]
 #[repr(C)]
 pub struct AES256_CTR_DRBG_struct {
-    pub Key: [libc::c_uchar; 32],
-    pub V: [libc::c_uchar; 16],
-    pub reseed_counter: libc::c_int,
+    pub Key: [u8; 32],
+    pub V: [u8; 16],
+    pub reseed_counter: i32,
 }
-pub type u8 = __u8;
-pub type u32 = __u32;
+
 #[derive ( Copy, Clone )]
 #[repr(C)]
 pub struct timespec {
@@ -85,7 +82,7 @@ pub type clockid_t = __clockid_t;
  *
  **/
 // void srand(unsigned int seed); int rand(void); RAND_MAX
-// void *memset(void *s, int c, size_t n);
+// void *memset(void *s, int c, usize n);
 // struct timespec; clock_gettime(...); CLOCK_REALTIME
 /* *****************************************************************************/
 /*----------------------------------------------------------------------------*/
@@ -93,23 +90,23 @@ pub type clockid_t = __clockid_t;
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
 pub unsafe extern "C" fn initialize_pseudo_random_generator_seed(mut seedFixed:
-                                                                     libc::c_int,
+                                                                     i32,
                                                                  mut seed:
                                                                      *mut libc::c_char) {
     if seedFixed == 1i32 {
-        srand(atoi(seed) as libc::c_uint); // end else-if
+        srand(atoi(seed) as u32); // end else-if
     } else {
         let mut seedValue: timespec = timespec{tv_sec: 0, tv_nsec: 0,};
         clock_gettime(0i32, &mut seedValue);
-        srand(seedValue.tv_nsec as libc::c_uint);
+        srand(seedValue.tv_nsec as u32);
     }
-    let mut pseudo_entropy: [libc::c_uchar; 48] = [0; 48];
-    let mut i: libc::c_int = 0i32;
+    let mut pseudo_entropy: [u8; 48] = [0; 48];
+    let mut i: i32 = 0i32;
     while i < 48i32 {
-        pseudo_entropy[i as usize] = (rand() & 0xffi32) as libc::c_uchar;
+        pseudo_entropy[i as usize] = (rand() & 0xffi32) as u8;
         i += 1
     }
-    randombytes_init(pseudo_entropy.as_mut_ptr(), 0 as *mut libc::c_uchar,
+    randombytes_init(pseudo_entropy.as_mut_ptr(), 0 as *mut u8,
                      0i32);
 }
 // end initilize_pseudo_random_sequence_seed
@@ -132,38 +129,38 @@ pub static mut DRBG_ctx: AES256_CTR_DRBG_struct =
  */
 #[no_mangle]
 pub unsafe extern "C" fn seedexpander_init(mut ctx: *mut AES_XOF_struct,
-                                           mut seed: *mut libc::c_uchar,
+                                           mut seed: *mut u8,
                                            mut diversifier:
-                                               *mut libc::c_uchar,
-                                           mut maxlen: libc::c_ulong)
- -> libc::c_int {
-    if maxlen >= 0x100000000i64 as libc::c_ulong { return -1i32 }
+                                               *mut u8,
+                                           mut maxlen: u64)
+ -> i32 {
+    if maxlen >= 0x100000000i64 as u64 { return -1i32 }
     (*ctx).length_remaining = maxlen;
     memset((*ctx).key.as_mut_ptr() as *mut libc::c_void, 0i32,
-           32i32 as libc::c_ulong);
-    let mut max_accessible_seed_len: libc::c_int =
+           32i32 as u64);
+    let mut max_accessible_seed_len: i32 =
         if 32i32 < 32i32 { 32i32 } else { 32i32 };
     memcpy((*ctx).key.as_mut_ptr() as *mut libc::c_void,
            seed as *const libc::c_void,
-           max_accessible_seed_len as libc::c_ulong);
+           max_accessible_seed_len as u64);
     memcpy((*ctx).ctr.as_mut_ptr() as *mut libc::c_void,
-           diversifier as *const libc::c_void, 8i32 as libc::c_ulong);
+           diversifier as *const libc::c_void, 8i32 as u64);
     (*ctx).ctr[11] =
-        maxlen.wrapping_rem(256i32 as libc::c_ulong) as libc::c_uchar;
+        maxlen.wrapping_rem(256i32 as u64) as u8;
     maxlen >>= 8i32;
     (*ctx).ctr[10] =
-        maxlen.wrapping_rem(256i32 as libc::c_ulong) as libc::c_uchar;
+        maxlen.wrapping_rem(256i32 as u64) as u8;
     maxlen >>= 8i32;
     (*ctx).ctr[9] =
-        maxlen.wrapping_rem(256i32 as libc::c_ulong) as libc::c_uchar;
+        maxlen.wrapping_rem(256i32 as u64) as u8;
     maxlen >>= 8i32;
     (*ctx).ctr[8] =
-        maxlen.wrapping_rem(256i32 as libc::c_ulong) as libc::c_uchar;
+        maxlen.wrapping_rem(256i32 as u64) as u8;
     memset((*ctx).ctr.as_mut_ptr().offset(12) as *mut libc::c_void, 0i32,
-           4i32 as libc::c_ulong);
+           4i32 as u64);
     (*ctx).buffer_pos = 16i32;
     memset((*ctx).buffer.as_mut_ptr() as *mut libc::c_void, 0i32,
-           16i32 as libc::c_ulong);
+           16i32 as u64);
     return 0i32;
 }
 /*
@@ -174,43 +171,43 @@ pub unsafe extern "C" fn seedexpander_init(mut ctx: *mut AES_XOF_struct,
  */
 #[no_mangle]
 pub unsafe extern "C" fn seedexpander(mut ctx: *mut AES_XOF_struct,
-                                      mut x: *mut libc::c_uchar,
-                                      mut xlen: libc::c_ulong)
- -> libc::c_int {
-    let mut offset: libc::c_ulong = 0;
+                                      mut x: *mut u8,
+                                      mut xlen: u64)
+ -> i32 {
+    let mut offset: u64 = 0;
     if x.is_null() { return -2i32 }
     if xlen >= (*ctx).length_remaining { return -3i32 }
     (*ctx).length_remaining = (*ctx).length_remaining.wrapping_sub(xlen);
-    offset = 0i32 as libc::c_ulong;
-    while xlen > 0i32 as libc::c_ulong {
-        if xlen <= (16i32 - (*ctx).buffer_pos) as libc::c_ulong {
+    offset = 0i32 as u64;
+    while xlen > 0i32 as u64 {
+        if xlen <= (16i32 - (*ctx).buffer_pos) as u64 {
             // buffer has what we need
             memcpy(x.offset(offset as isize) as *mut libc::c_void,
                    (*ctx).buffer.as_mut_ptr().offset((*ctx).buffer_pos as
                                                          isize) as
                        *const libc::c_void, xlen);
             (*ctx).buffer_pos =
-                ((*ctx).buffer_pos as libc::c_ulong).wrapping_add(xlen) as
-                    libc::c_int as libc::c_int;
+                ((*ctx).buffer_pos as u64).wrapping_add(xlen) as
+                    i32 as i32;
             return 0i32
         }
         // take what's in the buffer
         memcpy(x.offset(offset as isize) as *mut libc::c_void,
                (*ctx).buffer.as_mut_ptr().offset((*ctx).buffer_pos as isize)
                    as *const libc::c_void,
-               (16i32 - (*ctx).buffer_pos) as libc::c_ulong);
+               (16i32 - (*ctx).buffer_pos) as u64);
         xlen =
-            xlen.wrapping_sub((16i32 - (*ctx).buffer_pos) as libc::c_ulong);
+            xlen.wrapping_sub((16i32 - (*ctx).buffer_pos) as u64);
         offset =
-            offset.wrapping_add((16i32 - (*ctx).buffer_pos) as libc::c_ulong);
+            offset.wrapping_add((16i32 - (*ctx).buffer_pos) as u64);
         AES256_ECB((*ctx).key.as_mut_ptr(), (*ctx).ctr.as_mut_ptr(),
                    (*ctx).buffer.as_mut_ptr());
         (*ctx).buffer_pos = 0i32;
         //increment the counter
-        let mut i: libc::c_int = 15i32;
+        let mut i: i32 = 15i32;
         while i >= 12i32 {
-            if (*ctx).ctr[i as usize] as libc::c_int == 0xffi32 {
-                (*ctx).ctr[i as usize] = 0i32 as libc::c_uchar;
+            if (*ctx).ctr[i as usize] as i32 == 0xffi32 {
+                (*ctx).ctr[i as usize] = 0i32 as u8;
                 i -= 1
             } else {
                 (*ctx).ctr[i as usize] =
@@ -226,9 +223,9 @@ pub unsafe extern "C" fn seedexpander(mut ctx: *mut AES_XOF_struct,
 //    ptx - a 128-bit plaintext value
 //    ctx - a 128-bit ciphertext value
 #[no_mangle]
-pub unsafe extern "C" fn AES256_ECB(mut key: *mut libc::c_uchar,
-                                    mut ptx: *mut libc::c_uchar,
-                                    mut ctx: *mut libc::c_uchar) {
+pub unsafe extern "C" fn AES256_ECB(mut key: *mut u8,
+                                    mut ptx: *mut u8,
+                                    mut ctx: *mut u8) {
     let mut round_key: [u32; 60] =
         [0i32 as u32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -240,45 +237,45 @@ pub unsafe extern "C" fn AES256_ECB(mut key: *mut libc::c_uchar,
 }
 #[no_mangle]
 pub unsafe extern "C" fn randombytes_init(mut entropy_input:
-                                              *mut libc::c_uchar,
+                                              *mut u8,
                                           mut personalization_string:
-                                              *mut libc::c_uchar,
+                                              *mut u8,
                                           mut security_strength:
-                                              libc::c_int) {
-    let mut seed_material: [libc::c_uchar; 48] = [0; 48];
+                                              i32) {
+    let mut seed_material: [u8; 48] = [0; 48];
     memcpy(seed_material.as_mut_ptr() as *mut libc::c_void,
-           entropy_input as *const libc::c_void, 48i32 as libc::c_ulong);
+           entropy_input as *const libc::c_void, 48i32 as u64);
     if !personalization_string.is_null() {
-        let mut i: libc::c_int = 0i32;
+        let mut i: i32 = 0i32;
         while i < 48i32 {
             seed_material[i as usize] =
-                (seed_material[i as usize] as libc::c_int ^
+                (seed_material[i as usize] as i32 ^
                      *personalization_string.offset(i as isize) as
-                         libc::c_int) as libc::c_uchar;
+                         i32) as u8;
             i += 1
         }
     }
     memset(DRBG_ctx.Key.as_mut_ptr() as *mut libc::c_void, 0i32,
-           32i32 as libc::c_ulong);
+           32i32 as u64);
     memset(DRBG_ctx.V.as_mut_ptr() as *mut libc::c_void, 0i32,
-           16i32 as libc::c_ulong);
+           16i32 as u64);
     AES256_CTR_DRBG_Update(seed_material.as_mut_ptr(),
                            DRBG_ctx.Key.as_mut_ptr(),
                            DRBG_ctx.V.as_mut_ptr());
     DRBG_ctx.reseed_counter = 1i32;
 }
 #[no_mangle]
-pub unsafe extern "C" fn randombytes(mut x: *mut libc::c_uchar,
-                                     mut xlen: libc::c_ulonglong)
- -> libc::c_int {
-    let mut block: [libc::c_uchar; 16] = [0; 16];
-    let mut i: libc::c_int = 0i32;
-    while xlen > 0i32 as libc::c_ulonglong {
+pub unsafe extern "C" fn randombytes(mut x: *mut u8,
+                                     mut xlen: u64)
+ -> i32 {
+    let mut block: [u8; 16] = [0; 16];
+    let mut i: i32 = 0i32;
+    while xlen > 0i32 as u64 {
         //increment V
-        let mut j: libc::c_int = 15i32;
+        let mut j: i32 = 15i32;
         while j >= 0i32 {
-            if DRBG_ctx.V[j as usize] as libc::c_int == 0xffi32 {
-                DRBG_ctx.V[j as usize] = 0i32 as libc::c_uchar;
+            if DRBG_ctx.V[j as usize] as i32 == 0xffi32 {
+                DRBG_ctx.V[j as usize] = 0i32 as u8;
                 j -= 1
             } else {
                 DRBG_ctx.V[j as usize] =
@@ -288,37 +285,37 @@ pub unsafe extern "C" fn randombytes(mut x: *mut libc::c_uchar,
         }
         AES256_ECB(DRBG_ctx.Key.as_mut_ptr(), DRBG_ctx.V.as_mut_ptr(),
                    block.as_mut_ptr());
-        if xlen > 15i32 as libc::c_ulonglong {
+        if xlen > 15i32 as u64 {
             memcpy(x.offset(i as isize) as *mut libc::c_void,
                    block.as_mut_ptr() as *const libc::c_void,
-                   16i32 as libc::c_ulong);
+                   16i32 as u64);
             i += 16i32;
-            xlen = xlen.wrapping_sub(16i32 as libc::c_ulonglong)
+            xlen = xlen.wrapping_sub(16i32 as u64)
         } else {
             memcpy(x.offset(i as isize) as *mut libc::c_void,
                    block.as_mut_ptr() as *const libc::c_void,
-                   xlen as libc::c_ulong);
-            xlen = 0i32 as libc::c_ulonglong
+                   xlen as u64);
+            xlen = 0i32 as u64
         }
     }
-    AES256_CTR_DRBG_Update(0 as *mut libc::c_uchar, DRBG_ctx.Key.as_mut_ptr(),
+    AES256_CTR_DRBG_Update(0 as *mut u8, DRBG_ctx.Key.as_mut_ptr(),
                            DRBG_ctx.V.as_mut_ptr());
     DRBG_ctx.reseed_counter += 1;
     return 0i32;
 }
 #[no_mangle]
 pub unsafe extern "C" fn AES256_CTR_DRBG_Update(mut provided_data:
-                                                    *mut libc::c_uchar,
-                                                mut Key: *mut libc::c_uchar,
-                                                mut V: *mut libc::c_uchar) {
-    let mut temp: [libc::c_uchar; 48] = [0; 48];
-    let mut i: libc::c_int = 0i32;
+                                                    *mut u8,
+                                                mut Key: *mut u8,
+                                                mut V: *mut u8) {
+    let mut temp: [u8; 48] = [0; 48];
+    let mut i: i32 = 0i32;
     while i < 3i32 {
         //increment V
-        let mut j: libc::c_int = 15i32;
+        let mut j: i32 = 15i32;
         while j >= 0i32 {
-            if *V.offset(j as isize) as libc::c_int == 0xffi32 {
-                *V.offset(j as isize) = 0i32 as libc::c_uchar;
+            if *V.offset(j as isize) as i32 == 0xffi32 {
+                *V.offset(j as isize) = 0i32 as u8;
                 j -= 1
             } else {
                 let ref mut fresh0 = *V.offset(j as isize);
@@ -330,57 +327,57 @@ pub unsafe extern "C" fn AES256_CTR_DRBG_Update(mut provided_data:
         i += 1
     }
     if !provided_data.is_null() {
-        let mut i_0: libc::c_int = 0i32;
+        let mut i_0: i32 = 0i32;
         while i_0 < 48i32 {
             temp[i_0 as usize] =
-                (temp[i_0 as usize] as libc::c_int ^
-                     *provided_data.offset(i_0 as isize) as libc::c_int) as
-                    libc::c_uchar;
+                (temp[i_0 as usize] as i32 ^
+                     *provided_data.offset(i_0 as isize) as i32) as
+                    u8;
             i_0 += 1
         }
     }
     memcpy(Key as *mut libc::c_void, temp.as_mut_ptr() as *const libc::c_void,
-           32i32 as libc::c_ulong);
+           32i32 as u64);
     memcpy(V as *mut libc::c_void,
            temp.as_mut_ptr().offset(32) as *const libc::c_void,
-           16i32 as libc::c_ulong);
+           16i32 as u64);
 }
 #[no_mangle]
 pub unsafe extern "C" fn deterministic_random_byte_generator(output:
-                                                                 *mut libc::c_uchar,
+                                                                 *mut u8,
                                                              output_len:
-                                                                 libc::c_ulonglong,
+                                                                 u64,
                                                              seed:
-                                                                 *const libc::c_uchar,
+                                                                 *const u8,
                                                              seed_length:
-                                                                 libc::c_ulonglong) {
+                                                                 u64) {
     /* DRBG context initialization */
     let mut ctx: AES256_CTR_DRBG_struct =
         AES256_CTR_DRBG_struct{Key: [0; 32], V: [0; 16], reseed_counter: 0,};
-    let mut seed_material: [libc::c_uchar; 48] = [0; 48];
+    let mut seed_material: [u8; 48] = [0; 48];
     memset(seed_material.as_mut_ptr() as *mut libc::c_void, 0i32,
-           48i32 as libc::c_ulong);
+           48i32 as u64);
     memcpy(seed_material.as_mut_ptr() as *mut libc::c_void,
-           seed as *const libc::c_void, seed_length as libc::c_ulong);
+           seed as *const libc::c_void, seed_length as u64);
     memset(ctx.Key.as_mut_ptr() as *mut libc::c_void, 0i32,
-           32i32 as libc::c_ulong);
+           32i32 as u64);
     memset(ctx.V.as_mut_ptr() as *mut libc::c_void, 0i32,
-           16i32 as libc::c_ulong);
+           16i32 as u64);
     AES256_CTR_DRBG_Update(seed_material.as_mut_ptr(), ctx.Key.as_mut_ptr(),
                            ctx.V.as_mut_ptr());
     ctx.reseed_counter = 1i32;
     /* Actual DRBG computation as from the randombytes(unsigned char *x,
     * unsigned long long xlen) from NIST */
-    let mut block: [libc::c_uchar; 16] = [0; 16];
-    let mut i: libc::c_int = 0i32;
-    let mut length_remaining: libc::c_int = 0;
-    length_remaining = output_len as libc::c_int;
+    let mut block: [u8; 16] = [0; 16];
+    let mut i: i32 = 0i32;
+    let mut length_remaining: i32 = 0;
+    length_remaining = output_len as i32;
     while length_remaining > 0i32 {
         //increment V
-        let mut j: libc::c_int = 15i32;
+        let mut j: i32 = 15i32;
         while j >= 0i32 {
-            if ctx.V[j as usize] as libc::c_int == 0xffi32 {
-                ctx.V[j as usize] = 0i32 as libc::c_uchar;
+            if ctx.V[j as usize] as i32 == 0xffi32 {
+                ctx.V[j as usize] = 0i32 as u8;
                 j -= 1
             } else {
                 ctx.V[j as usize] = ctx.V[j as usize].wrapping_add(1);
@@ -392,17 +389,17 @@ pub unsafe extern "C" fn deterministic_random_byte_generator(output:
         if length_remaining > 15i32 {
             memcpy(output.offset(i as isize) as *mut libc::c_void,
                    block.as_mut_ptr() as *const libc::c_void,
-                   16i32 as libc::c_ulong);
+                   16i32 as u64);
             i += 16i32;
             length_remaining -= 16i32
         } else {
             memcpy(output.offset(i as isize) as *mut libc::c_void,
                    block.as_mut_ptr() as *const libc::c_void,
-                   length_remaining as libc::c_ulong);
+                   length_remaining as u64);
             length_remaining = 0i32
         }
     }
-    AES256_CTR_DRBG_Update(0 as *mut libc::c_uchar, ctx.Key.as_mut_ptr(),
+    AES256_CTR_DRBG_Update(0 as *mut u8, ctx.Key.as_mut_ptr(),
                            ctx.V.as_mut_ptr());
     ctx.reseed_counter += 1;
 }
@@ -411,27 +408,27 @@ pub unsafe extern "C" fn deterministic_random_byte_generator(output:
 #[no_mangle]
 pub unsafe extern "C" fn seedexpander_from_trng(mut ctx: *mut AES_XOF_struct,
                                                 mut trng_entropy:
-                                                    *const libc::c_uchar) 
+                                                    *const u8) 
  /* TRNG_BYTE_LENGTH wide buffer */
  {
     /*the NIST seedexpander will however access 32B from this buffer */
-    let mut prng_buffer_size: libc::c_uint =
-        if 32i32 < 32i32 { 32i32 } else { 32i32 } as libc::c_uint;
-    let mut prng_buffer: [libc::c_uchar; 32] =
-        [0i32 as libc::c_uchar, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    let mut prng_buffer_size: u32 =
+        if 32i32 < 32i32 { 32i32 } else { 32i32 } as u32;
+    let mut prng_buffer: [u8; 32] =
+        [0i32 as u8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     memcpy(prng_buffer.as_mut_ptr() as *mut libc::c_void,
            trng_entropy as *const libc::c_void,
-           if (32i32 as libc::c_uint) < prng_buffer_size {
-               32i32 as libc::c_uint
-           } else { prng_buffer_size } as libc::c_ulong);
+           if (32i32 as u32) < prng_buffer_size {
+               32i32 as u32
+           } else { prng_buffer_size } as u64);
     /* if extra entropy is provided, add it to the diversifier */
-    let mut diversifier: [libc::c_uchar; 8] =
-        [0i32 as libc::c_uchar, 0i32 as libc::c_uchar, 0i32 as libc::c_uchar,
-         0i32 as libc::c_uchar, 0i32 as libc::c_uchar, 0i32 as libc::c_uchar,
-         0i32 as libc::c_uchar, 0i32 as libc::c_uchar];
+    let mut diversifier: [u8; 8] =
+        [0i32 as u8, 0i32 as u8, 0i32 as u8,
+         0i32 as u8, 0i32 as u8, 0i32 as u8,
+         0i32 as u8, 0i32 as u8];
     /* the required seed expansion will be quite small, set the max number of
     * bytes conservatively to 10 MiB*/
     seedexpander_init(ctx, prng_buffer.as_mut_ptr(), diversifier.as_mut_ptr(),
-                      (10i32 * 1024i32 * 1024i32) as libc::c_ulong);
+                      (10i32 * 1024i32 * 1024i32) as u64);
 }
