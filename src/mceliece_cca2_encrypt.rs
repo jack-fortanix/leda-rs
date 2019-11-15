@@ -1,6 +1,8 @@
 #![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
          non_upper_case_globals, unused_assignments, unused_mut)]
-#![feature(label_break_value)]
+
+use sha3::Digest;
+
 extern "C" {
     #[no_mangle]
     fn randombytes(x: *mut u8, xlen: u64)
@@ -26,11 +28,6 @@ extern "C" {
     #[no_mangle]
     fn bitstream_read(stream: *const u8, bit_amount: u32,
                       bit_cursor: *mut u32) -> u64;
-    #[no_mangle]
-    fn Keccak(rate: u32, capacity: u32,
-              input: *const u8, inputByteLen: u64,
-              delimitedSuffix: u8, output: *mut u8,
-              outputByteLen: u64);
     #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64)
      -> *mut libc::c_void;
@@ -203,42 +200,18 @@ unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
   *  The output length is fixed to 48 bytes.
   */
 #[inline]
-unsafe extern "C" fn sha3_384(mut input: *const u8,
-                              mut inputByteLen: u32,
-                              mut output: *mut u8) {
-    Keccak(832i32 as u32, 768i32 as u32, input,
-           inputByteLen as u64, 0x6i32 as u8, output,
-           48i32 as u64);
+unsafe fn sha3_384(mut input: *const u8,
+                   mut inputByteLen: u32,
+                   mut output: *mut u8) {
+    let mut hasher = sha3::Sha3_384::new();
+
+    let slice = std::slice::from_raw_parts(input, inputByteLen as usize);
+    hasher.input(slice);
+
+    let result = hasher.result();
+
+    std::ptr::copy(result.as_ptr(), output, result.len());
 }
-/* *
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of the LEDAcrypt PKC cipher using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
 // memset(...), memcpy(...)
 /*----------------------------------------------------------------------------*/
 unsafe extern "C" fn encrypt_McEliece(mut codeword: *mut DIGIT,
@@ -555,12 +528,8 @@ pub unsafe extern "C" fn encrypt_Kobara_Imai(output: *mut u8,
                              (((2i32 - 1i32) * 57899i32 + 7i32) / 8i32) as
                                  u64);
     /* prepare hash of padded sequence, before leftover is moved to its final place */
-    let mut hashDigest: [u8; 48] =
-        [0i32 as u8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0]; // output
-    sha3_384(output, paddedSequenceLen as u32,
-             hashDigest.as_mut_ptr());
+    let mut hashDigest = vec![0u8; 48];
+    sha3_384(output, paddedSequenceLen as u32, hashDigest.as_mut_ptr());
     /* move leftover padded string (if present) onto its final position*/
     if bytePtxLen as u64 >
            (((2i32 - 1i32) * 57899i32) as

@@ -1,6 +1,9 @@
 #![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
          non_upper_case_globals, unused_assignments, unused_mut)]
 #![feature(const_raw_ptr_to_usize_cast, label_break_value)]
+
+use sha3::Digest;
+
 extern "C" {
     /* *
  *
@@ -151,11 +154,6 @@ extern "C" {
     fn bf_decoding(err: *mut DIGIT, HtrPosOnes: *const [u32; 11],
                    QtrPosOnes: *const [u32; 11],
                    privateSyndrome: *mut DIGIT) -> i32;
-    #[no_mangle]
-    fn Keccak(rate: u32, capacity: u32,
-              input: *const u8, inputByteLen: u64,
-              delimitedSuffix: u8, output: *mut u8,
-              outputByteLen: u64);
     #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64)
      -> *mut libc::c_void;
@@ -395,9 +393,14 @@ unsafe extern "C" fn gf2x_get_coeff(mut poly: *const DIGIT,
 unsafe extern "C" fn sha3_384(mut input: *const u8,
                               mut inputByteLen: u32,
                               mut output: *mut u8) {
-    Keccak(832i32 as u32, 768i32 as u32, input,
-           inputByteLen as u64, 0x6i32 as u8, output,
-           48i32 as u64);
+    let mut hasher = sha3::Sha3_384::new();
+
+    let slice = std::slice::from_raw_parts(input, inputByteLen as usize);
+    hasher.input(slice);
+
+    let result = hasher.result();
+
+    std::ptr::copy(result.as_ptr(), output, result.len());
 }
 /* *
  *
