@@ -20,3 +20,4 @@ mod sha3_fallback;
 pub use encrypt::crypto_encrypt_keypair;
 pub use encrypt::crypto_encrypt;
 pub use encrypt::crypto_encrypt_open;
+pub use rng::randombytes_init;

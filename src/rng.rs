@@ -236,11 +236,11 @@ pub unsafe extern "C" fn AES256_ECB(mut key: *mut u8,
                     ptx as *const u8, ctx);
 }
 #[no_mangle]
-pub unsafe extern "C" fn randombytes_init(mut entropy_input:
-                                              *mut u8,
-                                          mut personalization_string:
-                                              *mut u8,
-                                          mut security_strength:
+pub unsafe extern "C" fn randombytes_init(entropy_input:
+                                              *const u8,
+                                          personalization_string:
+                                              *const u8,
+                                          security_strength:
                                               i32) {
     let mut seed_material: [u8; 48] = [0; 48];
     memcpy(seed_material.as_mut_ptr() as *mut libc::c_void,

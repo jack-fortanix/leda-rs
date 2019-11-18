@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-#mbedtls = { path = "/home/jack/work/rust-mbedtls/mbedtls" }
+mbedtls = "0.5"
 libc = "0.2"
 rustc-serialize = "0.3.19"
 sha3 = "0.8"
