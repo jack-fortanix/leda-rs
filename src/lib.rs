@@ -2,7 +2,6 @@
 mod consts;
 mod types;
 
-mod aes256;
 mod bf_decoding;
 mod constant_weight_codec;
 mod dfr_test;

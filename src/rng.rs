@@ -5,12 +5,6 @@ extern "C" {
     #[no_mangle]
     fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
-    #[no_mangle]
-    fn rijndaelKeySetupEnc(rk: *mut u32, cipherKey: *const u8,
-                           keyBits: i32) -> i32;
-    #[no_mangle]
-    fn rijndaelEncrypt(rk: *const u32, Nr: i32,
-                       pt: *const u8, ct: *mut u8);
 }
 #[derive ( Copy, Clone )]
 #[repr(C)]
@@ -48,9 +42,8 @@ pub static mut DRBG_ctx: AES256_CTR_DRBG_struct =
  */
 #[no_mangle]
 pub unsafe extern "C" fn seedexpander_init(mut ctx: *mut AES_XOF_struct,
-                                           mut seed: *mut u8,
-                                           mut diversifier:
-                                               *mut u8,
+                                           seed: *const u8,
+                                           diversifier: *const u8,
                                            mut maxlen: u64)
  -> i32 {
     if maxlen >= 0x100000000i64 as u64 { return -1i32 }
@@ -141,18 +134,25 @@ pub unsafe extern "C" fn seedexpander(mut ctx: *mut AES_XOF_struct,
 //    key - 256-bit AES key
 //    ptx - a 128-bit plaintext value
 //    ctx - a 128-bit ciphertext value
-#[no_mangle]
-pub unsafe extern "C" fn AES256_ECB(mut key: *mut u8,
-                                    mut ptx: *mut u8,
-                                    mut ctx: *mut u8) {
-    let mut round_key: [u32; 60] =
-        [0i32 as u32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    rijndaelKeySetupEnc(round_key.as_mut_ptr(), key as *const u8,
-                        256i32);
-    rijndaelEncrypt(round_key.as_mut_ptr() as *const u32, 14i32,
-                    ptx as *const u8, ctx);
+
+unsafe fn AES256_ECB(key: *const u8,
+                     mut ptx: *mut u8,
+                     mut ctx: *mut u8) {
+
+    let mut cipher = mbedtls::cipher::Cipher::<mbedtls::cipher::Encryption, mbedtls::cipher::TraditionalNoIv, _>::new(
+        mbedtls::cipher::raw::CipherId::Aes,
+        mbedtls::cipher::raw::CipherMode::ECB,
+        256).unwrap();
+
+    let key = std::slice::from_raw_parts(key, 32);
+
+    cipher.set_padding(mbedtls::cipher::raw::CipherPadding::None);
+    let cipher = cipher.set_key(&key).unwrap();
+
+    let inp = std::slice::from_raw_parts(ptx, 16);
+    let outp = std::slice::from_raw_parts_mut(ctx, 16);
+
+    cipher.encrypt(&inp, outp);
 }
 #[no_mangle]
 pub unsafe extern "C" fn randombytes_init(entropy_input:
@@ -222,11 +222,10 @@ pub unsafe extern "C" fn randombytes(mut x: *mut u8,
     DRBG_ctx.reseed_counter += 1;
     return 0i32;
 }
-#[no_mangle]
-pub unsafe extern "C" fn AES256_CTR_DRBG_Update(mut provided_data:
-                                                    *mut u8,
-                                                mut Key: *mut u8,
-                                                mut V: *mut u8) {
+
+unsafe fn AES256_CTR_DRBG_Update(mut provided_data: *mut u8,
+                                 mut Key: *mut u8,
+                                 mut V: *mut u8) {
     let mut temp: [u8; 48] = [0; 48];
     let mut i: i32 = 0i32;
     while i < 3i32 {
@@ -262,14 +261,10 @@ pub unsafe extern "C" fn AES256_CTR_DRBG_Update(mut provided_data:
            16i32 as u64);
 }
 #[no_mangle]
-pub unsafe extern "C" fn deterministic_random_byte_generator(output:
-                                                                 *mut u8,
-                                                             output_len:
-                                                                 u64,
-                                                             seed:
-                                                                 *const u8,
-                                                             seed_length:
-                                                                 u64) {
+pub unsafe extern "C" fn deterministic_random_byte_generator(output: *mut u8,
+                                                             output_len: u64,
+                                                             seed: *const u8,
+                                                             seed_length: u64) {
     /* DRBG context initialization */
     let mut ctx: AES256_CTR_DRBG_struct =
         AES256_CTR_DRBG_struct{Key: [0; 32], V: [0; 16], reseed_counter: 0,};
