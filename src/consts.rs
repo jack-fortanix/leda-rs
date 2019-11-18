@@ -11,3 +11,5 @@ pub const NUM_ERRORS : usize = 199;
 
 pub const HASH_BYTE_LENGTH : usize = 48;
 pub const TRNG_BYTE_LENGTH : usize = 32;
+
+

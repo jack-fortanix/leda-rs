@@ -1,5 +1,6 @@
-#![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
-         non_upper_case_globals, unused_assignments, unused_mut)]
+
+use crate::types::*;
+
 extern "C" {
     #[no_mangle]
     fn randombytes(x: *mut u8, xlen: u64)
@@ -23,38 +24,8 @@ extern "C" {
     fn gf2x_mod_mul_dense_to_sparse(Res: *mut DIGIT, dense: *const DIGIT,
                                     sparse: *const u32,
                                     nPos: u32);
-    /* *
- *
- * <H_Q_matrices_generation.h>
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of LEDAcrypt using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
-    /*----------------------------------------------------------------------------*/
+
+    // HQ:
     #[no_mangle]
     fn generateHPosOnes(HPosOnes: *mut [u32; 11],
                         niederreiter_keys_expander: *mut AES_XOF_struct);
@@ -69,79 +40,7 @@ extern "C" {
     fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
 }
-/* *
- *
- * <gf2x_limbs.h>
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of LEDAcrypt using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
-/*----------------------------------------------------------------------------*/
-/*----------------------------------------------------------------------------*/
-/* limb size definitions for the multi-precision GF(2^x) library              */
-/*----------------------------------------------------------------------------*/
-// gcc -DCPU_WORD_BITS=64 ...
-pub type DIGIT = u64;
-/* *
- *
- * <rng.h>
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of LEDAcrypt using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
-/* *****  From this point on, the code was supplied by NIST ****************/
-//  Created by Bassham, Lawrence E (Fed) on 8/29/17.
-//  Copyright © 2017 Bassham, Lawrence E (Fed). All rights reserved.
-//
-/* *****    from NIST  ****************/
+
 #[derive ( Copy, Clone )]
 #[repr(C)]
 pub struct AES_XOF_struct {
@@ -151,28 +50,7 @@ pub struct AES_XOF_struct {
     pub key: [u8; 32],
     pub ctr: [u8; 16],
 }
-#[derive ( Copy, Clone )]
-#[repr(C)]
-pub struct privateKeyMcEliece_t {
-    pub prng_seed: [u8; 32],
-    pub rejections: u8,
-    pub secondIterThreshold: u8,
-}
-#[derive ( Copy, Clone )]
-#[repr(C)]
-pub struct publicKeyMcEliece_t {
-    pub Mtr: [DIGIT; 905],
-}
-/*----------------------------------------------------------------------------*/
-// We employ the parameters for Category 4 also in the case where the required
-// security level is Category 5, where Category 4 has the following parameters.
-// #if CATEGORY == 4
-//   #define TRNG_BYTE_LENGTH (40)
-//   #define    HASH_FUNCTION sha3_384
-//   #define HASH_BYTE_LENGTH (48)
-// #endif
-/*----------------------------------------------------------------------------*/
-/*----------------------------------------------------------------------------*/
+
 // Derived parameters, they are useful for QC-LDPC algorithms
 // Circulant weight structure of the Q matrix, specialized per value of N0
 static mut qBlockWeights: [[u8; 2]; 2] =
@@ -199,50 +77,6 @@ unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
                 (((8i32 << 3i32) - 1i32) as
                      u32).wrapping_sub(inDigitIdx);
 }
-/* *
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of the LEDAcrypt PKC cipher using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
-/*----------------------------------------------------------------------------*/
-/* Implementation that should never be optimized out by the compiler */
-#[inline]
-unsafe extern "C" fn zeroize(mut v: *mut libc::c_void, mut n: usize) {
-    let mut p: *mut u8 = v as *mut u8;
-    loop  {
-        let fresh0 = n;
-        n = n.wrapping_sub(1);
-        if !(fresh0 != 0) { break ; }
-        let fresh1 = p;
-        p = p.offset(1);
-        ::std::ptr::write_volatile(fresh1, 0i32 as u8)
-    };
-}
-// end zeroize
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
 pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
@@ -477,53 +311,3 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
         i_3 += 1
     };
 }
-// end mceliece_keygen
-#[no_mangle]
-pub unsafe extern "C" fn publicKey_deletion_McEliece(pk:
-                                                         *mut publicKeyMcEliece_t) {
-    zeroize((*pk).Mtr.as_mut_ptr() as *mut libc::c_void,
-            ((2i32 - 1i32) *
-                 ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32)
-                as usize);
-}
-/* *
- *
- * <mceliece_keygen.h>
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of the LEDAcrypt PKC cipher using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
-// publicKey_deletion_McEliece
-/*----------------------------------------------------------------------------*/
-#[no_mangle]
-pub unsafe extern "C" fn privateKey_deletion_McEliece(sk:
-                                                          *mut privateKeyMcEliece_t) {
-    zeroize((*sk).prng_seed.as_mut_ptr() as *mut libc::c_void,
-            32i32 as usize);
-}
-/*----------------------------------------------------------------------------*/
-// privateKey_deletion_McEliece

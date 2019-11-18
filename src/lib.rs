@@ -1,5 +1,6 @@
 
 mod consts;
+mod types;
 
 mod aes256;
 mod bf_decoding;
@@ -15,7 +16,6 @@ mod mceliece_cca2_decrypt;
 mod mceliece_cca2_encrypt;
 mod mceliece_keygen;
 mod rng;
-mod sha3_fallback;
 
 pub use encrypt::crypto_encrypt_keypair;
 pub use encrypt::crypto_encrypt;
