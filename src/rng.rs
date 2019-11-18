@@ -1,12 +1,4 @@
-#![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
-         non_upper_case_globals, unused_assignments, unused_mut)]
 extern "C" {
-    #[no_mangle]
-    fn atoi(__nptr: *const libc::c_char) -> i32;
-    #[no_mangle]
-    fn rand() -> i32;
-    #[no_mangle]
-    fn srand(__seed: u32);
     #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64)
      -> *mut libc::c_void;
@@ -14,18 +6,12 @@ extern "C" {
     fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
     #[no_mangle]
-    fn clock_gettime(__clock_id: clockid_t, __tp: *mut timespec)
-     -> i32;
-    #[no_mangle]
     fn rijndaelKeySetupEnc(rk: *mut u32, cipherKey: *const u8,
                            keyBits: i32) -> i32;
     #[no_mangle]
     fn rijndaelEncrypt(rk: *const u32, Nr: i32,
                        pt: *const u8, ct: *mut u8);
 }
-pub type __time_t = libc::c_long;
-pub type __clockid_t = i32;
-pub type __syscall_slong_t = libc::c_long;
 #[derive ( Copy, Clone )]
 #[repr(C)]
 pub struct AES_XOF_struct {
@@ -43,73 +29,6 @@ pub struct AES256_CTR_DRBG_struct {
     pub reseed_counter: i32,
 }
 
-#[derive ( Copy, Clone )]
-#[repr(C)]
-pub struct timespec {
-    pub tv_sec: __time_t,
-    pub tv_nsec: __syscall_slong_t,
-}
-pub type clockid_t = __clockid_t;
-/* *
- *
- * <rng.c>
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of LEDAcrypt using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
-// void srand(unsigned int seed); int rand(void); RAND_MAX
-// void *memset(void *s, int c, usize n);
-// struct timespec; clock_gettime(...); CLOCK_REALTIME
-/* *****************************************************************************/
-/*----------------------------------------------------------------------------*/
-/*              start PSEUDO-RAND GENERATOR ROUTINES for rnd.h                */
-/*----------------------------------------------------------------------------*/
-#[no_mangle]
-pub unsafe extern "C" fn initialize_pseudo_random_generator_seed(mut seedFixed:
-                                                                     i32,
-                                                                 mut seed:
-                                                                     *mut libc::c_char) {
-    if seedFixed == 1i32 {
-        srand(atoi(seed) as u32); // end else-if
-    } else {
-        let mut seedValue: timespec = timespec{tv_sec: 0, tv_nsec: 0,};
-        clock_gettime(0i32, &mut seedValue);
-        srand(seedValue.tv_nsec as u32);
-    }
-    let mut pseudo_entropy: [u8; 48] = [0; 48];
-    let mut i: i32 = 0i32;
-    while i < 48i32 {
-        pseudo_entropy[i as usize] = (rand() & 0xffi32) as u8;
-        i += 1
-    }
-    randombytes_init(pseudo_entropy.as_mut_ptr(), 0 as *mut u8,
-                     0i32);
-}
-// end initilize_pseudo_random_sequence_seed
 /*----------------------------------------------------------------------------*/
 /* Initializes a dedicated DRBG context to avoid conflicts with the global one
  * declared by NIST for KATs. Provides the output of the DRBG in output, for
