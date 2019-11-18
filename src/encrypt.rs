@@ -1,5 +1,6 @@
 
 use crate::types::*;
+use crate::consts::*;
 
 extern "C" {
     #[no_mangle]
@@ -33,13 +34,8 @@ pub fn crypto_encrypt_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
     Ok((sk,pk))
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn crypto_encrypt(mut c: *mut u8,
-                                        mut clen: *mut u64,
-                                        mut m: *const u8,
-                                        mut mlen: u64,
-                                        mut pk: *const u8)
- -> i32 {
+pub fn crypto_encrypt(msg: &[u8], pk: &[u8]) -> Result<Vec<u8>> {
+
     /* NIST API provides a byte aligned message: all bytes are assumed full.
     * Therefore, if mlen exceeds
     * floor( (k-8*(KOBARA_IMAI_CONSTANT_LENGTH_B+sizeof(KI_LENGTH_FIELD_TYPE)))/8 )
@@ -50,41 +46,27 @@ pub unsafe extern "C" fn crypto_encrypt(mut c: *mut u8,
     * NUM_DIGITS_GF2X_ELEMENT +
     * KOBARA_IMAI_CONSTANT_LENGTH_B +
     * sizeof(KI_LENGTH_FIELD_TYPE)  */
-    if mlen <=
-           (((2i32 - 1i32) * 57899i32) as
-                u64).wrapping_sub((8i32 as
-                                                 u64).wrapping_mul((32i32
-                                                                                  as
-                                                                                  u64).wrapping_add(::std::mem::size_of::<u64>()
-                                                                                                                  as
-                                                                                                                  u64))).wrapping_div(8i32
-                                                                                                                                                    as
-                                                                                                                                                    u64)
-               as u64 {
-        *clen =
-            (2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
-                 8i32) as u64
+
+    let clen = if msg.len() <= MAX_BYTES_IN_IWORD {
+        N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B
     } else {
-        let mut leftover_len: i32 =
-            mlen.wrapping_sub((((2i32 - 1i32) * 57899i32) as
-                                   u64).wrapping_sub((8i32 as
-                                                                    u64).wrapping_mul((32i32
-                                                                                                     as
-                                                                                                     u64).wrapping_add(::std::mem::size_of::<u64>()
-                                                                                                                                     as
-                                                                                                                                     u64))).wrapping_div(8i32
-                                                                                                                                                                       as
-                                                                                                                                                                       u64)
-                                  as u64) as i32;
-        *clen =
-            (2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
-                 8i32 + leftover_len) as u64
+        let leftover_len = msg.len() - MAX_BYTES_IN_IWORD;
+        N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B + leftover_len
+    };
+
+    let mut ctext = vec![0u8; clen];
+
+    unsafe {
+        
+    if encrypt_Kobara_Imai(ctext.as_mut_ptr(),
+                           pk.as_ptr() as *mut publicKeyMcEliece_t,
+                           msg.len() as u32,
+                           msg.as_ptr()) == 1i32 {
+        return Ok(ctext);
     }
-    if encrypt_Kobara_Imai(c, pk as *mut publicKeyMcEliece_t,
-                           mlen as u32, m) == 1i32 {
-        return 0i32
+
     }
-    return -1i32;
+    return Err(Error::Custom("Encryption failed".to_owned()));
 }
 #[no_mangle]
 pub unsafe extern "C" fn crypto_encrypt_open(mut m: *mut u8,

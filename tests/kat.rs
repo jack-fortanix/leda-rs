@@ -98,9 +98,6 @@ pub fn all_kats() {
 
         println!("Leda count {}", kat.count);
 
-        let mut pk = vec![0u8; 7240];
-        let mut sk = vec![0u8; 34];
-
         unsafe { randombytes_init(kat.seed.as_ptr(), core::ptr::null_mut(), 256); }
 
         let (sk,pk) = crypto_encrypt_keypair().unwrap();
@@ -108,17 +105,15 @@ pub fn all_kats() {
         assert_eq!(sk.to_hex(), kat.sk.to_hex());
         assert_eq!(pk.to_hex(), kat.pk.to_hex());
 
-        let mut clen : u64 = kat.clen as u64;
-        let mut ctext = vec![0u8; clen as usize];
+        let mut ctext = crypto_encrypt(&kat.msg, &kat.pk).unwrap();
 
-        unsafe { crypto_encrypt(ctext.as_mut_ptr(), &mut clen, kat.msg.as_ptr(), kat.msg.len() as u64,
-                                kat.pk.as_mut_ptr()); }
-
-        assert_eq!(clen as usize, kat.clen);
+        assert_eq!(ctext.len(), kat.clen);
         assert_eq!(ctext.to_hex(), kat.ctext.to_hex());
 
         let mut recovered = vec![0u8; kat.mlen];
         let mut rlen = kat.mlen as u64;
+
+        let clen = kat.clen as u64;
 
         unsafe { crypto_encrypt_open(recovered.as_mut_ptr(), &mut rlen,
                                      ctext.as_mut_ptr(), clen, kat.sk.as_mut_ptr()); }
