@@ -1,5 +1,5 @@
-
-use rustc_serialize::hex::ToHex;
+use rustc_serialize::hex::{ToHex, FromHex};
+use core::str::FromStr;
 use leda_rs::*;
 
 fn dump(n: &str, b: &[u8], l: usize) {
@@ -7,8 +7,8 @@ fn dump(n: &str, b: &[u8], l: usize) {
 }
 
 #[test]
-pub fn kat() {
-
+pub fn trial() {
+    return;
     let mut pk = vec![0u8; 7240];
     let mut sk: [u8; 34] = [0; 34];
     unsafe { crypto_encrypt_keypair(pk.as_mut_ptr(), sk.as_mut_ptr()); }
@@ -28,4 +28,69 @@ pub fn kat() {
     unsafe { crypto_encrypt_open(decr.as_mut_ptr(), &mut dlen, ctext.as_mut_ptr(),
                                  clen, sk.as_mut_ptr()); }
     dump("recovered", &decr, dlen as usize);
+}
+
+#[derive(Debug)]
+struct LedaKat {
+    count: usize,
+    seed: Vec<u8>,
+    mlen: usize,
+    msg: Vec<u8>,
+    pk: Vec<u8>,
+    sk: Vec<u8>,
+    clen: usize,
+    ctext: Vec<u8>,
+}
+
+impl FromStr for LedaKat {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<LedaKat, Self::Err> {
+
+        let mut count = None;
+        let mut seed = None;
+        let mut mlen = None;
+        let mut msg = None;
+        let mut pk = None;
+        let mut sk = None;
+        let mut clen = None;
+        let mut ctext = None;
+
+        for line in s.split("\n") {
+            let kv = line.split(" = ").collect::<Vec<_>>();
+            assert_eq!(kv.len(), 2);
+
+            match kv[0] {
+                "count" => { count = Some(kv[1].parse::<usize>().unwrap()); }
+                "mlen" => { mlen = Some(kv[1].parse::<usize>().unwrap()); }
+                "clen" => { clen = Some(kv[1].parse::<usize>().unwrap()); }
+                "seed" => { seed = Some(kv[1].from_hex().unwrap()); }
+                "pk" => { pk = Some(kv[1].from_hex().unwrap()); }
+                "sk" => { sk = Some(kv[1].from_hex().unwrap()); }
+                "msg" => { msg = Some(kv[1].from_hex().unwrap()); }
+                "c" => { ctext = Some(kv[1].from_hex().unwrap()); }
+                x => { panic!(format!("unknown field {}", x)); }
+            }
+        }
+
+        Ok(LedaKat {
+            count: count.unwrap(),
+            seed: seed.unwrap(),
+            mlen: mlen.unwrap(),
+            msg: msg.unwrap(),
+            pk: pk.unwrap(),
+            sk: sk.unwrap(),
+            clen: clen.unwrap(),
+            ctext: ctext.unwrap()
+        })
+    }
+}
+
+#[test]
+pub fn all_kats() {
+    let kats = String::from_utf8(include_bytes!("data/PQCencryptKAT_34_0.rsp").to_vec()).unwrap();
+
+    for kat in kats.split("\n\n") {
+        let kat = LedaKat::from_str(kat).unwrap();
+    }
 }
