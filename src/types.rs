@@ -1,3 +1,11 @@
+use std::result::Result as StdResult;
+
+enum Error {
+    Custom(String)
+}
+
+pub type Result<T> = StdResult<T, Error>;
+
 pub type DIGIT = u64;
 
 #[derive(Copy, Clone)]
