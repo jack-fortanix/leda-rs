@@ -1,3 +1,5 @@
+use crate::types::*;
+
 extern "C" {
     #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64)
@@ -5,22 +7,6 @@ extern "C" {
     #[no_mangle]
     fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
-}
-#[derive ( Copy, Clone )]
-#[repr(C)]
-pub struct AES_XOF_struct {
-    pub buffer: [u8; 16],
-    pub buffer_pos: i32,
-    pub length_remaining: u64,
-    pub key: [u8; 32],
-    pub ctr: [u8; 16],
-}
-#[derive ( Copy, Clone )]
-#[repr(C)]
-pub struct AES256_CTR_DRBG_struct {
-    pub Key: [u8; 32],
-    pub V: [u8; 16],
-    pub reseed_counter: i32,
 }
 
 /*----------------------------------------------------------------------------*/

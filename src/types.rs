@@ -14,3 +14,19 @@ pub struct publicKeyMcEliece_t {
     pub Mtr: [DIGIT; 905],
 }
 
+#[derive ( Copy, Clone )]
+#[repr(C)]
+pub struct AES_XOF_struct {
+    pub buffer: [u8; 16],
+    pub buffer_pos: i32,
+    pub length_remaining: u64,
+    pub key: [u8; 32],
+    pub ctr: [u8; 16],
+}
+#[derive ( Copy, Clone )]
+#[repr(C)]
+pub struct AES256_CTR_DRBG_struct {
+    pub Key: [u8; 32],
+    pub V: [u8; 16],
+    pub reseed_counter: i32,
+}

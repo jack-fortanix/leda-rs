@@ -41,16 +41,6 @@ extern "C" {
      -> *mut libc::c_void;
 }
 
-#[derive ( Copy, Clone )]
-#[repr(C)]
-pub struct AES_XOF_struct {
-    pub buffer: [u8; 16],
-    pub buffer_pos: i32,
-    pub length_remaining: u64,
-    pub key: [u8; 32],
-    pub ctr: [u8; 16],
-}
-
 // Derived parameters, they are useful for QC-LDPC algorithms
 // Circulant weight structure of the Q matrix, specialized per value of N0
 static mut qBlockWeights: [[u8; 2]; 2] =
