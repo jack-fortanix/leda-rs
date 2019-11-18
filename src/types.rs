@@ -1,6 +1,7 @@
 use std::result::Result as StdResult;
 
-enum Error {
+#[derive(Debug)]
+pub enum Error {
     Custom(String)
 }
 

@@ -1,20 +1,12 @@
-#![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
-         non_upper_case_globals, unused_assignments, unused_mut)]
+
+use crate::types::*;
+
 extern "C" {
     /*--------------------------------------------------------------------------*/
     #[no_mangle]
     fn rand_circulant_sparse_block(pos_ones: *mut u32,
                                    countOnes: i32,
                                    seed_expander_ctx: *mut AES_XOF_struct);
-}
-#[derive ( Copy, Clone )]
-#[repr(C)]
-pub struct AES_XOF_struct {
-    pub buffer: [u8; 16],
-    pub buffer_pos: i32,
-    pub length_remaining: u64,
-    pub key: [u8; 32],
-    pub ctr: [u8; 16],
 }
 /*----------------------------------------------------------------------------*/
 // We employ the parameters for Category 4 also in the case where the required
@@ -31,37 +23,6 @@ pub struct AES_XOF_struct {
 static mut qBlockWeights: [[u8; 2]; 2] =
     [[6i32 as u8, 5i32 as u8],
      [5i32 as u8, 6i32 as u8]];
-/* *
- *
- * <H_Q_matrices_generation.c>
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of LEDAcrypt using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
 pub unsafe extern "C" fn generateHPosOnes(mut HPosOnes: *mut [u32; 11],
@@ -144,37 +105,6 @@ pub unsafe extern "C" fn transposeQPosOnes(mut QtrPosOnes:
         source_row_idx = source_row_idx.wrapping_add(1)
     };
 }
-/* *
- *
- * <H_Q_matrices_generation.h>
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of LEDAcrypt using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
 /*----------------------------------------------------------------------------*/
 /* output*/
 /*----------------------------------------------------------------------------*/

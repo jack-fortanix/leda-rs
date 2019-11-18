@@ -21,13 +21,16 @@ extern "C" {
      -> i32;
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn crypto_encrypt_keypair(mut pk: *mut u8,
-                                                mut sk: *mut u8)
- -> i32 {
-    key_gen_mceliece(pk as *mut publicKeyMcEliece_t,
-                     sk as *mut privateKeyMcEliece_t);
-    return 0i32;
+pub fn crypto_encrypt_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
+
+    let mut pk = vec![0u8; 7240];
+    let mut sk = vec![0u8; 34];
+    unsafe {
+        key_gen_mceliece(pk.as_mut_ptr() as *mut publicKeyMcEliece_t,
+                         sk.as_mut_ptr() as *mut privateKeyMcEliece_t);
+    }
+
+    Ok((sk,pk))
 }
 
 #[no_mangle]

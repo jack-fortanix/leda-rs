@@ -47,7 +47,7 @@ struct LedaKat {
 impl FromStr for LedaKat {
     type Err = String;
 
-    fn from_str(s: &str) -> Result<LedaKat, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<LedaKat, Self::Err> {
 
         let mut count = None;
         let mut seed = None;
@@ -102,7 +102,8 @@ pub fn all_kats() {
         let mut sk = vec![0u8; 34];
 
         unsafe { randombytes_init(kat.seed.as_ptr(), core::ptr::null_mut(), 256); }
-        unsafe { crypto_encrypt_keypair(pk.as_mut_ptr(), sk.as_mut_ptr()); }
+
+        let (sk,pk) = crypto_encrypt_keypair().unwrap();
 
         assert_eq!(sk.to_hex(), kat.sk.to_hex());
         assert_eq!(pk.to_hex(), kat.pk.to_hex());
