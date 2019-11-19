@@ -1,5 +1,6 @@
 
 use crate::types::*;
+use crate::consts::*;
 
 extern "C" {
     #[no_mangle]
@@ -41,11 +42,6 @@ extern "C" {
      -> *mut libc::c_void;
 }
 
-// Derived parameters, they are useful for QC-LDPC algorithms
-// Circulant weight structure of the Q matrix, specialized per value of N0
-static mut qBlockWeights: [[u8; 2]; 2] =
-    [[6i32 as u8, 5i32 as u8],
-     [5i32 as u8, 6i32 as u8]];
 #[inline]
 unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
                                     exponent: u32,

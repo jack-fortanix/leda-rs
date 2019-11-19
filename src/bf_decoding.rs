@@ -1,68 +1,13 @@
+
+use crate::types::*;
+use crate::consts::*;
+
 extern "C" {
     #[no_mangle]
     fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
 }
-pub type DIGIT = u64;
-/* *
- *
- * <qc_ldpc_parameters.h>
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of LEDAcrypt using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
-// CATEGORY defined in the makefile
-/*----------------------------------------------------------------------------*/
-// end CATEGORY == 1
-/*----------------------------------------------------------------------------*/
-// We employ the parameters for Category 3 also in the case where the required
-// security level is Category 2, where Category 2 has the following parameters.
-//   #define TRNG_BYTE_LENGTH (32)
-//   #define    HASH_FUNCTION sha3_256
-//   #define HASH_BYTE_LENGTH (32)
-/*----------------------------------------------------------------------------*/
-// N0 defined in the makefile
-// modulus(x) = x^P-1
-// odd number
-/*----------------------------------------------------------------------------*/
-// We employ the parameters for Category 4 also in the case where the required
-// security level is Category 5, where Category 4 has the following parameters.
-// #if CATEGORY == 4
-//   #define TRNG_BYTE_LENGTH (40)
-//   #define    HASH_FUNCTION sha3_384
-//   #define HASH_BYTE_LENGTH (48)
-// #endif
-/*----------------------------------------------------------------------------*/
-/*----------------------------------------------------------------------------*/
-// Derived parameters, they are useful for QC-LDPC algorithms
-// Circulant weight structure of the Q matrix, specialized per value of N0
-static mut qBlockWeights: [[u8; 2]; 2] =
-    [[6i32 as u8, 5i32 as u8],
-     [5i32 as u8, 6i32 as u8]];
+
 #[inline]
 unsafe extern "C" fn gf2x_copy(mut dest: *mut DIGIT, mut in_0: *const DIGIT) {
     let mut i: i32 =

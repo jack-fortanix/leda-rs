@@ -1,6 +1,6 @@
 
 use crate::types::*;
-use sha3::Digest;
+use crate::consts::*;
 
 extern "C" {
     /*----------------------------------------------------------------------------*/
@@ -128,9 +128,6 @@ unsafe extern "C" fn gf2x_add(nr: i32, mut Res: *mut DIGIT,
         i = i.wrapping_add(1)
     };
 }
-static mut qBlockWeights: [[u8; 2]; 2] =
-    [[6i32 as u8, 5i32 as u8],
-     [5i32 as u8, 6i32 as u8]];
 /*---------------------------------------------------------------------------*/
 #[inline]
 unsafe extern "C" fn gf2x_mod_add(mut Res: *mut DIGIT, A: *const DIGIT,

@@ -1,5 +1,6 @@
 
 use crate::types::*;
+use crate::consts::*;
 
 extern "C" {
     /*--------------------------------------------------------------------------*/
@@ -8,21 +9,6 @@ extern "C" {
                                    countOnes: i32,
                                    seed_expander_ctx: *mut AES_XOF_struct);
 }
-/*----------------------------------------------------------------------------*/
-// We employ the parameters for Category 4 also in the case where the required
-// security level is Category 5, where Category 4 has the following parameters.
-// #if CATEGORY == 4
-//   #define TRNG_BYTE_LENGTH (40)
-//   #define    HASH_FUNCTION sha3_384
-//   #define HASH_BYTE_LENGTH (48)
-// #endif
-/*----------------------------------------------------------------------------*/
-/*----------------------------------------------------------------------------*/
-// Derived parameters, they are useful for QC-LDPC algorithms
-// Circulant weight structure of the Q matrix, specialized per value of N0
-static mut qBlockWeights: [[u8; 2]; 2] =
-    [[6i32 as u8, 5i32 as u8],
-     [5i32 as u8, 6i32 as u8]];
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
 pub unsafe extern "C" fn generateHPosOnes(HPosOnes: *mut [u32; 11],
