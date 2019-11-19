@@ -2,7 +2,7 @@ use std::result::Result as StdResult;
 
 #[derive(Debug)]
 pub enum Error {
-    Custom(String)
+    Custom(String),
 }
 
 pub type Result<T> = StdResult<T, Error>;
@@ -23,7 +23,7 @@ pub struct publicKeyMcEliece_t {
     pub Mtr: [DIGIT; 905],
 }
 
-#[derive ( Copy, Clone )]
+#[derive(Copy, Clone)]
 #[repr(C)]
 pub struct AES_XOF_struct {
     pub buffer: [u8; 16],
@@ -32,7 +32,7 @@ pub struct AES_XOF_struct {
     pub key: [u8; 32],
     pub ctr: [u8; 16],
 }
-#[derive ( Copy, Clone )]
+#[derive(Copy, Clone)]
 #[repr(C)]
 pub struct AES256_CTR_DRBG_struct {
     pub key: [u8; 32],
