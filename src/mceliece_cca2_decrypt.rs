@@ -26,14 +26,8 @@ unsafe fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
                            thresholds: &[i32],
                            ctx: *const u8)
  -> i32 {
-    let mut mceliece_decrypt_expander: AES_XOF_struct =
-        AES_XOF_struct{buffer: [0; 16],
-                       buffer_pos: 0,
-                       length_remaining: 0,
-                       key: [0; 32],
-                       ctr: [0; 16],};
-    seedexpander_from_trng(&mut mceliece_decrypt_expander,
-                           (*sk).prng_seed.as_ptr());
+    let mut mceliece_decrypt_expander =
+        seedexpander_from_trng((*sk).prng_seed.as_ptr());
     /* rebuild secret key values */
     let mut HPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
     let mut QPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];

@@ -325,28 +325,26 @@ pub unsafe fn deterministic_random_byte_generator(output: *mut u8,
 /* *****  End of NIST supplied code ****************/
 // end deterministic_random_byte_generator
 
-pub unsafe fn seedexpander_from_trng(mut ctx: *mut AES_XOF_struct,
-                                     trng_entropy: *const u8)
-/* TRNG_BYTE_LENGTH wide buffer */
- {
+pub unsafe fn seedexpander_from_trng(trng_entropy: *const u8) -> AES_XOF_struct {
+    let mut ctx: AES_XOF_struct =
+        AES_XOF_struct{buffer: [0; 16],
+                       buffer_pos: 0,
+                       length_remaining: 0,
+                       key: [0; 32],
+                       ctr: [0; 16],};
     /*the NIST seedexpander will however access 32B from this buffer */
-    let mut prng_buffer_size: u32 =
-        if 32i32 < 32i32 { 32i32 } else { 32i32 } as u32;
+    let mut prng_buffer_size: u32 = 32;
     let mut prng_buffer: [u8; 32] =
         [0i32 as u8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     memcpy(prng_buffer.as_mut_ptr() as *mut libc::c_void,
            trng_entropy as *const libc::c_void,
-           if (32i32 as u32) < prng_buffer_size {
-               32i32 as u32
-           } else { prng_buffer_size } as u64);
-    /* if extra entropy is provided, add it to the diversifier */
-    let mut diversifier: [u8; 8] =
-        [0i32 as u8, 0i32 as u8, 0i32 as u8,
-         0i32 as u8, 0i32 as u8, 0i32 as u8,
-         0i32 as u8, 0i32 as u8];
+           prng_buffer_size as u64);
+    let mut diversifier: [u8; 8] = [0; 8];
     /* the required seed expansion will be quite small, set the max number of
     * bytes conservatively to 10 MiB*/
-    seedexpander_init(ctx, prng_buffer.as_mut_ptr(), &diversifier,
+    seedexpander_init(&mut ctx, prng_buffer.as_mut_ptr(), &diversifier,
                       (10i32 * 1024i32 * 1024i32) as u32);
+
+     ctx
 }
