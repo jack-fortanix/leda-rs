@@ -8,6 +8,8 @@ pub const M0: usize = 6;
 pub const M1: usize = 5;
 pub const NUM_ERRORS: usize = 199;
 
+pub const P_BITS: usize = 16;
+
 pub const HASH_BYTE_LENGTH: usize = 48;
 pub const TRNG_BYTE_LENGTH: usize = 32;
 
