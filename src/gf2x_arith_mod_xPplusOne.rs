@@ -102,7 +102,7 @@ unsafe fn left_DIGIT_shift_n(length: i32,
 // end left_bit_shift_n
 /*----------------------------------------------------------------------------*/
 /* may shift by an arbitrary amount*/
-#[no_mangle]
+
 pub unsafe fn left_bit_shift_wide_n(length: i32,
                                                mut in_0: *mut DIGIT,
                                                mut amount: i32) {
@@ -134,7 +134,7 @@ unsafe fn reverse_digit(b: DIGIT) -> DIGIT {
 }
 // end reverse_digit
 /*----------------------------------------------------------------------------*/
-#[no_mangle]
+
 pub unsafe fn gf2x_transpose_in_place(mut A: *mut DIGIT) {
     /* it keeps the lsb in the same position and
     * inverts the sequence of the remaining bits
@@ -190,7 +190,7 @@ pub unsafe fn gf2x_transpose_in_place(mut A: *mut DIGIT) {
 }
 // end transpose_in_place
 /*----------------------------------------------------------------------------*/
-#[no_mangle]
+
 pub unsafe fn rotate_bit_left(mut in_0: *mut DIGIT) 
  /*  equivalent to x * in(x) mod x^P+1 */
  {
@@ -229,7 +229,7 @@ pub unsafe fn rotate_bit_left(mut in_0: *mut DIGIT)
 }
 // end rotate_bit_left
 /*----------------------------------------------------------------------------*/
-#[no_mangle]
+
 pub unsafe fn rotate_bit_right(mut in_0: *mut DIGIT) 
  /*  x^{-1} * in(x) mod x^P+1 */
  {
@@ -255,7 +255,7 @@ pub unsafe fn rotate_bit_right(mut in_0: *mut DIGIT)
     let ref mut fresh6 = *in_0.offset(0);
     *fresh6 |= rotated_bit;
 }
-#[no_mangle]
+
 pub unsafe fn gf2x_digit_times_poly_mul(nr: i32,
                                                    mut Res: *mut DIGIT,
                                                    _na: i32,
@@ -304,7 +304,7 @@ unsafe fn gf2x_swap(length: i32, mut f: *mut DIGIT,
  * (Chapter 11 -- Algorithm 11.44 -- pag 223)
  *
  */
-#[no_mangle]
+
 pub unsafe fn gf2x_mod_inverse(mut out: *mut DIGIT,
                                           mut in_0: *const DIGIT)
  -> i32 
@@ -400,7 +400,7 @@ pub unsafe fn gf2x_mod_inverse(mut out: *mut DIGIT,
 * GF(2)," in IET Computers & Digital Techniques, vol. 6, no. 3, pp. 180-185, 
 * May 2012. doi: 10.1049/iet-cdt.2010.0006
 */
-#[no_mangle]
+
 pub unsafe fn gf2x_mod_inverse_KTT(mut out: *mut DIGIT,
                                               mut in_0: *const DIGIT)
  -> i32 {
@@ -633,7 +633,7 @@ pub unsafe fn gf2x_mod_inverse_KTT(mut out: *mut DIGIT,
     return 0i32;
 }
 /*----------------------------------------------------------------------------*/
-#[no_mangle]
+
 pub unsafe fn gf2x_mod_mul(mut Res: *mut DIGIT,
                                       mut A: *const DIGIT,
                                       mut B: *const DIGIT) {
@@ -688,7 +688,7 @@ unsafe fn gf2x_fmac(mut Res: *mut DIGIT, mut operand: *const DIGIT,
 /*----------------------------------------------------------------------------*/
 /*PRE: the representation of the sparse coefficients is sorted in increasing
  order of the coefficients themselves */
-#[no_mangle]
+
 pub unsafe fn gf2x_mod_mul_dense_to_sparse(mut Res: *mut DIGIT,
                                                       mut dense: *const DIGIT,
                                                       mut sparse:
@@ -710,7 +710,7 @@ pub unsafe fn gf2x_mod_mul_dense_to_sparse(mut Res: *mut DIGIT,
 }
 // end gf2x_mod_mul
 /*----------------------------------------------------------------------------*/
-#[no_mangle]
+
 pub unsafe fn gf2x_transpose_in_place_sparse(mut sizeA:
                                                             i32,
                                                         mut A:
@@ -738,7 +738,7 @@ pub unsafe fn gf2x_transpose_in_place_sparse(mut sizeA:
 /*----------------------------------------------------------------------------*/
 // end gf2x_transpose_in_place_sparse
 /*----------------------------------------------------------------------------*/
-#[no_mangle]
+
 pub unsafe fn gf2x_mod_mul_sparse(mut sizeR: i32,
                                              mut Res: *mut u32,
                                              mut sizeA: i32,
@@ -804,7 +804,7 @@ pub unsafe fn gf2x_mod_mul_sparse(mut sizeR: i32,
 /*----------------------------------------------------------------------------*/
 /* the implementation is safe even in case A or B alias with the result */
 /* PRE: A and B should be sorted and have INVALID_POS_VALUE at the end */
-#[no_mangle]
+
 pub unsafe fn gf2x_mod_add_sparse(mut sizeR: i32,
                                              mut Res: *mut u32,
                                              mut sizeA: i32,
@@ -897,7 +897,7 @@ unsafe fn rand_range(n: i32, logn: i32,
 /*----------------------------------------------------------------------------*/
 /* Obtains fresh randomness and seed-expands it until all the required positions
  * for the '1's in the circulant block are obtained */
-#[no_mangle]
+
 pub unsafe fn rand_circulant_sparse_block(mut pos_ones:
                                                          *mut u32,
                                                      countOnes: i32,
@@ -1121,7 +1121,7 @@ pub unsafe fn rand_circulant_sparse_block(mut pos_ones:
 }
 // rand_circulant_sparse_block
 /*----------------------------------------------------------------------------*/
-#[no_mangle]
+
 pub unsafe fn rand_circulant_blocks_sequence(mut sequence:
                                                             *mut DIGIT,
                                                         countOnes:
@@ -1363,7 +1363,7 @@ pub unsafe fn rand_circulant_blocks_sequence(mut sequence:
 }
 // end rand_circulant_blocks_sequence
 /*----------------------------------------------------------------------------*/
-#[no_mangle]
+
 pub unsafe fn rand_error_pos(mut errorPos: *mut u32,
                                         mut seed_expander_ctx:
                                             *mut AES_XOF_struct) {
@@ -1584,7 +1584,7 @@ pub unsafe fn rand_error_pos(mut errorPos: *mut u32,
     };
 }
 
-#[no_mangle]
+
 pub unsafe fn expand_error(mut sequence: *mut DIGIT,
                                       mut errorPos: *mut u32) {
     memset(sequence as *mut libc::c_void, 0i32,

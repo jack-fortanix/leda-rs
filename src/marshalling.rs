@@ -1,6 +1,6 @@
 use crate::types::*;
 
-#[no_mangle]
+
 pub unsafe fn poly_to_byte_seq(mut bs: *mut u8,
                                           mut y: *mut DIGIT) {
     let mut i: i32 = 0i32;
@@ -17,7 +17,7 @@ pub unsafe fn poly_to_byte_seq(mut bs: *mut u8,
     }
 }
 
-#[no_mangle]
+
 pub unsafe fn byte_seq_to_poly(mut y: *mut DIGIT,
                                           mut bs: *mut u8) {
     let mut b: i32 = 0i32;

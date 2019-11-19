@@ -270,7 +270,7 @@ unsafe fn poly_seq_into_bytestream(mut output: *mut u8,
     return 1i32;
 }
 
-#[no_mangle]
+
 pub unsafe fn decrypt_Kobara_Imai(sk: *const privateKeyMcEliece_t,
                                              clen: u64,
                                              ctx: *const u8) -> Vec<u8>

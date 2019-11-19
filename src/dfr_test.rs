@@ -7,7 +7,7 @@ use crate::djbsort::int32_sort;
 /* Tests if the current code attains the desired DFR. If that is the case, 
  * computes the threshold for the second iteration of the decoder and stores
  * it in the globally accessible vector*/
-#[no_mangle]
+
 pub unsafe fn DFR_test(mut LSparse: *mut [u32; 121],
                                   mut secondIterThreshold: *mut u8)
  -> i32 {

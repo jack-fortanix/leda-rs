@@ -210,7 +210,7 @@ pub unsafe fn gf2x_set_coeff(mut poly: *mut DIGIT,
  **/
 // memset(...)
 /*----------------------------------------------------------------------------*/
-#[no_mangle]
+
 pub unsafe fn gf2x_mul_comb(nr: i32, mut Res: *mut DIGIT,
                                        na: i32, mut A: *const DIGIT,
                                        nb: i32, mut B: *const DIGIT) {
@@ -277,7 +277,7 @@ unsafe fn gf2x_add_asymm(_nr: i32, mut Res: *mut DIGIT,
 // end gf2x_add
 /*----------------------------------------------------------------------------*/
 /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
-#[no_mangle]
+
 pub unsafe fn right_bit_shift_n(length: i32,
                                            mut in_0: *mut DIGIT,
                                            amount: i32) {
@@ -304,7 +304,7 @@ pub unsafe fn right_bit_shift_n(length: i32,
 // end right_bit_shift_n
 /*----------------------------------------------------------------------------*/
 /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
-#[no_mangle]
+
 pub unsafe fn left_bit_shift_n(length: i32,
                                           mut in_0: *mut DIGIT,
                                           amount: i32) {
@@ -349,7 +349,7 @@ unsafe fn gf2x_exact_div_x_plus_one(na: i32,
 }
 // end gf2x_exact_div_x_plus_one
 /*---------------------------------------------------------------------------*/
-#[no_mangle]
+
 pub unsafe fn gf2x_mul_Kar(nr: i32, mut Res: *mut DIGIT,
                                       na: i32, mut A: *const DIGIT,
                                       nb: i32, mut B: *const DIGIT) {
@@ -476,7 +476,7 @@ pub unsafe fn gf2x_mul_Kar(nr: i32, mut Res: *mut DIGIT,
 /* Toom-Cook 3 algorithm as reported in
  * Marco Bodrato: "Towards Optimal Toom-Cook Multiplication for Univariate and
  * Multivariate Polynomials in Characteristic 2 and 0". WAIFI 2007: 116-133   */
-#[no_mangle]
+
 pub unsafe fn gf2x_mul_TC3(nr: i32, mut Res: *mut DIGIT,
                                       na: i32, mut A: *const DIGIT,
                                       nb: i32, mut B: *const DIGIT) {

@@ -1,7 +1,7 @@
 use crate::types::*;
 use crate::gf2x_arith::*;
 
-#[no_mangle]
+
 pub unsafe fn bitstream_write(mut output: *mut u8,
                                          amount_to_write: u32,
                                          mut output_bit_cursor:
@@ -98,7 +98,7 @@ pub unsafe fn bitstream_write(mut output: *mut u8,
  * supports reading at most 64 bit at once since the caller will need to add
  * them to the encoding. Given the estimates for log_2(d), this is plentiful
  */
-#[no_mangle]
+
 pub unsafe fn bitstream_read(stream: *const u8,
                                         bit_amount: u32,
                                         mut bit_cursor: *mut u32)
@@ -207,7 +207,7 @@ unsafe fn estimate_d_u(mut d: *mut u32,
 //end bitstream_read_padded
 /*----------------------------------------------------------------------------*/
 /* Encodes a bit string into a constant weight N0 polynomials vector*/
-#[no_mangle]
+
 pub unsafe fn constant_weight_to_binary_approximate(bitstreamOut:
                                                                    *mut u8,
                                                                mut constantWeightIn:
@@ -336,7 +336,7 @@ pub unsafe fn constant_weight_to_binary_approximate(bitstreamOut:
 /*----------------------------------------------------------------------------*/
 // end constant_weight_to_binary_approximate
 /*----------------------------------------------------------------------------*/
-#[no_mangle]
+
 pub unsafe fn binary_to_constant_weight_approximate(mut constantWeightOut:
                                                                    *mut DIGIT,
                                                                bitstreamIn:

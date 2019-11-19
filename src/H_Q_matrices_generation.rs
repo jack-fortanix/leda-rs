@@ -4,7 +4,7 @@ use crate::consts::*;
 use crate::gf2x_arith_mod_xPplusOne::rand_circulant_sparse_block;
 
 /*----------------------------------------------------------------------------*/
-#[no_mangle]
+
 pub unsafe fn generateHPosOnes(HPosOnes: *mut [u32; 11],
                                           mut keys_expander:
                                               *mut AES_XOF_struct) {
@@ -18,7 +18,7 @@ pub unsafe fn generateHPosOnes(HPosOnes: *mut [u32; 11],
     };
 }
 // end generateHtr_HtrPosOnes
-#[no_mangle]
+
 pub unsafe fn transposeHPosOnes(HtrPosOnes: *mut [u32; 11],
                                            HPosOnes: *mut [u32; 11]) {
     let mut i: i32 = 0i32;
@@ -43,7 +43,7 @@ pub unsafe fn transposeHPosOnes(HtrPosOnes: *mut [u32; 11],
 }
 /*----------------------------------------------------------------------------*/
 // end transposeHPosOnes
-#[no_mangle]
+
 pub unsafe fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11],
                                            QPosOnes: *mut [u32; 11]) {
     let mut transposed_ones_idx: [u32; 2] =
@@ -88,7 +88,7 @@ pub unsafe fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11],
 /*----------------------------------------------------------------------------*/
 // end transposeHPosOnes
 /*----------------------------------------------------------------------------*/
-#[no_mangle]
+
 pub unsafe fn generateQPosOnes(mut QPosOnes: *mut [u32; 11],
                                           mut keys_expander:
                                               *mut AES_XOF_struct) {

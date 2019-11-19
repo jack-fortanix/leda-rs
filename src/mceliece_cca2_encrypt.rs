@@ -74,7 +74,7 @@ unsafe fn encrypt_McEliece(mut codeword: *mut DIGIT,
 }
 // end encrypt_McEliece
 /*----------------------------------------------------------------------------*/
-#[no_mangle]
+
 unsafe fn char_right_bit_shift_n(length: i32,
                                                 mut in_0: *mut u8,
                                                 amount: i32) {
@@ -143,7 +143,7 @@ unsafe fn bytestream_into_poly_seq(mut polySeq: *mut DIGIT,
 // return 0 i.e., insuccess, if bitLenPtx > (N0-1)*P + be - bc - bh or bitLenPtx <= 0
 // end bytestream_into_poly_seq
 /*----------------------------------------------------------------------------*/
-#[no_mangle]
+
 pub unsafe fn encrypt_Kobara_Imai(output: *mut u8,
                                              pk: *const publicKeyMcEliece_t,
                                              bytePtxLen: u32,
