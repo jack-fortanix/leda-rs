@@ -15,12 +15,6 @@ use crate::gf2x_arith::*;
 use crate::djbsort::int32_sort;
 
 pub type SIGNED_DIGIT = i64;
-#[derive ( Copy, Clone )]
-#[repr ( C )]
-pub union toReverse_t {
-    pub inByte: [u8; 8],
-    pub digitValue: DIGIT,
-}
 
 // memcpy(...), memset(...)
 /*----------------------------------------------------------------------------*/
@@ -86,30 +80,10 @@ unsafe fn right_bit_shift(length: i32,
 }
 // end right_bit_shift
 /*----------------------------------------------------------------------------*/
-/*----------------------------------------------------------------------------*/
-unsafe fn byte_reverse_with_64bitDIGIT(mut b: u8) -> u8 {
-    b =
-        ((b as u64).wrapping_mul(0x202020202u64) &
-             0x10884422010u64).wrapping_rem(1023i32 as u64) as
-            u8;
-    return b;
+
+fn reverse_digit(b: DIGIT) -> DIGIT {
+    b.reverse_bits()
 }
-// end byte_reverse_64bitDIGIT
-/*----------------------------------------------------------------------------*/
-unsafe fn reverse_digit(b: DIGIT) -> DIGIT {
-    let mut i: i32 = 0;
-    let mut toReverse: toReverse_t = toReverse_t{inByte: [0; 8],};
-    toReverse.digitValue = b;
-    i = 0i32;
-    while i < 8i32 {
-        toReverse.inByte[i as usize] =
-            byte_reverse_with_64bitDIGIT(toReverse.inByte[i as usize]);
-        i += 1
-    }
-    return (toReverse.digitValue as u64).swap_bytes() as DIGIT;
-}
-// end reverse_digit
-/*----------------------------------------------------------------------------*/
 
 pub unsafe fn gf2x_transpose_in_place(mut A: *mut DIGIT) {
     /* it keeps the lsb in the same position and
