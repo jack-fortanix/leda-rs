@@ -1,14 +1,8 @@
 
 use crate::types::*;
 use crate::consts::*;
+use crate::gf2x_arith_mod_xPplusOne::rand_circulant_sparse_block;
 
-extern "C" {
-    /*--------------------------------------------------------------------------*/
-    #[no_mangle]
-    fn rand_circulant_sparse_block(pos_ones: *mut u32,
-                                   countOnes: i32,
-                                   seed_expander_ctx: *mut AES_XOF_struct);
-}
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
 pub unsafe fn generateHPosOnes(HPosOnes: *mut [u32; 11],

@@ -1,21 +1,5 @@
 
 extern "C" {
-    // end gf2x_add
-    /*----------------------------------------------------------------------------*/
-    #[no_mangle]
-    fn gf2x_mul_TC3(nr: i32, Res: *mut DIGIT, na: i32,
-                    A: *const DIGIT, nb: i32, B: *const DIGIT);
-    /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
-    #[no_mangle]
-    fn right_bit_shift_n(length: i32, in_0: *mut DIGIT,
-                         amount: i32);
-    /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
-    #[no_mangle]
-    fn left_bit_shift_n(length: i32, in_0: *mut DIGIT,
-                        amount: i32);
-    #[no_mangle]
-    fn seedexpander(ctx: *mut AES_XOF_struct, x: *mut u8,
-                    xlen: u64) -> i32;
     #[no_mangle]
     fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
@@ -25,6 +9,7 @@ extern "C" {
 
 }
 
+use crate::crypto::seedexpander;
 use crate::types::*;
 use crate::gf2x_arith::*;
 use crate::djbsort::int32_sort;
