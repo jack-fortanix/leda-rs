@@ -3,55 +3,17 @@ use crate::types::*;
 use crate::consts::*;
 use crate::gf2x_arith::*;
 
-extern "C" {
-    #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: i32, _: u64)
-     -> *mut libc::c_void;
-}
-
-/* *
- *
- * <bf_decoding.c>
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of LEDAcrypt using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
 #[no_mangle]
 pub static mut thresholds: [i32; 2] =
     [64i32, 11i32 * 11i32 / 2i32 + 1i32];
-#[no_mangle]
+
 pub unsafe fn bf_decoding(mut out: *mut DIGIT,
-                                     mut HtrPosOnes: *const [u32; 11],
-                                     mut QtrPosOnes: *const [u32; 11],
-                                     mut privateSyndrome: *mut DIGIT)
+                          mut HtrPosOnes: *const [u32; 11],
+                          mut QtrPosOnes: *const [u32; 11],
+                          mut privateSyndrome: *mut DIGIT)
  -> i32 
  //  1 polynomial
  {
-    let mut unsatParityChecks: [u8; 115798] = [0; 115798];
     let mut currQBlkPos: [u32; 11] = [0; 11];
     let mut currQBitPos: [u32; 11] = [0; 11];
     let mut currSyndrome: [DIGIT; 905] = [0; 905];
@@ -59,10 +21,7 @@ pub unsafe fn bf_decoding(mut out: *mut DIGIT,
     let mut iteration: i32 = 0i32;
     loop  {
         gf2x_copy(currSyndrome.as_mut_ptr(), privateSyndrome as *const DIGIT);
-        memset(unsatParityChecks.as_mut_ptr() as *mut libc::c_void, 0i32,
-               ((2i32 * crate::consts::P as i32) as
-                    u64).wrapping_mul(::std::mem::size_of::<u8>()
-                                                    as u64));
+        let mut unsatParityChecks: [u8; 115798] = [0; 115798];
         let mut i: i32 = 0i32;
         while i < 2i32 {
             let mut valueIdx: i32 = 0i32;

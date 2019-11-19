@@ -7,12 +7,6 @@ use crate::dfr_test::DFR_test;
 use crate::H_Q_matrices_generation::*;
 use crate::crypto::{randombytes, seedexpander_from_trng};
 
-extern "C" {
-    #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: i32, _: u64)
-     -> *mut libc::c_void;
-}
-
 /*----------------------------------------------------------------------------*/
 
 pub unsafe fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
@@ -23,8 +17,6 @@ pub unsafe fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
                        length_remaining: 0,
                        key: [0; 32],
                        ctr: [0; 16],};
-    memset(&mut keys_expander as *mut AES_XOF_struct as *mut libc::c_void,
-           0i32, ::std::mem::size_of::<AES_XOF_struct>() as u64);
     randombytes((*sk).prng_seed.as_mut_ptr(), 32i32 as u64);
     /*
     dump(b"prng_seed\x00" as *const u8 as *const libc::c_char,

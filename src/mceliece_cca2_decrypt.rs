@@ -2,6 +2,8 @@
 use crate::types::*;
 use crate::consts::*;
 use crate::gf2x_arith::*;
+use crate::bf_decoding::*;
+use crate::crypto::{deterministic_random_byte_generator, seedexpander_from_trng};
 
 extern "C" {
     /*----------------------------------------------------------------------------*/
@@ -10,14 +12,6 @@ extern "C" {
                        amount_to_write: u32,
                        output_bit_cursor: *mut u32,
                        value_to_write: u64);
-    #[no_mangle]
-    fn deterministic_random_byte_generator(output: *mut u8,
-                                           output_len: u64,
-                                           seed: *const u8,
-                                           seed_length: u64);
-    #[no_mangle]
-    fn seedexpander_from_trng(ctx: *mut AES_XOF_struct,
-                              trng_entropy: *const u8);
     /* ret. 1 if inv. exists */
     /*---------------------------------------------------------------------------*/
     #[no_mangle]
@@ -58,10 +52,6 @@ extern "C" {
     fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11],
                          QPosOnes: *mut [u32; 11]);
 
-    #[no_mangle]
-    fn bf_decoding(err: *mut DIGIT, HtrPosOnes: *const [u32; 11],
-                   QtrPosOnes: *const [u32; 11],
-                   privateSyndrome: *mut DIGIT) -> i32;
     #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64)
      -> *mut libc::c_void;
