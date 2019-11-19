@@ -289,23 +289,18 @@ pub unsafe fn seedexpander_from_trng(trng_entropy: &[u8]) -> Result<AES_XOF_stru
         return Err(Error::Custom("Unexpected seed input size to seed expander".into()));
     }
 
-    let mut ctx: AES_XOF_struct =
-        AES_XOF_struct{buffer: [0; 16],
-                       buffer_pos: 0,
-                       length_remaining: 0,
-                       key: [0; 32],
-                       ctr: [0; 16],};
-    ctx.length_remaining = maxlen as u64;
-    ctx.key = trng_entropy.try_into().expect("Validated size");
-
     let maxlen_b = maxlen.to_be_bytes();
     let ctr : [u8; 16] = [0, 0, 0, 0, 0, 0, 0, 0,
                           maxlen_b[0], maxlen_b[1], maxlen_b[2], maxlen_b[3],
                           0, 0, 0, 0];
 
-    ctx.ctr = ctr;
-    ctx.buffer_pos = 16;
-    memset(ctx.buffer.as_mut_ptr() as *mut libc::c_void, 0i32,
-           16i32 as u64);
+    let ctx = AES_XOF_struct {
+        buffer: [0; 16],
+        buffer_pos: 16,
+        length_remaining: maxlen as u64,
+        key: trng_entropy.try_into().expect("Validated size"),
+        ctr: ctr,
+    };
+
     Ok(ctx)
 }
