@@ -94,18 +94,18 @@ pub fn all_kats() {
     let kats = String::from_utf8(include_bytes!("data/PQCencryptKAT_34_0.rsp").to_vec()).unwrap();
 
     for kat in kats.split("\n\n") {
-        let mut kat = LedaKat::from_str(kat).unwrap();
+        let kat = LedaKat::from_str(kat).unwrap();
 
         println!("Leda count {}", kat.count);
 
-        unsafe { randombytes_init(kat.seed.as_ptr(), core::ptr::null_mut(), 256); }
+        unsafe { randombytes_init(kat.seed.as_ptr(), core::ptr::null_mut()); }
 
         let (sk,pk) = crypto_encrypt_keypair().unwrap();
 
         assert_eq!(sk.to_hex(), kat.sk.to_hex());
         assert_eq!(pk.to_hex(), kat.pk.to_hex());
 
-        let mut ctext = crypto_encrypt(&kat.msg, &kat.pk).unwrap();
+        let ctext = crypto_encrypt(&kat.msg, &kat.pk).unwrap();
 
         assert_eq!(ctext.len(), kat.clen);
         assert_eq!(ctext.to_hex(), kat.ctext.to_hex());

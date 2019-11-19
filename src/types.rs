@@ -35,7 +35,7 @@ pub struct AES_XOF_struct {
 #[derive ( Copy, Clone )]
 #[repr(C)]
 pub struct AES256_CTR_DRBG_struct {
-    pub Key: [u8; 32],
-    pub V: [u8; 16],
+    pub key: [u8; 32],
+    pub v: [u8; 16],
     pub reseed_counter: i32,
 }

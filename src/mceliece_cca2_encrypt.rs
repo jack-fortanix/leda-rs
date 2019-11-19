@@ -80,8 +80,8 @@ extern "C" {
 /*----------------------------------------------------------------------------*/
 #[inline]
 unsafe extern "C" fn gf2x_add(nr: i32, mut Res: *mut DIGIT,
-                              na: i32, mut A: *const DIGIT,
-                              nb: i32, mut B: *const DIGIT) {
+                              _na: i32, mut A: *const DIGIT,
+                              _nb: i32, mut B: *const DIGIT) {
     let mut i: u32 = 0i32 as u32;
     while i < nr as u32 {
         *Res.offset(i as isize) =
@@ -206,10 +206,8 @@ pub unsafe extern "C" fn char_right_bit_shift_n(length: i32,
         panic!("bad amount");
     }
     if amount == 0i32 { return }
-    let mut j: i32 = 0;
-    let mut mask: u8 = 0;
-    mask = (((0x1i32 as u8 as i32) << amount) - 1i32) as u8;
-    j = length - 1i32;
+    let mut j: i32 = length - 1;
+    let mask: u8 = (((0x1i32 as u8 as i32) << amount) - 1i32) as u8;
     while j > 0i32 {
         let ref mut fresh0 = *in_0.offset(j as isize);
         *fresh0 = (*fresh0 as i32 >> amount) as u8;
@@ -248,12 +246,11 @@ unsafe extern "C" fn bytestream_into_poly_seq(mut polySeq: *mut DIGIT,
                                                                   u64)
             as u32;
     let mut bitCursor: u32 = slack_bits;
-    let mut buffer: u64 = 0i32 as u64;
     let mut polyIdx: u32 = 0i32 as u32;
     while polyIdx < numPoly as u32 {
         let mut exponent: u32 = 0i32 as u32;
         while exponent < crate::consts::P as i32 as u32 {
-            buffer = bitstream_read(S, 1i32 as u32, &mut bitCursor);
+            let buffer = bitstream_read(S, 1i32 as u32, &mut bitCursor);
             gf2x_set_coeff(&mut *polySeq.offset((((crate::consts::P as i32 + (8i32 << 3i32) -
                                                        1i32) / (8i32 << 3i32))
                                                      as

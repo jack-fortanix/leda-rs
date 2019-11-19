@@ -1,6 +1,3 @@
-#![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
-         non_upper_case_globals, unused_assignments, unused_mut)]
-#![feature(label_break_value)]
 extern "C" {
     #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64)
@@ -84,8 +81,8 @@ pub type DIGIT = u64;
 /*----------------------------------------------------------------------------*/
 #[inline]
 unsafe extern "C" fn gf2x_add(nr: i32, mut Res: *mut DIGIT,
-                              na: i32, mut A: *const DIGIT,
-                              nb: i32, mut B: *const DIGIT) {
+                              _na: i32, mut A: *const DIGIT,
+                              _nb: i32, mut B: *const DIGIT) {
     let mut i: u32 = 0i32 as u32;
     while i < nr as u32 {
         *Res.offset(i as isize) =
@@ -180,10 +177,10 @@ pub unsafe extern "C" fn gf2x_mul_comb(nr: i32, mut Res: *mut DIGIT,
 /*----------------------------------------------------------------------------*/
 /* allows the second operand to be shorter than the first */
 /* the result should be as large as the first operand*/
-#[inline]
-unsafe extern "C" fn gf2x_add_asymm(nr: i32, mut Res: *mut DIGIT,
-                                    na: i32, mut A: *const DIGIT,
-                                    nb: i32, mut B: *const DIGIT) {
+
+unsafe fn gf2x_add_asymm(_nr: i32, mut Res: *mut DIGIT,
+                         na: i32, mut A: *const DIGIT,
+                         nb: i32, mut B: *const DIGIT) {
     let mut delta: i32 = na - nb;
     memcpy(Res as *mut libc::c_void, A as *const libc::c_void,
            (delta * 8i32) as u64);

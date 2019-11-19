@@ -119,8 +119,8 @@ extern "C" {
 /*----------------------------------------------------------------------------*/
 #[inline]
 unsafe extern "C" fn gf2x_add(nr: i32, mut Res: *mut DIGIT,
-                              na: i32, mut A: *const DIGIT,
-                              nb: i32, mut B: *const DIGIT) {
+                              _na: i32, A: *const DIGIT,
+                              _nb: i32, B: *const DIGIT) {
     let mut i: u32 = 0i32 as u32;
     while i < nr as u32 {
         *Res.offset(i as isize) =
@@ -133,8 +133,8 @@ static mut qBlockWeights: [[u8; 2]; 2] =
      [5i32 as u8, 6i32 as u8]];
 /*---------------------------------------------------------------------------*/
 #[inline]
-unsafe extern "C" fn gf2x_mod_add(mut Res: *mut DIGIT, mut A: *const DIGIT,
-                                  mut B: *const DIGIT) {
+unsafe extern "C" fn gf2x_mod_add(mut Res: *mut DIGIT, A: *const DIGIT,
+                                  B: *const DIGIT) {
     gf2x_add((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), Res,
              (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), A,
              (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), B);
@@ -144,7 +144,7 @@ unsafe extern "C" fn gf2x_mod_add(mut Res: *mut DIGIT, mut A: *const DIGIT,
 /*---------------------------------------------------------------------------*/
 /* population count for a single polynomial */
 #[inline]
-unsafe extern "C" fn population_count(mut upc: *mut DIGIT) -> i32 {
+unsafe extern "C" fn population_count(upc: *const DIGIT) -> i32 {
     let mut ret: i32 = 0i32;
     let mut i: i32 =
         (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
@@ -357,9 +357,7 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
            (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
                 8i32) as u64);
     /*perform syndrome decoding to obtain error vector */
-    let mut ok: i32 = 0;
-    ok =
-        bf_decoding(decoded_err,
+    let ok = bf_decoding(decoded_err,
                     HtrPosOnes.as_mut_ptr() as *const [u32; 11],
                     QtrPosOnes.as_mut_ptr() as *const [u32; 11],
                     privateSyndrome.as_mut_ptr());
@@ -415,11 +413,7 @@ unsafe extern "C" fn char_left_bit_shift_n(length: i32,
     }
     if amount == 0i32 { return }
     let mut j: i32 = 0;
-    let mut mask: u8 = 0;
-    mask =
-        !(((0x1i32 as u8 as i32) << 8i32 - amount) - 1i32) as
-            u8;
-    j = 0i32;
+    let mask: u8 = !(((0x1i32 as u8 as i32) << 8i32 - amount) - 1i32) as u8;
     while j < length - 1i32 {
         let ref mut fresh0 = *in_0.offset(j as isize);
         *fresh0 = ((*fresh0 as i32) << amount) as u8;
@@ -440,7 +434,6 @@ unsafe extern "C" fn poly_seq_into_bytestream(mut output: *mut u8,
                                               mut zPoly: *mut DIGIT,
                                               numPoly: u32)
  -> i32 {
-    let mut bitValue: DIGIT = 0; // end for i
     let mut output_bit_cursor: u32 =
         byteOutputLength.wrapping_mul(8i32 as
                                           u32).wrapping_sub(numPoly.wrapping_mul(crate::consts::P as i32
@@ -454,7 +447,7 @@ unsafe extern "C" fn poly_seq_into_bytestream(mut output: *mut u8,
     while (i as u32) < numPoly {
         let mut exponent: u32 = 0i32 as u32;
         while exponent < crate::consts::P as i32 as u32 {
-            bitValue =
+            let bitValue =
                 gf2x_get_coeff(zPoly.offset((i *
                                                  ((crate::consts::P as i32 + (8i32 << 3i32) -
                                                        1i32) /

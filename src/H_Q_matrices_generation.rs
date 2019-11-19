@@ -25,7 +25,7 @@ static mut qBlockWeights: [[u8; 2]; 2] =
      [5i32 as u8, 6i32 as u8]];
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn generateHPosOnes(mut HPosOnes: *mut [u32; 11],
+pub unsafe extern "C" fn generateHPosOnes(HPosOnes: *mut [u32; 11],
                                           mut keys_expander:
                                               *mut AES_XOF_struct) {
     let mut i: i32 = 0i32;
@@ -39,10 +39,8 @@ pub unsafe extern "C" fn generateHPosOnes(mut HPosOnes: *mut [u32; 11],
 }
 // end generateHtr_HtrPosOnes
 #[no_mangle]
-pub unsafe extern "C" fn transposeHPosOnes(mut HtrPosOnes:
-                                               *mut [u32; 11],
-                                           mut HPosOnes:
-                                               *mut [u32; 11]) {
+pub unsafe extern "C" fn transposeHPosOnes(HtrPosOnes: *mut [u32; 11],
+                                           HPosOnes: *mut [u32; 11]) {
     let mut i: i32 = 0i32;
     while i < 2i32 {
         /* Obtain directly the sparse representation of the block of H */
@@ -66,10 +64,8 @@ pub unsafe extern "C" fn transposeHPosOnes(mut HtrPosOnes:
 /*----------------------------------------------------------------------------*/
 // end transposeHPosOnes
 #[no_mangle]
-pub unsafe extern "C" fn transposeQPosOnes(mut QtrPosOnes:
-                                               *mut [u32; 11],
-                                           mut QPosOnes:
-                                               *mut [u32; 11]) {
+pub unsafe extern "C" fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11],
+                                           QPosOnes: *mut [u32; 11]) {
     let mut transposed_ones_idx: [u32; 2] =
         [0i32 as u32,
          0]; // position in the column of QtrPosOnes[][...]

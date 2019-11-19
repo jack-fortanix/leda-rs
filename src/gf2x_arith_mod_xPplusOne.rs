@@ -155,8 +155,8 @@ pub union toReverse_t {
 /*----------------------------------------------------------------------------*/
 #[inline]
 unsafe extern "C" fn gf2x_add(nr: i32, mut Res: *mut DIGIT,
-                              na: i32, mut A: *const DIGIT,
-                              nb: i32, mut B: *const DIGIT) {
+                              _na: i32, mut A: *const DIGIT,
+                              _nb: i32, mut B: *const DIGIT) {
     let mut i: u32 = 0i32 as u32;
     while i < nr as u32 {
         *Res.offset(i as isize) =
@@ -228,7 +228,7 @@ unsafe extern "C" fn gf2x_mod_add(mut Res: *mut DIGIT, mut A: *const DIGIT,
 /* specialized for nin == 2 * NUM_DIGITS_GF2X_ELEMENT, as it is only used
  * by gf2x_mul */
 #[inline]
-unsafe extern "C" fn gf2x_mod(mut out: *mut DIGIT, nin: i32,
+unsafe extern "C" fn gf2x_mod(mut out: *mut DIGIT, _nin: i32,
                               mut in_0: *const DIGIT) {
     let mut aux: [DIGIT; 906] = [0; 906];
     memcpy(aux.as_mut_ptr() as *mut libc::c_void, in_0 as *const libc::c_void,
@@ -459,7 +459,7 @@ pub unsafe extern "C" fn rotate_bit_right(mut in_0: *mut DIGIT)
 #[no_mangle]
 pub unsafe extern "C" fn gf2x_digit_times_poly_mul(nr: i32,
                                                    mut Res: *mut DIGIT,
-                                                   na: i32,
+                                                   _na: i32,
                                                    mut A: *const DIGIT,
                                                    B: DIGIT) {
     let mut pres: [DIGIT; 2] = [0; 2];
