@@ -2,7 +2,7 @@ use crate::types::*;
 use crate::gf2x_arith::*;
 
 #[no_mangle]
-pub unsafe extern "C" fn bitstream_write(mut output: *mut u8,
+pub unsafe fn bitstream_write(mut output: *mut u8,
                                          amount_to_write: u32,
                                          mut output_bit_cursor:
                                              *mut u32,
@@ -99,7 +99,7 @@ pub unsafe extern "C" fn bitstream_write(mut output: *mut u8,
  * them to the encoding. Given the estimates for log_2(d), this is plentiful
  */
 #[no_mangle]
-pub unsafe extern "C" fn bitstream_read(stream: *const u8,
+pub unsafe fn bitstream_read(stream: *const u8,
                                         bit_amount: u32,
                                         mut bit_cursor: *mut u32)
  -> u64 {
@@ -165,7 +165,7 @@ pub unsafe extern "C" fn bitstream_read(stream: *const u8,
 /*----------------------------------------------------------------------------*/
 /* returns the portion of the bitstream read, padded with zeroes if the
    bitstream has less bits than required. Updates the value of the bit cursor */
-unsafe extern "C" fn bitstream_read_padded(stream: *const u8,
+unsafe fn bitstream_read_padded(stream: *const u8,
                                            bitAmount: u32,
                                            bitstreamLength: u32,
                                            bitCursor: *mut u32)
@@ -190,7 +190,7 @@ unsafe extern "C" fn bitstream_read_padded(stream: *const u8,
 // end bitstream_read_padded
 /*----------------------------------------------------------------------------*/
 #[inline]
-unsafe extern "C" fn estimate_d_u(mut d: *mut u32,
+unsafe fn estimate_d_u(mut d: *mut u32,
                                   mut u: *mut u32, n: u32,
                                   t: u32) {
     *d =
@@ -208,7 +208,7 @@ unsafe extern "C" fn estimate_d_u(mut d: *mut u32,
 /*----------------------------------------------------------------------------*/
 /* Encodes a bit string into a constant weight N0 polynomials vector*/
 #[no_mangle]
-pub unsafe extern "C" fn constant_weight_to_binary_approximate(bitstreamOut:
+pub unsafe fn constant_weight_to_binary_approximate(bitstreamOut:
                                                                    *mut u8,
                                                                mut constantWeightIn:
                                                                    *const DIGIT) {
@@ -337,7 +337,7 @@ pub unsafe extern "C" fn constant_weight_to_binary_approximate(bitstreamOut:
 // end constant_weight_to_binary_approximate
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn binary_to_constant_weight_approximate(mut constantWeightOut:
+pub unsafe fn binary_to_constant_weight_approximate(mut constantWeightOut:
                                                                    *mut DIGIT,
                                                                bitstreamIn:
                                                                    *const u8,

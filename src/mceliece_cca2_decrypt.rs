@@ -108,7 +108,7 @@ extern "C" {
  **/
 // memset(...), memcpy(....)
 /*----------------------------------------------------------------------------*/
-unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
+unsafe fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
                                       mut correct_codeword: *mut DIGIT,
                                       mut sk: *const privateKeyMcEliece_t,
                                       ctx: *const u8)
@@ -292,7 +292,7 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
     return 1i32;
 }
 /*----------------------------------------------------------------------------*/
-unsafe extern "C" fn char_left_bit_shift_n(length: i32,
+unsafe fn char_left_bit_shift_n(length: i32,
                                            mut in_0: *mut u8,
                                            amount: i32) {
     if amount > 8i32 {
@@ -316,7 +316,7 @@ unsafe extern "C" fn char_left_bit_shift_n(length: i32,
 }
 // end right_bit_shift_n
 /*----------------------------------------------------------------------------*/
-unsafe extern "C" fn poly_seq_into_bytestream(mut output: *mut u8,
+unsafe fn poly_seq_into_bytestream(mut output: *mut u8,
                                               byteOutputLength: u32,
                                               mut zPoly: *mut DIGIT,
                                               numPoly: u32)
@@ -387,7 +387,7 @@ unsafe extern "C" fn poly_seq_into_bytestream(mut output: *mut u8,
  *
  **/
 #[no_mangle]
-pub unsafe extern "C" fn decrypt_Kobara_Imai(sk: *const privateKeyMcEliece_t,
+pub unsafe fn decrypt_Kobara_Imai(sk: *const privateKeyMcEliece_t,
                                              clen: u64,
                                              ctx: *const u8) -> Vec<u8>
  // constituted by codeword || leftover

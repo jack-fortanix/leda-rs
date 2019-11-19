@@ -16,7 +16,7 @@ extern "C" {
      -> *mut libc::c_void;
 }
 
-unsafe extern "C" fn encrypt_McEliece(mut codeword: *mut DIGIT,
+unsafe fn encrypt_McEliece(mut codeword: *mut DIGIT,
                                       pk: *const publicKeyMcEliece_t,
                                       mut ptx: *const DIGIT,
                                       mut err: *const DIGIT) 
@@ -75,7 +75,7 @@ unsafe extern "C" fn encrypt_McEliece(mut codeword: *mut DIGIT,
 // end encrypt_McEliece
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-unsafe extern "C" fn char_right_bit_shift_n(length: i32,
+unsafe fn char_right_bit_shift_n(length: i32,
                                                 mut in_0: *mut u8,
                                                 amount: i32) {
     if amount > 8i32 {
@@ -100,7 +100,7 @@ unsafe extern "C" fn char_right_bit_shift_n(length: i32,
 /*----------------------------------------------------------------------------*/
 /*  shifts the input stream so that the bytewise pad is on the left before
  * conversion */
-unsafe extern "C" fn bytestream_into_poly_seq(mut polySeq: *mut DIGIT,
+unsafe fn bytestream_into_poly_seq(mut polySeq: *mut DIGIT,
                                               mut numPoly: i32,
                                               mut S: *mut u8,
                                               byteLenS: u64)
@@ -144,7 +144,7 @@ unsafe extern "C" fn bytestream_into_poly_seq(mut polySeq: *mut DIGIT,
 // end bytestream_into_poly_seq
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn encrypt_Kobara_Imai(output: *mut u8,
+pub unsafe fn encrypt_Kobara_Imai(output: *mut u8,
                                              pk: *const publicKeyMcEliece_t,
                                              bytePtxLen: u32,
                                              ptx: *const u8)

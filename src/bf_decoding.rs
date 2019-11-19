@@ -44,7 +44,7 @@ extern "C" {
 pub static mut thresholds: [i32; 2] =
     [64i32, 11i32 * 11i32 / 2i32 + 1i32];
 #[no_mangle]
-pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
+pub unsafe fn bf_decoding(mut out: *mut DIGIT,
                                      mut HtrPosOnes: *const [u32; 11],
                                      mut QtrPosOnes: *const [u32; 11],
                                      mut privateSyndrome: *mut DIGIT)

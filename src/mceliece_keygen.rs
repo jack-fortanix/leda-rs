@@ -43,7 +43,7 @@ extern "C" {
 }
 
 #[inline]
-unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
+unsafe fn gf2x_set_coeff(mut poly: *mut DIGIT,
                                     exponent: u32,
                                     mut value: DIGIT) {
     let mut straightIdx: i32 =
@@ -65,7 +65,7 @@ unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
 }
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
+pub unsafe fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
                                           sk: *mut privateKeyMcEliece_t) {
     let mut keys_expander: AES_XOF_struct =
         AES_XOF_struct{buffer: [0; 16],

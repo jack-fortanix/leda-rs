@@ -46,7 +46,7 @@ pub static mut DRBG_ctx: AES256_CTR_DRBG_struct =
  maxlen         - maximum number of bytes (less than 2**32) generated under this seed and diversifier
  */
 #[no_mangle]
-pub unsafe extern "C" fn seedexpander_init(mut ctx: *mut AES_XOF_struct,
+pub unsafe fn seedexpander_init(mut ctx: *mut AES_XOF_struct,
                                            seed: *const u8,
                                            diversifier: *const u8,
                                            mut maxlen: u64)
@@ -87,7 +87,7 @@ pub unsafe extern "C" fn seedexpander_init(mut ctx: *mut AES_XOF_struct,
     xlen - number of bytes to return
  */
 #[no_mangle]
-pub unsafe extern "C" fn seedexpander(mut ctx: *mut AES_XOF_struct,
+pub unsafe fn seedexpander(mut ctx: *mut AES_XOF_struct,
                                       mut x: *mut u8,
                                       mut xlen: u64)
  -> i32 {
@@ -160,7 +160,7 @@ unsafe fn AES256_ECB(key: *const u8,
     cipher.encrypt(&inp, outp).unwrap();
 }
 #[no_mangle]
-pub unsafe extern "C" fn randombytes_init(entropy_input: *const u8,
+pub unsafe fn randombytes_init(entropy_input: *const u8,
                                           personalization_string: *const u8) {
     let mut seed_material: [u8; 48] = [0; 48];
     memcpy(seed_material.as_mut_ptr() as *mut libc::c_void,
@@ -185,7 +185,7 @@ pub unsafe extern "C" fn randombytes_init(entropy_input: *const u8,
     DRBG_ctx.reseed_counter = 1i32;
 }
 #[no_mangle]
-pub unsafe extern "C" fn randombytes(mut x: *mut u8,
+pub unsafe fn randombytes(mut x: *mut u8,
                                      mut xlen: u64)
  -> i32 {
     let mut block: [u8; 16] = [0; 16];
@@ -262,7 +262,7 @@ unsafe fn AES256_CTR_DRBG_Update(mut provided_data: *mut u8,
            16i32 as u64);
 }
 #[no_mangle]
-pub unsafe extern "C" fn deterministic_random_byte_generator(output: *mut u8,
+pub unsafe fn deterministic_random_byte_generator(output: *mut u8,
                                                              output_len: u64,
                                                              seed: *const u8,
                                                              seed_length: u64) {
@@ -320,7 +320,7 @@ pub unsafe extern "C" fn deterministic_random_byte_generator(output: *mut u8,
 /* *****  End of NIST supplied code ****************/
 // end deterministic_random_byte_generator
 #[no_mangle]
-pub unsafe extern "C" fn seedexpander_from_trng(mut ctx: *mut AES_XOF_struct,
+pub unsafe fn seedexpander_from_trng(mut ctx: *mut AES_XOF_struct,
                                                 trng_entropy: *const u8)
  /* TRNG_BYTE_LENGTH wide buffer */
  {

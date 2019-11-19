@@ -42,7 +42,7 @@ pub union toReverse_t {
 /* specialized for nin == 2 * NUM_DIGITS_GF2X_ELEMENT, as it is only used
  * by gf2x_mul */
 #[inline]
-unsafe extern "C" fn gf2x_mod(mut out: *mut DIGIT, _nin: i32,
+unsafe fn gf2x_mod(mut out: *mut DIGIT, _nin: i32,
                               mut in_0: *const DIGIT) {
     let mut aux: [DIGIT; 906] = [0; 906];
     memcpy(aux.as_mut_ptr() as *mut libc::c_void, in_0 as *const libc::c_void,
@@ -71,7 +71,7 @@ unsafe extern "C" fn gf2x_mod(mut out: *mut DIGIT, _nin: i32,
 }
 // end gf2x_mod
 /*----------------------------------------------------------------------------*/
-unsafe extern "C" fn left_bit_shift(length: i32,
+unsafe fn left_bit_shift(length: i32,
                                     mut in_0: *mut DIGIT) {
     let mut j: i32 = 0; /* logical shift does not need clearing */
     j = 0i32;
@@ -85,7 +85,7 @@ unsafe extern "C" fn left_bit_shift(length: i32,
 }
 // end left_bit_shift
 /*----------------------------------------------------------------------------*/
-unsafe extern "C" fn right_bit_shift(length: i32,
+unsafe fn right_bit_shift(length: i32,
                                      mut in_0: *mut DIGIT) {
     let mut j: i32 = 0;
     j = length - 1i32;
@@ -103,7 +103,7 @@ unsafe extern "C" fn right_bit_shift(length: i32,
 /*----------------------------------------------------------------------------*/
 /* shifts by whole digits */
 #[inline]
-unsafe extern "C" fn left_DIGIT_shift_n(length: i32,
+unsafe fn left_DIGIT_shift_n(length: i32,
                                         mut in_0: *mut DIGIT,
                                         mut amount: i32) {
     let mut j: i32 = 0;
@@ -118,7 +118,7 @@ unsafe extern "C" fn left_DIGIT_shift_n(length: i32,
 /*----------------------------------------------------------------------------*/
 /* may shift by an arbitrary amount*/
 #[no_mangle]
-pub unsafe extern "C" fn left_bit_shift_wide_n(length: i32,
+pub unsafe fn left_bit_shift_wide_n(length: i32,
                                                mut in_0: *mut DIGIT,
                                                mut amount: i32) {
     left_DIGIT_shift_n(length, in_0, amount / (8i32 << 3i32));
@@ -126,7 +126,7 @@ pub unsafe extern "C" fn left_bit_shift_wide_n(length: i32,
 }
 // end left_bit_shift_n
 /*----------------------------------------------------------------------------*/
-unsafe extern "C" fn byte_reverse_with_64bitDIGIT(mut b: u8) -> u8 {
+unsafe fn byte_reverse_with_64bitDIGIT(mut b: u8) -> u8 {
     b =
         ((b as u64).wrapping_mul(0x202020202u64) &
              0x10884422010u64).wrapping_rem(1023i32 as u64) as
@@ -135,7 +135,7 @@ unsafe extern "C" fn byte_reverse_with_64bitDIGIT(mut b: u8) -> u8 {
 }
 // end byte_reverse_64bitDIGIT
 /*----------------------------------------------------------------------------*/
-unsafe extern "C" fn reverse_digit(b: DIGIT) -> DIGIT {
+unsafe fn reverse_digit(b: DIGIT) -> DIGIT {
     let mut i: i32 = 0;
     let mut toReverse: toReverse_t = toReverse_t{inByte: [0; 8],};
     toReverse.digitValue = b;
@@ -150,7 +150,7 @@ unsafe extern "C" fn reverse_digit(b: DIGIT) -> DIGIT {
 // end reverse_digit
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn gf2x_transpose_in_place(mut A: *mut DIGIT) {
+pub unsafe fn gf2x_transpose_in_place(mut A: *mut DIGIT) {
     /* it keeps the lsb in the same position and
     * inverts the sequence of the remaining bits
     */
@@ -206,7 +206,7 @@ pub unsafe extern "C" fn gf2x_transpose_in_place(mut A: *mut DIGIT) {
 // end transpose_in_place
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn rotate_bit_left(mut in_0: *mut DIGIT) 
+pub unsafe fn rotate_bit_left(mut in_0: *mut DIGIT) 
  /*  equivalent to x * in(x) mod x^P+1 */
  {
     let mut mask: DIGIT = 0; /* clear shifted bit */
@@ -245,7 +245,7 @@ pub unsafe extern "C" fn rotate_bit_left(mut in_0: *mut DIGIT)
 // end rotate_bit_left
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn rotate_bit_right(mut in_0: *mut DIGIT) 
+pub unsafe fn rotate_bit_right(mut in_0: *mut DIGIT) 
  /*  x^{-1} * in(x) mod x^P+1 */
  {
     let mut rotated_bit: DIGIT =
@@ -271,7 +271,7 @@ pub unsafe extern "C" fn rotate_bit_right(mut in_0: *mut DIGIT)
     *fresh6 |= rotated_bit;
 }
 #[no_mangle]
-pub unsafe extern "C" fn gf2x_digit_times_poly_mul(nr: i32,
+pub unsafe fn gf2x_digit_times_poly_mul(nr: i32,
                                                    mut Res: *mut DIGIT,
                                                    _na: i32,
                                                    mut A: *const DIGIT,
@@ -288,7 +288,7 @@ pub unsafe extern "C" fn gf2x_digit_times_poly_mul(nr: i32,
         i -= 1
     };
 }
-unsafe extern "C" fn gf2x_swap(length: i32, mut f: *mut DIGIT,
+unsafe fn gf2x_swap(length: i32, mut f: *mut DIGIT,
                                mut s: *mut DIGIT) {
     let mut t: DIGIT = 0;
     let mut i: i32 = length - 1i32;
@@ -320,7 +320,7 @@ unsafe extern "C" fn gf2x_swap(length: i32, mut f: *mut DIGIT,
  *
  */
 #[no_mangle]
-pub unsafe extern "C" fn gf2x_mod_inverse(mut out: *mut DIGIT,
+pub unsafe fn gf2x_mod_inverse(mut out: *mut DIGIT,
                                           mut in_0: *const DIGIT)
  -> i32 
  /* in^{-1} mod x^P-1 */
@@ -416,7 +416,7 @@ pub unsafe extern "C" fn gf2x_mod_inverse(mut out: *mut DIGIT,
 * May 2012. doi: 10.1049/iet-cdt.2010.0006
 */
 #[no_mangle]
-pub unsafe extern "C" fn gf2x_mod_inverse_KTT(mut out: *mut DIGIT,
+pub unsafe fn gf2x_mod_inverse_KTT(mut out: *mut DIGIT,
                                               mut in_0: *const DIGIT)
  -> i32 {
     /* in^{-1} mod x^P-1 */
@@ -649,7 +649,7 @@ pub unsafe extern "C" fn gf2x_mod_inverse_KTT(mut out: *mut DIGIT,
 }
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn gf2x_mod_mul(mut Res: *mut DIGIT,
+pub unsafe fn gf2x_mod_mul(mut Res: *mut DIGIT,
                                       mut A: *const DIGIT,
                                       mut B: *const DIGIT) {
     let mut aux: [DIGIT; 1810] = [0; 1810];
@@ -666,7 +666,7 @@ pub unsafe extern "C" fn gf2x_mod_mul(mut Res: *mut DIGIT,
 /* computes operand*x^shiftAmt + Res. assumes res is  
  * wide and operand is NUM_DIGITS_GF2X_ELEMENT with blank slack bits */
 #[inline]
-unsafe extern "C" fn gf2x_fmac(mut Res: *mut DIGIT, mut operand: *const DIGIT,
+unsafe fn gf2x_fmac(mut Res: *mut DIGIT, mut operand: *const DIGIT,
                                shiftAmt: u32) {
     let mut digitShift: u32 =
         shiftAmt.wrapping_div((8i32 << 3i32) as u32);
@@ -704,7 +704,7 @@ unsafe extern "C" fn gf2x_fmac(mut Res: *mut DIGIT, mut operand: *const DIGIT,
 /*PRE: the representation of the sparse coefficients is sorted in increasing
  order of the coefficients themselves */
 #[no_mangle]
-pub unsafe extern "C" fn gf2x_mod_mul_dense_to_sparse(mut Res: *mut DIGIT,
+pub unsafe fn gf2x_mod_mul_dense_to_sparse(mut Res: *mut DIGIT,
                                                       mut dense: *const DIGIT,
                                                       mut sparse:
                                                           *const u32,
@@ -726,7 +726,7 @@ pub unsafe extern "C" fn gf2x_mod_mul_dense_to_sparse(mut Res: *mut DIGIT,
 // end gf2x_mod_mul
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn gf2x_transpose_in_place_sparse(mut sizeA:
+pub unsafe fn gf2x_transpose_in_place_sparse(mut sizeA:
                                                             i32,
                                                         mut A:
                                                             *mut u32) {
@@ -754,7 +754,7 @@ pub unsafe extern "C" fn gf2x_transpose_in_place_sparse(mut sizeA:
 // end gf2x_transpose_in_place_sparse
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn gf2x_mod_mul_sparse(mut sizeR: i32,
+pub unsafe fn gf2x_mod_mul_sparse(mut sizeR: i32,
                                              mut Res: *mut u32,
                                              mut sizeA: i32,
                                              mut A: *const u32,
@@ -820,7 +820,7 @@ pub unsafe extern "C" fn gf2x_mod_mul_sparse(mut sizeR: i32,
 /* the implementation is safe even in case A or B alias with the result */
 /* PRE: A and B should be sorted and have INVALID_POS_VALUE at the end */
 #[no_mangle]
-pub unsafe extern "C" fn gf2x_mod_add_sparse(mut sizeR: i32,
+pub unsafe fn gf2x_mod_add_sparse(mut sizeR: i32,
                                              mut Res: *mut u32,
                                              mut sizeA: i32,
                                              mut A: *mut u32,
@@ -878,7 +878,7 @@ pub unsafe extern "C" fn gf2x_mod_add_sparse(mut sizeR: i32,
  * the NIST seedexpander seeded with the proper key.
  * Assumes that the maximum value for the range n is 2^32-1
  */
-unsafe extern "C" fn rand_range(n: i32, logn: i32,
+unsafe fn rand_range(n: i32, logn: i32,
                                 mut seed_expander_ctx: *mut AES_XOF_struct)
  -> i32 {
     let mut required_rnd_bytes: u64 =
@@ -913,7 +913,7 @@ unsafe extern "C" fn rand_range(n: i32, logn: i32,
 /* Obtains fresh randomness and seed-expands it until all the required positions
  * for the '1's in the circulant block are obtained */
 #[no_mangle]
-pub unsafe extern "C" fn rand_circulant_sparse_block(mut pos_ones:
+pub unsafe fn rand_circulant_sparse_block(mut pos_ones:
                                                          *mut u32,
                                                      countOnes: i32,
                                                      mut seed_expander_ctx:
@@ -1137,7 +1137,7 @@ pub unsafe extern "C" fn rand_circulant_sparse_block(mut pos_ones:
 // rand_circulant_sparse_block
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn rand_circulant_blocks_sequence(mut sequence:
+pub unsafe fn rand_circulant_blocks_sequence(mut sequence:
                                                             *mut DIGIT,
                                                         countOnes:
                                                             i32,
@@ -1379,7 +1379,7 @@ pub unsafe extern "C" fn rand_circulant_blocks_sequence(mut sequence:
 // end rand_circulant_blocks_sequence
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn rand_error_pos(mut errorPos: *mut u32,
+pub unsafe fn rand_error_pos(mut errorPos: *mut u32,
                                         mut seed_expander_ctx:
                                             *mut AES_XOF_struct) {
     let mut duplicated: i32 = 0;
@@ -1678,7 +1678,7 @@ pub unsafe extern "C" fn rand_error_pos(mut errorPos: *mut u32,
 // end rand_error_pos
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn expand_error(mut sequence: *mut DIGIT,
+pub unsafe fn expand_error(mut sequence: *mut DIGIT,
                                       mut errorPos: *mut u32) {
     memset(sequence as *mut libc::c_void, 0i32,
            (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *

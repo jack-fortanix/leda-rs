@@ -11,7 +11,7 @@ extern "C" {
 }
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn generateHPosOnes(HPosOnes: *mut [u32; 11],
+pub unsafe fn generateHPosOnes(HPosOnes: *mut [u32; 11],
                                           mut keys_expander:
                                               *mut AES_XOF_struct) {
     let mut i: i32 = 0i32;
@@ -25,7 +25,7 @@ pub unsafe extern "C" fn generateHPosOnes(HPosOnes: *mut [u32; 11],
 }
 // end generateHtr_HtrPosOnes
 #[no_mangle]
-pub unsafe extern "C" fn transposeHPosOnes(HtrPosOnes: *mut [u32; 11],
+pub unsafe fn transposeHPosOnes(HtrPosOnes: *mut [u32; 11],
                                            HPosOnes: *mut [u32; 11]) {
     let mut i: i32 = 0i32;
     while i < 2i32 {
@@ -50,7 +50,7 @@ pub unsafe extern "C" fn transposeHPosOnes(HtrPosOnes: *mut [u32; 11],
 /*----------------------------------------------------------------------------*/
 // end transposeHPosOnes
 #[no_mangle]
-pub unsafe extern "C" fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11],
+pub unsafe fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11],
                                            QPosOnes: *mut [u32; 11]) {
     let mut transposed_ones_idx: [u32; 2] =
         [0i32 as u32,
@@ -95,7 +95,7 @@ pub unsafe extern "C" fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11],
 // end transposeHPosOnes
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn generateQPosOnes(mut QPosOnes: *mut [u32; 11],
+pub unsafe fn generateQPosOnes(mut QPosOnes: *mut [u32; 11],
                                           mut keys_expander:
                                               *mut AES_XOF_struct) {
     let mut i: i32 = 0i32;

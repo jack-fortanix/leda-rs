@@ -9,7 +9,7 @@ extern "C" {
      -> *mut libc::c_void;
 }
 
-pub unsafe extern "C" fn gf2x_copy(mut dest: *mut DIGIT, mut in_0: *const DIGIT) {
+pub unsafe fn gf2x_copy(mut dest: *mut DIGIT, mut in_0: *const DIGIT) {
     let mut i: i32 =
         (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
     while i >= 0i32 {
@@ -18,7 +18,7 @@ pub unsafe extern "C" fn gf2x_copy(mut dest: *mut DIGIT, mut in_0: *const DIGIT)
     };
 }
 
-pub unsafe extern "C" fn population_count(upc: *const DIGIT) -> i32 {
+pub unsafe fn population_count(upc: *const DIGIT) -> i32 {
     let mut ret: i32 = 0i32;
     let mut i: i32 =
         (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
@@ -31,7 +31,7 @@ pub unsafe extern "C" fn population_count(upc: *const DIGIT) -> i32 {
     return ret;
 }
 
-pub unsafe extern "C" fn gf2x_get_coeff(mut poly: *const DIGIT,
+pub unsafe fn gf2x_get_coeff(mut poly: *const DIGIT,
                                     exponent: u32) -> DIGIT {
     let mut straightIdx: u32 =
         (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
@@ -45,14 +45,14 @@ pub unsafe extern "C" fn gf2x_get_coeff(mut poly: *const DIGIT,
                     u32).wrapping_sub(inDigitIdx) & 1i32 as DIGIT;
 }
 
-pub unsafe extern "C" fn gf2x_mod_add(mut Res: *mut DIGIT, A: *const DIGIT,
+pub unsafe fn gf2x_mod_add(mut Res: *mut DIGIT, A: *const DIGIT,
                                   B: *const DIGIT) {
     gf2x_add((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), Res,
              (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), A,
              (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), B);
 }
 
-pub unsafe extern "C" fn gf2x_toggle_coeff(mut poly: *mut DIGIT,
+pub unsafe fn gf2x_toggle_coeff(mut poly: *mut DIGIT,
                                        exponent: u32) {
     let mut straightIdx: i32 =
         (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
@@ -138,7 +138,7 @@ pub unsafe extern "C" fn gf2x_toggle_coeff(mut poly: *mut DIGIT,
  *           position[A_{0}]  ==  n-1
  */
 /*----------------------------------------------------------------------------*/
-pub unsafe extern "C" fn gf2x_add(nr: i32, mut Res: *mut DIGIT,
+pub unsafe fn gf2x_add(nr: i32, mut Res: *mut DIGIT,
                               _na: i32, mut A: *const DIGIT,
                               _nb: i32, mut B: *const DIGIT) {
     let mut i: u32 = 0i32 as u32;
@@ -152,7 +152,7 @@ pub unsafe extern "C" fn gf2x_add(nr: i32, mut Res: *mut DIGIT,
 
 /*--------------------------------------------------------------------------*/
 /* sets the coefficient of the x^exponent term as the LSB of a digit */
-pub unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
+pub unsafe fn gf2x_set_coeff(mut poly: *mut DIGIT,
                                     exponent: u32,
                                     mut value: DIGIT) {
     let mut straightIdx: i32 =
@@ -209,7 +209,7 @@ pub unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
 // memset(...)
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn gf2x_mul_comb(nr: i32, mut Res: *mut DIGIT,
+pub unsafe fn gf2x_mul_comb(nr: i32, mut Res: *mut DIGIT,
                                        na: i32, mut A: *const DIGIT,
                                        nb: i32, mut B: *const DIGIT) {
     let mut i: i32 = 0;
@@ -276,7 +276,7 @@ unsafe fn gf2x_add_asymm(_nr: i32, mut Res: *mut DIGIT,
 /*----------------------------------------------------------------------------*/
 /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
 #[no_mangle]
-pub unsafe extern "C" fn right_bit_shift_n(length: i32,
+pub unsafe fn right_bit_shift_n(length: i32,
                                            mut in_0: *mut DIGIT,
                                            amount: i32) {
     if amount >= 8i32 << 3i32 {
@@ -303,7 +303,7 @@ pub unsafe extern "C" fn right_bit_shift_n(length: i32,
 /*----------------------------------------------------------------------------*/
 /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
 #[no_mangle]
-pub unsafe extern "C" fn left_bit_shift_n(length: i32,
+pub unsafe fn left_bit_shift_n(length: i32,
                                           mut in_0: *mut DIGIT,
                                           amount: i32) {
     if amount > 8i32 << 3i32 {
@@ -329,7 +329,7 @@ pub unsafe extern "C" fn left_bit_shift_n(length: i32,
 // end left_bit_shift_n
 /*----------------------------------------------------------------------------*/
 #[inline]
-unsafe extern "C" fn gf2x_exact_div_x_plus_one(na: i32,
+unsafe fn gf2x_exact_div_x_plus_one(na: i32,
                                                mut A: *mut DIGIT) {
     let mut t: DIGIT = 0i32 as DIGIT;
     let mut i: i32 = na - 1i32;
@@ -348,7 +348,7 @@ unsafe extern "C" fn gf2x_exact_div_x_plus_one(na: i32,
 // end gf2x_exact_div_x_plus_one
 /*---------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn gf2x_mul_Kar(nr: i32, mut Res: *mut DIGIT,
+pub unsafe fn gf2x_mul_Kar(nr: i32, mut Res: *mut DIGIT,
                                       na: i32, mut A: *const DIGIT,
                                       nb: i32, mut B: *const DIGIT) {
     if na < 9i32 || nb < 9i32 {
@@ -475,7 +475,7 @@ pub unsafe extern "C" fn gf2x_mul_Kar(nr: i32, mut Res: *mut DIGIT,
  * Marco Bodrato: "Towards Optimal Toom-Cook Multiplication for Univariate and
  * Multivariate Polynomials in Characteristic 2 and 0". WAIFI 2007: 116-133   */
 #[no_mangle]
-pub unsafe extern "C" fn gf2x_mul_TC3(nr: i32, mut Res: *mut DIGIT,
+pub unsafe fn gf2x_mul_TC3(nr: i32, mut Res: *mut DIGIT,
                                       na: i32, mut A: *const DIGIT,
                                       nb: i32, mut B: *const DIGIT) {
     if na < 50i32 || nb < 50i32 {
