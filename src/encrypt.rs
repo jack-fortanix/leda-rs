@@ -68,7 +68,6 @@ pub fn crypto_encrypt(msg: &[u8], pk: &[u8]) -> Result<Vec<u8>> {
 }
 
 pub fn crypto_decrypt(ctext: &[u8], sk: &[u8]) -> Result<Vec<u8>> {
-
     let r = unsafe { decrypt_Kobara_Imai(sk.as_ptr() as *const privateKeyMcEliece_t, ctext.len() as u64, ctext.as_ptr()) };
     Ok(r)
 }
