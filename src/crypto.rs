@@ -46,13 +46,11 @@ pub static mut DRBG_ctx: AES256_CTR_DRBG_struct =
  maxlen         - maximum number of bytes (less than 2**32) generated under this seed and diversifier
  */
 
-pub unsafe fn seedexpander_init(mut ctx: *mut AES_XOF_struct,
-                                           seed: *const u8,
-                                           diversifier: *const u8,
-                                           mut maxlen: u64)
- -> i32 {
-    if maxlen >= 0x100000000i64 as u64 { return -1i32 }
-    (*ctx).length_remaining = maxlen;
+unsafe fn seedexpander_init(mut ctx: *mut AES_XOF_struct,
+                            seed: *const u8,
+                            diversifier: &[u8],
+                            maxlen: u32) -> i32 {
+    (*ctx).length_remaining = maxlen as u64;
     memset((*ctx).key.as_mut_ptr() as *mut libc::c_void, 0i32,
            32i32 as u64);
     let mut max_accessible_seed_len: i32 =
@@ -60,21 +58,28 @@ pub unsafe fn seedexpander_init(mut ctx: *mut AES_XOF_struct,
     memcpy((*ctx).key.as_mut_ptr() as *mut libc::c_void,
            seed as *const libc::c_void,
            max_accessible_seed_len as u64);
-    memcpy((*ctx).ctr.as_mut_ptr() as *mut libc::c_void,
-           diversifier as *const libc::c_void, 8i32 as u64);
-    (*ctx).ctr[11] =
-        maxlen.wrapping_rem(256i32 as u64) as u8;
-    maxlen >>= 8i32;
-    (*ctx).ctr[10] =
-        maxlen.wrapping_rem(256i32 as u64) as u8;
-    maxlen >>= 8i32;
-    (*ctx).ctr[9] =
-        maxlen.wrapping_rem(256i32 as u64) as u8;
-    maxlen >>= 8i32;
-    (*ctx).ctr[8] =
-        maxlen.wrapping_rem(256i32 as u64) as u8;
-    memset((*ctx).ctr.as_mut_ptr().offset(12) as *mut libc::c_void, 0i32,
-           4i32 as u64);
+
+    let maxlen_b = maxlen.to_be_bytes();
+    let ctr : [u8; 16] = [
+        diversifier[0],
+        diversifier[1],
+        diversifier[2],
+        diversifier[3],
+        diversifier[4],
+        diversifier[5],
+        diversifier[6],
+        diversifier[7],
+        maxlen_b[0],
+        maxlen_b[1],
+        maxlen_b[2],
+        maxlen_b[3],
+        0,
+        0,
+        0,
+        0
+    ];
+
+    (*ctx).ctr = ctr;
     (*ctx).buffer_pos = 16i32;
     memset((*ctx).buffer.as_mut_ptr() as *mut libc::c_void, 0i32,
            16i32 as u64);
@@ -321,8 +326,8 @@ pub unsafe fn deterministic_random_byte_generator(output: *mut u8,
 // end deterministic_random_byte_generator
 
 pub unsafe fn seedexpander_from_trng(mut ctx: *mut AES_XOF_struct,
-                                                trng_entropy: *const u8)
- /* TRNG_BYTE_LENGTH wide buffer */
+                                     trng_entropy: *const u8)
+/* TRNG_BYTE_LENGTH wide buffer */
  {
     /*the NIST seedexpander will however access 32B from this buffer */
     let mut prng_buffer_size: u32 =
@@ -342,6 +347,6 @@ pub unsafe fn seedexpander_from_trng(mut ctx: *mut AES_XOF_struct,
          0i32 as u8, 0i32 as u8];
     /* the required seed expansion will be quite small, set the max number of
     * bytes conservatively to 10 MiB*/
-    seedexpander_init(ctx, prng_buffer.as_mut_ptr(), diversifier.as_mut_ptr(),
-                      (10i32 * 1024i32 * 1024i32) as u64);
+    seedexpander_init(ctx, prng_buffer.as_mut_ptr(), &diversifier,
+                      (10i32 * 1024i32 * 1024i32) as u32);
 }
