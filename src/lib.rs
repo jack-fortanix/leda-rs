@@ -18,6 +18,6 @@ mod rng;
 
 pub use encrypt::crypto_encrypt_keypair;
 pub use encrypt::crypto_encrypt;
-pub use encrypt::crypto_encrypt_open;
+pub use encrypt::crypto_decrypt;
 pub use rng::randombytes_init;
 pub use types::{Error, Result};

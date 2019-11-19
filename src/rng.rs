@@ -307,8 +307,7 @@ pub unsafe extern "C" fn deterministic_random_byte_generator(output: *mut u8,
 // end deterministic_random_byte_generator
 #[no_mangle]
 pub unsafe extern "C" fn seedexpander_from_trng(mut ctx: *mut AES_XOF_struct,
-                                                mut trng_entropy:
-                                                    *const u8) 
+                                                trng_entropy: *const u8)
  /* TRNG_BYTE_LENGTH wide buffer */
  {
     /*the NIST seedexpander will however access 32B from this buffer */

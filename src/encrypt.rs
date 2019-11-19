@@ -15,11 +15,9 @@ extern "C" {
      -> i32;
 
     #[no_mangle]
-    fn decrypt_Kobara_Imai(output: *mut u8,
-                           byteOutputLength: *mut u64,
-                           sk: *mut privateKeyMcEliece_t,
+    fn decrypt_Kobara_Imai(sk: *const privateKeyMcEliece_t,
                            clen: u64, ctx: *const u8)
-     -> i32;
+     -> Vec<u8>;
 }
 
 pub fn crypto_encrypt_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
@@ -68,16 +66,9 @@ pub fn crypto_encrypt(msg: &[u8], pk: &[u8]) -> Result<Vec<u8>> {
     }
     return Err(Error::Custom("Encryption failed".to_owned()));
 }
-#[no_mangle]
-pub unsafe extern "C" fn crypto_encrypt_open(mut m: *mut u8,
-                                             mut mlen: *mut u64,
-                                             mut c: *const u8,
-                                             mut clen: u64,
-                                             mut sk: *const u8)
- -> i32 {
-    if decrypt_Kobara_Imai(m, mlen, sk as *mut privateKeyMcEliece_t, clen, c)
-           == 1i32 {
-        return 0i32
-    }
-    return -1i32;
+
+pub fn crypto_decrypt(ctext: &[u8], sk: &[u8]) -> Result<Vec<u8>> {
+
+    let r = unsafe { decrypt_Kobara_Imai(sk.as_ptr() as *const privateKeyMcEliece_t, ctext.len() as u64, ctext.as_ptr()) };
+    Ok(r)
 }

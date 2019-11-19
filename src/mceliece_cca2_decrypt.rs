@@ -223,7 +223,7 @@ unsafe extern "C" fn sha3_384(mut input: *const u8,
 /*----------------------------------------------------------------------------*/
 unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
                                       mut correct_codeword: *mut DIGIT,
-                                      mut sk: *mut privateKeyMcEliece_t,
+                                      mut sk: *const privateKeyMcEliece_t,
                                       ctx: *const u8)
  -> i32 {
     let mut mceliece_decrypt_expander: AES_XOF_struct =
@@ -233,7 +233,7 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
                        key: [0; 32],
                        ctr: [0; 16],};
     seedexpander_from_trng(&mut mceliece_decrypt_expander,
-                           (*sk).prng_seed.as_mut_ptr());
+                           (*sk).prng_seed.as_ptr());
     /* rebuild secret key values */
     let mut HPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
     let mut QPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
@@ -507,14 +507,9 @@ unsafe extern "C" fn poly_seq_into_bytestream(mut output: *mut u8,
  *
  **/
 #[no_mangle]
-pub unsafe extern "C" fn decrypt_Kobara_Imai(output: *mut u8,
-                                             mut byteOutputLength:
-                                                 *mut u64,
-                                             mut sk:
-                                                 *mut privateKeyMcEliece_t,
+pub unsafe extern "C" fn decrypt_Kobara_Imai(sk: *const privateKeyMcEliece_t,
                                              clen: u64,
-                                             ctx: *const u8)
- -> i32 
+                                             ctx: *const u8) -> Vec<u8>
  // constituted by codeword || leftover
  {
     let mut err: [DIGIT; 1810] = [0; 1810];
@@ -529,7 +524,6 @@ pub unsafe extern "C" fn decrypt_Kobara_Imai(output: *mut u8,
     if decrypt_McEliece(err.as_mut_ptr(), correctedCodeword.as_mut_ptr(), sk,
                         ctx) == 0i32 {
         panic!("decoding fail");
-        return 0i32
     }
     /* correctedCodeword now contains the correct codeword, iword is the first
     * portion, followed by syndrome turn back iword into a bytesequence */
@@ -668,7 +662,6 @@ pub unsafe extern "C" fn decrypt_Kobara_Imai(output: *mut u8,
         if cwEncOutputBuffer[i_0 as usize] as i32 ^
             outputHash[i_0 as usize] as i32 != 0i32 {
                 panic!("nonzero trng pad");
-            return 0i32
         }
         i_0 += 1
     }
@@ -700,7 +693,6 @@ pub unsafe extern "C" fn decrypt_Kobara_Imai(output: *mut u8,
         if *paddedOutput.as_mut_ptr().offset(i_2 as isize) as i32 !=
             0i32 {
                 panic!("KI const mismatch");
-            return 0i32
         }
         i_2 += 1
     }
@@ -710,13 +702,15 @@ pub unsafe extern "C" fn decrypt_Kobara_Imai(output: *mut u8,
                *mut libc::c_void,
            paddedOutput.as_mut_ptr().offset(32) as *const libc::c_void,
            ::std::mem::size_of::<u64>() as u64);
-    *byteOutputLength = correctlySizedBytePtxLen as u64;
+
+     let mut output = vec![0u8; correctlySizedBytePtxLen as usize];
+
     /* copy message in output buffer */
-    memcpy(output as *mut libc::c_void,
+    memcpy(output.as_mut_ptr() as *mut libc::c_void,
            paddedOutput.as_mut_ptr().offset(32).offset(::std::mem::size_of::<u64>()
                                                            as u64 as
                                                            isize) as
                *const libc::c_void, correctlySizedBytePtxLen);
-    return 1i32;
+     return output;
 }
 // end decrypt_Kobara_Imai

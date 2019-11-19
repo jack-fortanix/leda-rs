@@ -110,13 +110,7 @@ pub fn all_kats() {
         assert_eq!(ctext.len(), kat.clen);
         assert_eq!(ctext.to_hex(), kat.ctext.to_hex());
 
-        let mut recovered = vec![0u8; kat.mlen];
-        let mut rlen = kat.mlen as u64;
-
-        let clen = kat.clen as u64;
-
-        unsafe { crypto_encrypt_open(recovered.as_mut_ptr(), &mut rlen,
-                                     ctext.as_mut_ptr(), clen, kat.sk.as_mut_ptr()); }
+        let recovered = crypto_decrypt(&ctext, &kat.sk).unwrap();
 
         assert_eq!(recovered.to_hex(), kat.msg.to_hex());
     }
