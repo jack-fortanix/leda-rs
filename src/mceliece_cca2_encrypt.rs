@@ -1,31 +1,10 @@
 use crate::types::*;
 use crate::gf2x_arith::*;
+use crate::gf2x_arith_mod_xPplusOne::*;
+use crate::crypto::{randombytes, deterministic_random_byte_generator};
+use crate::constant_weight_codec::{bitstream_read, binary_to_constant_weight_approximate};
 
 extern "C" {
-    #[no_mangle]
-    fn randombytes(x: *mut u8, xlen: u64)
-     -> i32;
-    #[no_mangle]
-    fn deterministic_random_byte_generator(output: *mut u8,
-                                           output_len: u64,
-                                           seed: *const u8,
-                                           seed_length: u64);
-    // end gf2x_copy
-    /*---------------------------------------------------------------------------*/
-    // void gf2x_mod(DIGIT out[],
-//               const int nin, const DIGIT in[]); /* out(x) = in(x) mod x^P+1  */
-    /*---------------------------------------------------------------------------*/
-    #[no_mangle]
-    fn gf2x_mod_mul(Res: *mut DIGIT, A: *const DIGIT, B: *const DIGIT);
-    #[no_mangle]
-    fn binary_to_constant_weight_approximate(constantWeightOut: *mut DIGIT,
-                                             bitstreamIn:
-                                                 *const u8,
-                                             bitLength: i32)
-     -> i32;
-    #[no_mangle]
-    fn bitstream_read(stream: *const u8, bit_amount: u32,
-                      bit_cursor: *mut u32) -> u64;
     #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64)
      -> *mut libc::c_void;
@@ -96,7 +75,7 @@ unsafe extern "C" fn encrypt_McEliece(mut codeword: *mut DIGIT,
 // end encrypt_McEliece
 /*----------------------------------------------------------------------------*/
 #[no_mangle]
-pub unsafe extern "C" fn char_right_bit_shift_n(length: i32,
+unsafe extern "C" fn char_right_bit_shift_n(length: i32,
                                                 mut in_0: *mut u8,
                                                 amount: i32) {
     if amount > 8i32 {
