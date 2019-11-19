@@ -1,3 +1,4 @@
+use std::convert::TryInto;
 use crate::types::*;
 use sha3::Digest;
 
@@ -38,55 +39,7 @@ pub fn sha3_384(mut input: *const u8,
 
 pub static mut DRBG_ctx: AES256_CTR_DRBG_struct =
     AES256_CTR_DRBG_struct{key: [0; 32], v: [0; 16], reseed_counter: 0,};
-/*
- seedexpander_init()
- ctx            - stores the current state of an instance of the seed expander
- seed           - a 32 byte random value
- diversifier    - an 8 byte diversifier
- maxlen         - maximum number of bytes (less than 2**32) generated under this seed and diversifier
- */
 
-unsafe fn seedexpander_init(mut ctx: *mut AES_XOF_struct,
-                            seed: &[u8],
-                            diversifier: &[u8],
-                            maxlen: u32) -> Result<()> {
-    if seed.len() != 32 {
-        return Err(Error::Custom("Unexpected seed input size to seed expander".into()));
-    }
-
-    (*ctx).length_remaining = maxlen as u64;
-    memset((*ctx).key.as_mut_ptr() as *mut libc::c_void, 0i32, 32i32 as u64);
-    let mut max_accessible_seed_len: i32 = 32;
-    memcpy((*ctx).key.as_mut_ptr() as *mut libc::c_void,
-           seed.as_ptr() as *const libc::c_void,
-           max_accessible_seed_len as u64);
-
-    let maxlen_b = maxlen.to_be_bytes();
-    let ctr : [u8; 16] = [
-        diversifier[0],
-        diversifier[1],
-        diversifier[2],
-        diversifier[3],
-        diversifier[4],
-        diversifier[5],
-        diversifier[6],
-        diversifier[7],
-        maxlen_b[0],
-        maxlen_b[1],
-        maxlen_b[2],
-        maxlen_b[3],
-        0,
-        0,
-        0,
-        0
-    ];
-
-    (*ctx).ctr = ctr;
-    (*ctx).buffer_pos = 16;
-    memset((*ctx).buffer.as_mut_ptr() as *mut libc::c_void, 0i32,
-           16i32 as u64);
-    Ok(())
-}
 /*
  seedexpander()
     ctx  - stores the current state of an instance of the seed expander
@@ -328,17 +281,31 @@ pub unsafe fn deterministic_random_byte_generator(output: *mut u8,
 // end deterministic_random_byte_generator
 
 pub unsafe fn seedexpander_from_trng(trng_entropy: &[u8]) -> Result<AES_XOF_struct> {
+    /* the required seed expansion will be quite small, set the max number of
+    * bytes conservatively to 10 MiB*/
+    let maxlen = (10 * 1024 * 1024) as u32;
+
+    if trng_entropy.len() != 32 {
+        return Err(Error::Custom("Unexpected seed input size to seed expander".into()));
+    }
+
     let mut ctx: AES_XOF_struct =
         AES_XOF_struct{buffer: [0; 16],
                        buffer_pos: 0,
                        length_remaining: 0,
                        key: [0; 32],
                        ctr: [0; 16],};
-    let mut diversifier: [u8; 8] = [0; 8];
+    ctx.length_remaining = maxlen as u64;
+    ctx.key = trng_entropy.try_into().expect("Validated size");
 
-    let max_len = (10 * 1024 * 1024) as u32;
-    /* the required seed expansion will be quite small, set the max number of
-    * bytes conservatively to 10 MiB*/
-    seedexpander_init(&mut ctx, &trng_entropy, &diversifier, max_len)?;
+    let maxlen_b = maxlen.to_be_bytes();
+    let ctr : [u8; 16] = [0, 0, 0, 0, 0, 0, 0, 0,
+                          maxlen_b[0], maxlen_b[1], maxlen_b[2], maxlen_b[3],
+                          0, 0, 0, 0];
+
+    ctx.ctr = ctr;
+    ctx.buffer_pos = 16;
+    memset(ctx.buffer.as_mut_ptr() as *mut libc::c_void, 0i32,
+           16i32 as u64);
     Ok(ctx)
 }
