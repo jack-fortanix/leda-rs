@@ -6,13 +6,14 @@
 *****************************************************************************/
 
 #[inline]
-fn int32_MINMAX(a: i32, b: i32) -> (i32, i32) {
-    let ab: i32 = b ^ a;
-    let mut c: i32 = b - a;
-    c ^= ab & (c ^ b);
+unsafe fn int32_MINMAX(a: &mut i32, b: &mut i32) {
+    let ab: i32 = *b ^ *a;
+    let mut c: i32 = *b - *a;
+    c ^= ab & (c ^ *b);
     c >>= 31;
     c &= ab;
-    return (a ^ c, b ^ c);
+    *a ^= c;
+    *b ^= c;
 }
 
 pub unsafe fn int32_sort(x: *mut i32, n: isize) {
@@ -36,30 +37,14 @@ pub unsafe fn int32_sort(x: *mut i32, n: isize) {
         while i + 2 * p <= n {
             j = i;
             while j < i + p {
-                let mut ab: i32 = *x.offset((j + p) as isize) ^ *x.offset(j as isize);
-                let mut c: i32 = *x.offset((j + p) as isize) - *x.offset(j as isize);
-                c ^= ab & (c ^ *x.offset((j + p) as isize));
-                c >>= 31i32;
-                c &= ab;
-                let ref mut fresh0 = *x.offset(j as isize);
-                *fresh0 ^= c;
-                let ref mut fresh1 = *x.offset((j + p) as isize);
-                *fresh1 ^= c;
+                int32_MINMAX(&mut *x.offset(j), &mut *x.offset(j+p));
                 j += 1
             }
             i += 2 * p
         }
         j = i;
         while j < n - p {
-            let mut ab_0: i32 = *x.offset((j + p) as isize) ^ *x.offset(j as isize);
-            let mut c_0: i32 = *x.offset((j + p) as isize) - *x.offset(j as isize);
-            c_0 ^= ab_0 & (c_0 ^ *x.offset((j + p) as isize));
-            c_0 >>= 31i32;
-            c_0 &= ab_0;
-            let ref mut fresh2 = *x.offset(j as isize);
-            *fresh2 ^= c_0;
-            let ref mut fresh3 = *x.offset((j + p) as isize);
-            *fresh3 ^= c_0;
+            int32_MINMAX(&mut *x.offset(j), &mut *x.offset(j+p));
             j += 1
         }
         i = 0;
@@ -76,14 +61,7 @@ pub unsafe fn int32_sort(x: *mut i32, n: isize) {
                     let mut a: i32 = *x.offset((j + p) as isize);
                     r = q;
                     while r > p {
-                        let mut ab_1: i32 = *x.offset((j + r) as isize) ^ a;
-                        let mut c_1: i32 = *x.offset((j + r) as isize) - a;
-                        c_1 ^= ab_1 & (c_1 ^ *x.offset((j + r) as isize));
-                        c_1 >>= 31i32;
-                        c_1 &= ab_1;
-                        a ^= c_1;
-                        let ref mut fresh4 = *x.offset((j + r) as isize);
-                        *fresh4 ^= c_1;
+                        int32_MINMAX(&mut a, &mut *x.offset(j+r));
                         r >>= 1i32
                     }
                     *x.offset((j + p) as isize) = a;
@@ -106,14 +84,7 @@ pub unsafe fn int32_sort(x: *mut i32, n: isize) {
                             let mut a_0: i32 = *x.offset((j + p) as isize);
                             r = q;
                             while r > p {
-                                let mut ab_2: i32 = *x.offset((j + r) as isize) ^ a_0;
-                                let mut c_2: i32 = *x.offset((j + r) as isize) - a_0;
-                                c_2 ^= ab_2 & (c_2 ^ *x.offset((j + r) as isize));
-                                c_2 >>= 31i32;
-                                c_2 &= ab_2;
-                                a_0 ^= c_2;
-                                let ref mut fresh5 = *x.offset((j + r) as isize);
-                                *fresh5 ^= c_2;
+                                int32_MINMAX(&mut a_0, &mut *x.offset(j+r));
                                 r >>= 1i32
                             }
                             *x.offset((j + p) as isize) = a_0;
@@ -127,14 +98,7 @@ pub unsafe fn int32_sort(x: *mut i32, n: isize) {
                         let mut a_1: i32 = *x.offset((j + p) as isize);
                         r = q;
                         while r > p {
-                            let mut ab_3: i32 = *x.offset((j + r) as isize) ^ a_1;
-                            let mut c_3: i32 = *x.offset((j + r) as isize) - a_1;
-                            c_3 ^= ab_3 & (c_3 ^ *x.offset((j + r) as isize));
-                            c_3 >>= 31i32;
-                            c_3 &= ab_3;
-                            a_1 ^= c_3;
-                            let ref mut fresh6 = *x.offset((j + r) as isize);
-                            *fresh6 ^= c_3;
+                            int32_MINMAX(&mut a_1, &mut *x.offset(j+r));
                             r >>= 1i32
                         }
                         *x.offset((j + p) as isize) = a_1;
