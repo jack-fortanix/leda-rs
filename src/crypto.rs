@@ -5,6 +5,8 @@ use std::convert::TryInto;
 extern "C" {
     #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
+    #[no_mangle]
+    fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
 }
 
 /* *

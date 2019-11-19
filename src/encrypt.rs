@@ -39,17 +39,14 @@ pub fn crypto_encrypt(msg: &[u8], pk: &[u8]) -> Result<Vec<u8>> {
     let mut ctext = vec![0u8; clen];
 
     unsafe {
-        if encrypt_Kobara_Imai(
+        encrypt_Kobara_Imai(
             ctext.as_mut_ptr(),
             pk.as_ptr() as *mut publicKeyMcEliece_t,
             msg.len() as u32,
-            msg.as_ptr(),
-        ) == 1i32
-        {
-            return Ok(ctext);
-        }
+            msg.as_ptr())?;
+
+        return Ok(ctext);
     }
-    return Err(Error::Custom("Encryption failed".to_owned()));
 }
 
 pub fn crypto_decrypt(ctext: &[u8], sk: &[u8]) -> Result<Vec<u8>> {

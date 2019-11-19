@@ -165,8 +165,7 @@ pub unsafe fn encrypt_Kobara_Imai(
     output: *mut u8,
     pk: *const publicKeyMcEliece_t,
     bytePtxLen: u32,
-    ptx: *const u8,
-) -> i32 {
+    ptx: *const u8) -> Result<()> {
     /* Generate PRNG pad */
     let mut secretSeed: [u8; 32] = [0; 32];
     let mut paddedSequenceLen: u64 = 0;
@@ -242,15 +241,13 @@ pub unsafe fn encrypt_Kobara_Imai(
             .wrapping_add(1i32 as u64)
     {
     } else {
-        panic!(
-            "(K+7)/8 !=  KOBARA_IMAI_CONSTANT_LENGTH_B+KI_LENGTH_FIELD_SIZE+MAX_BYTES_IN_IWORD+1"
-        );
+        return Err(Error::Custom("(K+7)/8 !=  KOBARA_IMAI_CONSTANT_LENGTH_B+KI_LENGTH_FIELD_SIZE+MAX_BYTES_IN_IWORD+1"));
     }
     let mut iwordBuffer: [u8; 7238] = [0; 7238];
     memcpy(
         iwordBuffer.as_mut_ptr() as *mut libc::c_void,
         output as *const libc::c_void,
-        ::std::mem::size_of::<[u8; 7238]>() as u64,
+        7238 as u64
     );
     /* transform into an information word poly sequence */
     let mut informationWord: [DIGIT; 905] = [0; 905];
@@ -355,7 +352,7 @@ pub unsafe fn encrypt_Kobara_Imai(
         codeword.as_mut_ptr() as *const libc::c_void,
         (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32) as u64,
     );
-    return 1i32;
+    return Ok(());
 }
 /*----------------------------------------------------------------------------*/
 // end encrypt_Kobara_Imai
