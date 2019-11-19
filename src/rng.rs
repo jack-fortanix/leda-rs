@@ -132,13 +132,13 @@ unsafe fn AES256_ECB(key: *const u8,
 
     let key = std::slice::from_raw_parts(key, 32);
 
-    cipher.set_padding(mbedtls::cipher::raw::CipherPadding::None);
+    //cipher.set_padding(mbedtls::cipher::raw::CipherPadding::None).unwrap();
     let cipher = cipher.set_key(&key).unwrap();
 
     let inp = std::slice::from_raw_parts(ptx, 16);
     let outp = std::slice::from_raw_parts_mut(ctx, 16);
 
-    cipher.encrypt(&inp, outp);
+    cipher.encrypt(&inp, outp).unwrap();
 }
 #[no_mangle]
 pub unsafe extern "C" fn randombytes_init(entropy_input: *const u8,
