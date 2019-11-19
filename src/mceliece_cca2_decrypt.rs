@@ -18,46 +18,13 @@ extern "C" {
     #[no_mangle]
     fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
-    /*----------------------------------------------------------------------------*/
-    #[no_mangle]
-    static mut thresholds: [i32; 2];
 }
 
-/* *
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of the LEDAcrypt PKC cipher using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
-// memset(...), memcpy(....)
-/*----------------------------------------------------------------------------*/
 unsafe fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
-                                      mut correct_codeword: *mut DIGIT,
-                                      mut sk: *const privateKeyMcEliece_t,
-                                      ctx: *const u8)
+                           mut correct_codeword: *mut DIGIT,
+                           mut sk: *const privateKeyMcEliece_t,
+                           thresholds: &[i32],
+                           ctx: *const u8)
  -> i32 {
     let mut mceliece_decrypt_expander: AES_XOF_struct =
         AES_XOF_struct{buffer: [0; 16],
@@ -191,9 +158,10 @@ unsafe fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
                 8i32) as u64);
     /*perform syndrome decoding to obtain error vector */
     let ok = bf_decoding(decoded_err,
-                    HtrPosOnes.as_mut_ptr() as *const [u32; 11],
-                    QtrPosOnes.as_mut_ptr() as *const [u32; 11],
-                    privateSyndrome.as_mut_ptr());
+                         HtrPosOnes.as_mut_ptr() as *const [u32; 11],
+                         QtrPosOnes.as_mut_ptr() as *const [u32; 11],
+                         privateSyndrome.as_mut_ptr(),
+                         thresholds);
     if ok == 0i32 { return 0i32 }
     let mut err_weight: i32 = 0i32;
     let mut i_3: i32 = 0i32;
@@ -301,37 +269,7 @@ unsafe fn poly_seq_into_bytestream(mut output: *mut u8,
     char_left_bit_shift_n(byteOutputLength as i32, output, padsize);
     return 1i32;
 }
-/* *
- *
- * <mceliece_cca2_decrypt.h>
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of the LEDAcrypt PKC cipher using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
+
 #[no_mangle]
 pub unsafe fn decrypt_Kobara_Imai(sk: *const privateKeyMcEliece_t,
                                              clen: u64,
@@ -345,9 +283,11 @@ pub unsafe fn decrypt_Kobara_Imai(sk: *const privateKeyMcEliece_t,
     memcpy(correctedCodeword.as_mut_ptr() as *mut libc::c_void,
            ctx as *const libc::c_void,
            (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
-                8i32) as u64);
-    thresholds[1] = (*sk).secondIterThreshold as i32;
-    if decrypt_McEliece(err.as_mut_ptr(), correctedCodeword.as_mut_ptr(), sk,
+                     8i32) as u64);
+
+    let thresholds: [i32; 2] = [64, (*sk).secondIterThreshold as i32];
+
+    if decrypt_McEliece(err.as_mut_ptr(), correctedCodeword.as_mut_ptr(), sk, &thresholds,
                         ctx) == 0i32 {
         panic!("decoding fail");
     }

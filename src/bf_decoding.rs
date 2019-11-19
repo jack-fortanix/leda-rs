@@ -3,14 +3,11 @@ use crate::types::*;
 use crate::consts::*;
 use crate::gf2x_arith::*;
 
-#[no_mangle]
-pub static mut thresholds: [i32; 2] =
-    [64i32, 11i32 * 11i32 / 2i32 + 1i32];
-
 pub unsafe fn bf_decoding(mut out: *mut DIGIT,
                           mut HtrPosOnes: *const [u32; 11],
                           mut QtrPosOnes: *const [u32; 11],
-                          mut privateSyndrome: *mut DIGIT)
+                          mut privateSyndrome: *mut DIGIT,
+                          thresholds: &[i32])
  -> i32 
  //  1 polynomial
  {
@@ -63,8 +60,7 @@ pub unsafe fn bf_decoding(mut out: *mut DIGIT,
             i += 1
         }
         /* iteration based threshold determination*/
-        let mut corrt_syndrome_based: i32 =
-            thresholds[iteration as usize];
+        let mut corrt_syndrome_based: i32 = thresholds[iteration as usize];
         //Computation of correlation  with a full Q matrix
         let mut i_0: i32 = 0i32; // end for i
         while i_0 < 2i32 {
