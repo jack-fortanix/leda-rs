@@ -1,4 +1,5 @@
 use crate::types::*;
+use crate::consts::*;
 
 extern "C" {
     #[no_mangle]
@@ -9,9 +10,10 @@ extern "C" {
      -> *mut libc::c_void;
 }
 
-pub unsafe fn gf2x_copy(mut dest: *mut DIGIT, mut in_0: *const DIGIT) {
+pub unsafe fn gf2x_copy(mut dest: *mut DIGIT, in_0: *const DIGIT) {
     let mut i: i32 =
         (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+                                    //assert_eq!(i + 1, NUM_DIGITS_GF2X_ELEMENT as i32);
     while i >= 0i32 {
         *dest.offset(i as isize) = *in_0.offset(i as isize);
         i -= 1
