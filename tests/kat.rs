@@ -98,7 +98,7 @@ pub fn all_kats() {
 
         println!("Leda count {}", kat.count);
 
-        unsafe { randombytes_init(kat.seed.as_ptr(), core::ptr::null_mut()); }
+        unsafe { randombytes_init(kat.seed.as_ptr()); }
 
         let (sk,pk) = crypto_encrypt_keypair().unwrap();
 

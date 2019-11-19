@@ -129,22 +129,13 @@ unsafe fn AES256_ECB(key: *const u8, ptx: *const u8, ctx: *mut u8) {
     cipher.encrypt(&inp, outp).unwrap();
 }
 
-pub unsafe fn randombytes_init(entropy_input: *const u8, personalization_string: *const u8) {
+pub unsafe fn randombytes_init(entropy_input: *const u8) {
     let mut seed_material: [u8; 48] = [0; 48];
     memcpy(
         seed_material.as_mut_ptr() as *mut libc::c_void,
         entropy_input as *const libc::c_void,
         48i32 as u64,
     );
-    if !personalization_string.is_null() {
-        let mut i: i32 = 0i32;
-        while i < 48i32 {
-            seed_material[i as usize] = (seed_material[i as usize] as i32
-                ^ *personalization_string.offset(i as isize) as i32)
-                as u8;
-            i += 1
-        }
-    }
     memset(
         DRBG_ctx.key.as_mut_ptr() as *mut libc::c_void,
         0i32,
