@@ -1,4 +1,5 @@
 use crate::types::*;
+use sha3::Digest;
 
 extern "C" {
     #[no_mangle]
@@ -7,6 +8,24 @@ extern "C" {
     #[no_mangle]
     fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
+}
+
+/* *
+  *  Function to compute SHA3-384 on the input message.
+  *  The output length is fixed to 48 bytes.
+  */
+
+pub fn sha3_384(mut input: *const u8,
+                mut inputByteLen: u32,
+                mut output: *mut u8) {
+    let mut hasher = sha3::Sha3_384::new();
+
+    unsafe {
+        let slice = std::slice::from_raw_parts(input, inputByteLen as usize);
+        hasher.input(slice);
+        let result = hasher.result();
+        std::ptr::copy(result.as_ptr(), output, result.len());
+    }
 }
 
 /*----------------------------------------------------------------------------*/

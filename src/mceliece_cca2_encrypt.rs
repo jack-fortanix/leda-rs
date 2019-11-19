@@ -1,5 +1,4 @@
 use crate::types::*;
-use sha3::Digest;
 
 extern "C" {
     #[no_mangle]
@@ -121,24 +120,8 @@ unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
                 (((8i32 << 3i32) - 1i32) as
                      u32).wrapping_sub(inDigitIdx);
 }
-/* *
-  *  Function to compute SHA3-384 on the input message.
-  *  The output length is fixed to 48 bytes.
-  */
-#[inline]
-unsafe fn sha3_384(mut input: *const u8,
-                   mut inputByteLen: u32,
-                   mut output: *mut u8) {
-    let mut hasher = sha3::Sha3_384::new();
 
-    let slice = std::slice::from_raw_parts(input, inputByteLen as usize);
-    hasher.input(slice);
-
-    let result = hasher.result();
-
-    std::ptr::copy(result.as_ptr(), output, result.len());
-}
-// memset(...), memcpy(...)
+         // memset(...), memcpy(...)
 /*----------------------------------------------------------------------------*/
 unsafe extern "C" fn encrypt_McEliece(mut codeword: *mut DIGIT,
                                       pk: *const publicKeyMcEliece_t,
@@ -422,7 +405,7 @@ pub unsafe extern "C" fn encrypt_Kobara_Imai(output: *mut u8,
                                  u64);
     /* prepare hash of padded sequence, before leftover is moved to its final place */
     let mut hashDigest = vec![0u8; 48];
-    sha3_384(output, paddedSequenceLen as u32, hashDigest.as_mut_ptr());
+    crate::crypto::sha3_384(output, paddedSequenceLen as u32, hashDigest.as_mut_ptr());
     /* move leftover padded string (if present) onto its final position*/
     if bytePtxLen as u64 >
            (((2i32 - 1i32) * crate::consts::P as i32) as

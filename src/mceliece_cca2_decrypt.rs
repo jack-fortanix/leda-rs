@@ -174,23 +174,6 @@ unsafe extern "C" fn gf2x_get_coeff(mut poly: *const DIGIT,
                     u32).wrapping_sub(inDigitIdx) & 1i32 as DIGIT;
 }
 /* *
-  *  Function to compute SHA3-384 on the input message.
-  *  The output length is fixed to 48 bytes.
-  */
-#[inline]
-unsafe extern "C" fn sha3_384(mut input: *const u8,
-                              mut inputByteLen: u32,
-                              mut output: *mut u8) {
-    let mut hasher = sha3::Sha3_384::new();
-
-    let slice = std::slice::from_raw_parts(input, inputByteLen as usize);
-    hasher.input(slice);
-
-    let result = hasher.result();
-
-    std::ptr::copy(result.as_ptr(), output, result.len());
-}
-/* *
  *
  * @version 2.0 (March 2019)
  *
@@ -587,7 +570,7 @@ pub unsafe extern "C" fn decrypt_Kobara_Imai(sk: *const privateKeyMcEliece_t,
         [0i32 as u8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0];
-    sha3_384(paddedOutput.as_mut_ptr(), paddedSequenceLen as u32,
+    crate::crypto::sha3_384(paddedOutput.as_mut_ptr(), paddedSequenceLen as u32,
              outputHash.as_mut_ptr());
     /* rebuild message hash ^ seed from error vector */
     let mut cwEncOutputBuffer = vec![0u8; 1072];

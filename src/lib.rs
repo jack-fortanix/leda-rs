@@ -15,10 +15,10 @@ mod marshalling;
 mod mceliece_cca2_decrypt;
 mod mceliece_cca2_encrypt;
 mod mceliece_keygen;
-mod rng;
+mod crypto;
 
 pub use encrypt::crypto_encrypt_keypair;
 pub use encrypt::crypto_encrypt;
 pub use encrypt::crypto_decrypt;
-pub use rng::randombytes_init;
+pub use crypto::randombytes_init;
 pub use types::{Error, Result};
