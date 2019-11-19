@@ -1,24 +1,9 @@
 
 use crate::types::*;
 use crate::consts::*;
-
-extern "C" {
-    #[no_mangle]
-    fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
-                        sk: *mut privateKeyMcEliece_t);
-
-    // return 0 i.e., insuccess, if bitLenPtx > (N0-1)*P + be - bc - bh or bitLenPtx <= 0
-    #[no_mangle]
-    fn encrypt_Kobara_Imai(output: *mut u8,
-                           pk: *const publicKeyMcEliece_t,
-                           byteLenPtx: u32, ptx: *const u8)
-     -> i32;
-
-    #[no_mangle]
-    fn decrypt_Kobara_Imai(sk: *const privateKeyMcEliece_t,
-                           clen: u64, ctx: *const u8)
-     -> Vec<u8>;
-}
+use crate::mceliece_keygen::key_gen_mceliece;
+use crate::mceliece_cca2_encrypt::encrypt_Kobara_Imai;
+use crate::mceliece_cca2_decrypt::decrypt_Kobara_Imai;
 
 pub fn crypto_encrypt_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
 

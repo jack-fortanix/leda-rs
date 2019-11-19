@@ -1,70 +1,20 @@
 
 use crate::types::*;
 use crate::consts::*;
+use crate::gf2x_arith::*;
+use crate::gf2x_arith_mod_xPplusOne::*;
+use crate::dfr_test::DFR_test;
+use crate::H_Q_matrices_generation::*;
+use crate::crypto::{randombytes, seedexpander_from_trng};
 
 extern "C" {
-    #[no_mangle]
-    fn randombytes(x: *mut u8, xlen: u64)
-     -> i32;
-    #[no_mangle]
-    fn seedexpander_from_trng(ctx: *mut AES_XOF_struct,
-                              trng_entropy: *const u8);
-    #[no_mangle]
-    fn gf2x_mod_inverse(out: *mut DIGIT, in_0: *const DIGIT) -> i32;
-    #[no_mangle]
-    fn gf2x_transpose_in_place(A: *mut DIGIT);
-    #[no_mangle]
-    fn gf2x_mod_add_sparse(sizeR: i32, Res: *mut u32,
-                           sizeA: i32, A: *mut u32,
-                           sizeB: i32, B: *mut u32);
-    #[no_mangle]
-    fn gf2x_mod_mul_sparse(sizeR: i32, Res: *mut u32,
-                           sizeA: i32, A: *const u32,
-                           sizeB: i32, B: *const u32);
-    #[no_mangle]
-    fn gf2x_mod_mul_dense_to_sparse(Res: *mut DIGIT, dense: *const DIGIT,
-                                    sparse: *const u32,
-                                    nPos: u32);
-
-    // HQ:
-    #[no_mangle]
-    fn generateHPosOnes(HPosOnes: *mut [u32; 11],
-                        niederreiter_keys_expander: *mut AES_XOF_struct);
-    /*----------------------------------------------------------------------------*/
-    #[no_mangle]
-    fn generateQPosOnes(QPosOnes: *mut [u32; 11],
-                        keys_expander: *mut AES_XOF_struct);
-    #[no_mangle]
-    fn DFR_test(LSparse: *mut [u32; 121],
-                secondIterThreshold: *mut u8) -> i32;
     #[no_mangle]
     fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
 }
 
-#[inline]
-unsafe fn gf2x_set_coeff(mut poly: *mut DIGIT,
-                                    exponent: u32,
-                                    mut value: DIGIT) {
-    let mut straightIdx: i32 =
-        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
-              - 1i32) as u32).wrapping_sub(exponent) as i32;
-    let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
-    let mut inDigitIdx: u32 =
-        (straightIdx % (8i32 << 3i32)) as u32;
-    let mut mask: DIGIT =
-        !((1i32 as DIGIT) <<
-              (((8i32 << 3i32) - 1i32) as
-                   u32).wrapping_sub(inDigitIdx));
-    *poly.offset(digitIdx as isize) = *poly.offset(digitIdx as isize) & mask;
-    *poly.offset(digitIdx as isize) =
-        *poly.offset(digitIdx as isize) |
-            (value & 1i32 as DIGIT) <<
-                (((8i32 << 3i32) - 1i32) as
-                     u32).wrapping_sub(inDigitIdx);
-}
 /*----------------------------------------------------------------------------*/
-#[no_mangle]
+
 pub unsafe fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
                                           sk: *mut privateKeyMcEliece_t) {
     let mut keys_expander: AES_XOF_struct =
