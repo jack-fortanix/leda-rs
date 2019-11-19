@@ -120,7 +120,7 @@ unsafe fn bytestream_into_poly_seq(
     mut S: *mut u8,
     byteLenS: u64,
 ) -> i32 {
-    let mut padsize: i32 = if (2i32 - 1i32) * crate::consts::P as i32 % 8i32 != 0 {
+    let padsize: i32 = if (2i32 - 1i32) * crate::consts::P as i32 % 8i32 != 0 {
         (8i32) - (2i32 - 1i32) * crate::consts::P as i32 % 8i32
     } else {
         0i32
