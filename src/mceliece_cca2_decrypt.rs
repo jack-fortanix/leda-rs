@@ -2,56 +2,13 @@
 use crate::types::*;
 use crate::consts::*;
 use crate::gf2x_arith::*;
+use crate::gf2x_arith_mod_xPplusOne::*;
 use crate::bf_decoding::*;
+use crate::H_Q_matrices_generation::*;
+use crate::constant_weight_codec::*;
 use crate::crypto::{deterministic_random_byte_generator, seedexpander_from_trng};
 
 extern "C" {
-    /*----------------------------------------------------------------------------*/
-    #[no_mangle]
-    fn bitstream_write(output: *mut u8,
-                       amount_to_write: u32,
-                       output_bit_cursor: *mut u32,
-                       value_to_write: u64);
-    /* ret. 1 if inv. exists */
-    /*---------------------------------------------------------------------------*/
-    #[no_mangle]
-    fn gf2x_transpose_in_place(A: *mut DIGIT);
-    /*---------------------------------------------------------------------------*/
-    #[no_mangle]
-    fn gf2x_mod_add_sparse(sizeR: i32, Res: *mut u32,
-                           sizeA: i32, A: *mut u32,
-                           sizeB: i32, B: *mut u32);
-    /*----------------------------------------------------------------------------*/
-    #[no_mangle]
-    fn gf2x_mod_mul_sparse(sizeR: i32, Res: *mut u32,
-                           sizeA: i32, A: *const u32,
-                           sizeB: i32, B: *const u32);
-    /*----------------------------------------------------------------------------*/
-    #[no_mangle]
-    fn gf2x_mod_mul_dense_to_sparse(Res: *mut DIGIT, dense: *const DIGIT,
-                                    sparse: *const u32,
-                                    nPos: u32);
-    #[no_mangle]
-    fn constant_weight_to_binary_approximate(bitstreamOut: *mut u8,
-                                             constantWeightIn: *const DIGIT);
-
-    /*----------------------------------------------------------------------------*/
-    #[no_mangle]
-    fn generateHPosOnes(HPosOnes: *mut [u32; 11],
-                        niederreiter_keys_expander: *mut AES_XOF_struct);
-    /*----------------------------------------------------------------------------*/
-    #[no_mangle]
-    fn transposeHPosOnes(HtrPosOnes: *mut [u32; 11],
-                         HPosOnes: *mut [u32; 11]);
-    /*----------------------------------------------------------------------------*/
-    #[no_mangle]
-    fn generateQPosOnes(QPosOnes: *mut [u32; 11],
-                        keys_expander: *mut AES_XOF_struct);
-    /*----------------------------------------------------------------------------*/
-    #[no_mangle]
-    fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11],
-                         QPosOnes: *mut [u32; 11]);
-
     #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64)
      -> *mut libc::c_void;
@@ -61,7 +18,6 @@ extern "C" {
     #[no_mangle]
     fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
-    // end poly_seq_into_bytestream
     /*----------------------------------------------------------------------------*/
     #[no_mangle]
     static mut thresholds: [i32; 2];
