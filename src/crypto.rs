@@ -14,7 +14,7 @@ extern "C" {
  *  The output length is fixed to 48 bytes.
  */
 
-pub fn sha3_384(mut input: *const u8, mut inputByteLen: u32, mut output: *mut u8) {
+pub fn sha3_384(input: *const u8, inputByteLen: u32, output: *mut u8) {
     let mut hasher = sha3::Sha3_384::new();
 
     unsafe {
@@ -46,7 +46,7 @@ seedexpander()
    xlen - number of bytes to return
 */
 
-pub unsafe fn seedexpander(mut ctx: *mut AES_XOF_struct, mut x: *mut u8, mut xlen: u64) -> i32 {
+pub unsafe fn seedexpander(ctx: *mut AES_XOF_struct, x: *mut u8, mut xlen: u64) -> i32 {
     let mut offset: u64 = 0;
     if x.is_null() {
         return -2i32;
@@ -82,8 +82,8 @@ pub unsafe fn seedexpander(mut ctx: *mut AES_XOF_struct, mut x: *mut u8, mut xle
         xlen = xlen.wrapping_sub((16i32 - (*ctx).buffer_pos) as u64);
         offset = offset.wrapping_add((16i32 - (*ctx).buffer_pos) as u64);
         AES256_ECB(
-            (*ctx).key.as_mut_ptr(),
-            (*ctx).ctr.as_mut_ptr(),
+            (*ctx).key.as_ptr(),
+            (*ctx).ctr.as_ptr(),
             (*ctx).buffer.as_mut_ptr(),
         );
         (*ctx).buffer_pos = 0i32;
@@ -106,8 +106,8 @@ pub unsafe fn seedexpander(mut ctx: *mut AES_XOF_struct, mut x: *mut u8, mut xle
 //    ptx - a 128-bit plaintext value
 //    ctx - a 128-bit ciphertext value
 
-unsafe fn AES256_ECB(key: *const u8, mut ptx: *mut u8, mut ctx: *mut u8) {
-    let mut cipher = mbedtls::cipher::Cipher::<
+unsafe fn AES256_ECB(key: *const u8, ptx: *const u8, ctx: *mut u8) {
+    let cipher = mbedtls::cipher::Cipher::<
         mbedtls::cipher::Encryption,
         mbedtls::cipher::TraditionalNoIv,
         _,
@@ -163,7 +163,7 @@ pub unsafe fn randombytes_init(entropy_input: *const u8, personalization_string:
     DRBG_ctx.reseed_counter = 1i32;
 }
 
-pub unsafe fn randombytes(mut x: *mut u8, mut xlen: u64) -> i32 {
+pub unsafe fn randombytes(x: *mut u8, mut xlen: u64) -> i32 {
     let mut block: [u8; 16] = [0; 16];
     let mut i: i32 = 0i32;
     while xlen > 0i32 as u64 {
@@ -179,8 +179,8 @@ pub unsafe fn randombytes(mut x: *mut u8, mut xlen: u64) -> i32 {
             }
         }
         AES256_ECB(
-            DRBG_ctx.key.as_mut_ptr(),
-            DRBG_ctx.v.as_mut_ptr(),
+            DRBG_ctx.key.as_ptr(),
+            DRBG_ctx.v.as_ptr(),
             block.as_mut_ptr(),
         );
         if xlen > 15i32 as u64 {
@@ -209,7 +209,7 @@ pub unsafe fn randombytes(mut x: *mut u8, mut xlen: u64) -> i32 {
     return 0i32;
 }
 
-unsafe fn AES256_CTR_DRBG_Update(mut provided_data: *mut u8, mut key: *mut u8, mut v: *mut u8) {
+unsafe fn AES256_CTR_DRBG_Update(provided_data: *mut u8, key: *mut u8, v: *mut u8) {
     let mut temp: [u8; 48] = [0; 48];
     let mut i: i32 = 0i32;
     while i < 3i32 {
@@ -300,7 +300,7 @@ pub unsafe fn deterministic_random_byte_generator(
                 break;
             }
         }
-        AES256_ECB(ctx.key.as_mut_ptr(), ctx.v.as_mut_ptr(), block.as_mut_ptr());
+        AES256_ECB(ctx.key.as_ptr(), ctx.v.as_ptr(), block.as_mut_ptr());
         if length_remaining > 15i32 {
             memcpy(
                 output.offset(i as isize) as *mut libc::c_void,

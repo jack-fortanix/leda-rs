@@ -3,10 +3,10 @@ use crate::gf2x_arith::*;
 use crate::types::*;
 
 pub unsafe fn bf_decoding(
-    mut out: *mut DIGIT,
-    mut HtrPosOnes: *const [u32; 11],
-    mut QtrPosOnes: *const [u32; 11],
-    mut privateSyndrome: *mut DIGIT,
+    out: *mut DIGIT,
+    HtrPosOnes: *const [u32; 11],
+    QtrPosOnes: *const [u32; 11],
+    privateSyndrome: *mut DIGIT,
     thresholds: &[i32],
 ) -> i32
 //  1 polynomial
@@ -25,7 +25,7 @@ pub unsafe fn bf_decoding(
             while valueIdx < crate::consts::P as i32 {
                 let mut HtrOneIdx: i32 = 0i32;
                 while HtrOneIdx < 11i32 {
-                    let mut tmp: u32 = if (*HtrPosOnes.offset(i as isize))[HtrOneIdx as usize]
+                    let tmp: u32 = if (*HtrPosOnes.offset(i as isize))[HtrOneIdx as usize]
                         .wrapping_add(valueIdx as u32)
                         >= crate::consts::P as i32 as u32
                     {
@@ -48,7 +48,7 @@ pub unsafe fn bf_decoding(
             i += 1
         }
         /* iteration based threshold determination*/
-        let mut corrt_syndrome_based: i32 = thresholds[iteration as usize];
+        let corrt_syndrome_based: i32 = thresholds[iteration as usize];
         //Computation of correlation  with a full Q matrix
         let mut i_0: i32 = 0i32; // end for i
         while i_0 < 2i32 {
@@ -60,7 +60,7 @@ pub unsafe fn bf_decoding(
                 let mut blockIdx: i32 = 0i32;
                 while blockIdx < 2i32 {
                     endQblockIdx += qBlockWeights[blockIdx as usize][i_0 as usize] as i32;
-                    let mut currblockoffset: i32 = blockIdx * crate::consts::P as i32;
+                    let currblockoffset: i32 = blockIdx * crate::consts::P as i32;
                     while currQoneIdx < endQblockIdx {
                         let mut tmp_0: i32 =
                             (*QtrPosOnes.offset(i_0 as isize))[currQoneIdx as usize]

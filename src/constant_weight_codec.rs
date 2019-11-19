@@ -2,10 +2,10 @@ use crate::gf2x_arith::*;
 use crate::types::*;
 
 pub unsafe fn bitstream_write(
-    mut output: *mut u8,
+    output: *mut u8,
     amount_to_write: u32,
-    mut output_bit_cursor: *mut u32,
-    mut value_to_write: u64,
+    output_bit_cursor: *mut u32,
+    value_to_write: u64,
 ) {
     if amount_to_write == 0i32 as u32 {
         return;
@@ -13,11 +13,11 @@ pub unsafe fn bitstream_write(
     if amount_to_write >= 64i32 as u32 {
         panic!("invalid amount_to_write");
     }
-    let mut bit_cursor_in_char: u32 = (*output_bit_cursor).wrapping_rem(8i32 as u32);
+    let bit_cursor_in_char: u32 = (*output_bit_cursor).wrapping_rem(8i32 as u32);
     let mut byte_cursor: u32 = (*output_bit_cursor).wrapping_div(8i32 as u32);
-    let mut remaining_bits_in_char: u32 = (8i32 as u32).wrapping_sub(bit_cursor_in_char);
+    let remaining_bits_in_char: u32 = (8i32 as u32).wrapping_sub(bit_cursor_in_char);
     if amount_to_write <= remaining_bits_in_char {
-        let mut cleanup_mask: u64 = !(((1i32 as u64) << amount_to_write).wrapping_sub(1i32 as u64)
+        let cleanup_mask: u64 = !(((1i32 as u64) << amount_to_write).wrapping_sub(1i32 as u64)
             << remaining_bits_in_char.wrapping_sub(amount_to_write));
         let mut buffer: u64 = *output.offset(byte_cursor as isize) as u64;
         buffer = buffer & cleanup_mask
@@ -28,7 +28,7 @@ pub unsafe fn bitstream_write(
         /*copy remaining_bits_in_char, allowing further copies to be byte aligned */
         let mut write_buffer: u64 =
             value_to_write >> amount_to_write.wrapping_sub(remaining_bits_in_char);
-        let mut cleanup_mask_0: u64 = !((1i32 << remaining_bits_in_char) - 1i32) as u64;
+        let cleanup_mask_0: u64 = !((1i32 << remaining_bits_in_char) - 1i32) as u64;
         let mut buffer_0: u64 = *output.offset(byte_cursor as isize) as u64;
         buffer_0 = buffer_0 & cleanup_mask_0 | write_buffer;
         *output.offset(byte_cursor as isize) = buffer_0 as u8;
@@ -48,7 +48,7 @@ pub unsafe fn bitstream_write(
          * with their MSB as the MSB of the output[byte_cursor] */
         if still_to_write > 0i32 as u64 {
             write_buffer = value_to_write & ((1i32 << still_to_write) - 1i32) as u64;
-            let mut cleanup_mask_1: u64 = !((1i32 << still_to_write) - 1i32
+            let cleanup_mask_1: u64 = !((1i32 << still_to_write) - 1i32
                 << (8i32 as u64).wrapping_sub(still_to_write))
                 as u64;
             write_buffer = write_buffer << (8i32 as u64).wrapping_sub(still_to_write);
@@ -70,7 +70,7 @@ pub unsafe fn bitstream_write(
  * them to the encoding. Given the estimates for log_2(d), this is plentiful
  */
 
-pub unsafe fn bitstream_read(stream: *const u8, bit_amount: u32, mut bit_cursor: *mut u32) -> u64 {
+pub unsafe fn bitstream_read(stream: *const u8, bit_amount: u32, bit_cursor: *mut u32) -> u64 {
     if bit_amount == 0i32 as u32 {
         return 0i32 as u64;
     }
@@ -78,11 +78,11 @@ pub unsafe fn bitstream_read(stream: *const u8, bit_amount: u32, mut bit_cursor:
         panic!("invalid bit_amount");
     }
     let mut extracted_bits: u64 = 0i32 as u64;
-    let mut bit_cursor_in_char: i32 = (*bit_cursor).wrapping_rem(8i32 as u32) as i32;
-    let mut remaining_bits_in_char: i32 = 8i32 - bit_cursor_in_char;
+    let bit_cursor_in_char: i32 = (*bit_cursor).wrapping_rem(8i32 as u32) as i32;
+    let remaining_bits_in_char: i32 = 8i32 - bit_cursor_in_char;
     if bit_amount <= remaining_bits_in_char as u32 {
         extracted_bits = *stream.offset((*bit_cursor).wrapping_div(8i32 as u32) as isize) as u64;
-        let mut slack_bits: i32 = (remaining_bits_in_char as u32).wrapping_sub(bit_amount) as i32;
+        let slack_bits: i32 = (remaining_bits_in_char as u32).wrapping_sub(bit_amount) as i32;
         extracted_bits = extracted_bits >> slack_bits;
         extracted_bits = extracted_bits & ((1i32 as u64) << bit_amount).wrapping_sub(1i32 as u64)
     } else {
@@ -125,7 +125,7 @@ unsafe fn bitstream_read_padded(
         readBitstreamFragment = bitstream_read(stream, bitAmount, bitCursor)
     } else {
         /*if remaining bits are not sufficient, pad with enough zeroes */
-        let mut available_bits: u32 = bitstreamLength.wrapping_sub(*bitCursor);
+        let available_bits: u32 = bitstreamLength.wrapping_sub(*bitCursor);
         if available_bits != 0 {
             readBitstreamFragment = bitstream_read(stream, available_bits, bitCursor);
             readBitstreamFragment = readBitstreamFragment << bitAmount.wrapping_sub(available_bits)
@@ -138,7 +138,7 @@ unsafe fn bitstream_read_padded(
 // end bitstream_read_padded
 /*----------------------------------------------------------------------------*/
 #[inline]
-unsafe fn estimate_d_u(mut d: *mut u32, mut u: *mut u32, n: u32, t: u32) {
+unsafe fn estimate_d_u(d: *mut u32, u: *mut u32, n: u32, t: u32) {
     *d = (0.69315f64 * (n as libc::c_double - (t as libc::c_double - 1.0f64) / 2.0f64)
         / t as libc::c_double) as u32;
     *u = 0i32 as u32;
@@ -154,7 +154,7 @@ unsafe fn estimate_d_u(mut d: *mut u32, mut u: *mut u32, n: u32, t: u32) {
 
 pub unsafe fn constant_weight_to_binary_approximate(
     bitstreamOut: *mut u8,
-    mut constantWeightIn: *const DIGIT,
+    constantWeightIn: *const DIGIT,
 ) {
     let mut distancesBetweenOnes: [u32; 199] = [0; 199];
     /*compute the array of inter-ones distances. Note that there
@@ -214,7 +214,7 @@ pub unsafe fn constant_weight_to_binary_approximate(
             &mut outputBitCursor,
             ((1i32 as u64) << quotient).wrapping_sub(1i32 as u64) << 1i32,
         ); // clamp u-minus-one to zero
-        let mut remainder: u32 = distancesBetweenOnes[idxDistances as usize].wrapping_rem(d);
+        let remainder: u32 = distancesBetweenOnes[idxDistances as usize].wrapping_rem(d);
         if remainder < ((1i32 << u) as u32).wrapping_sub(d) {
             u = if u > 0i32 as u32 {
                 u.wrapping_sub(1i32 as u32)
@@ -272,7 +272,7 @@ pub unsafe fn constant_weight_to_binary_approximate(
 /*----------------------------------------------------------------------------*/
 
 pub unsafe fn binary_to_constant_weight_approximate(
-    mut constantWeightOut: *mut DIGIT,
+    constantWeightOut: *mut DIGIT,
     bitstreamIn: *const u8,
     bitLength: i32,
 ) -> i32 {
@@ -367,8 +367,8 @@ pub unsafe fn binary_to_constant_weight_approximate(
         if current_one_position >= 2i32 * crate::consts::P as i32 {
             return 0i32;
         }
-        let mut polyIndex: u32 = (current_one_position / crate::consts::P as i32) as u32;
-        let mut exponent: u32 = (current_one_position % crate::consts::P as i32) as u32;
+        let polyIndex: u32 = (current_one_position / crate::consts::P as i32) as u32;
+        let exponent: u32 = (current_one_position % crate::consts::P as i32) as u32;
         gf2x_set_coeff(
             constantWeightOut.offset(
                 (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as u32)

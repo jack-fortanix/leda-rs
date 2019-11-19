@@ -4,7 +4,7 @@ use crate::types::*;
 
 /*----------------------------------------------------------------------------*/
 
-pub unsafe fn generateHPosOnes(HPosOnes: *mut [u32; 11], mut keys_expander: *mut AES_XOF_struct) {
+pub unsafe fn generateHPosOnes(HPosOnes: *mut [u32; 11], keys_expander: *mut AES_XOF_struct) {
     let mut i: i32 = 0i32;
     while i < 2i32 {
         /* Generate a random block of Htr */
@@ -70,8 +70,8 @@ pub unsafe fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11], QPosOnes: *mut [u32;
 /*----------------------------------------------------------------------------*/
 
 pub unsafe fn generateQPosOnes(
-    mut QPosOnes: *mut [u32; 11],
-    mut keys_expander: *mut AES_XOF_struct,
+    QPosOnes: *mut [u32; 11],
+    keys_expander: *mut AES_XOF_struct,
 ) {
     let mut i: i32 = 0i32;
     while i < 2i32 {

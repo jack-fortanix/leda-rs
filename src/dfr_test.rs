@@ -5,7 +5,7 @@ use crate::djbsort::int32_sort;
  * computes the threshold for the second iteration of the decoder and stores
  * it in the globally accessible vector*/
 
-pub unsafe fn DFR_test(mut LSparse: *mut [u32; 121], mut secondIterThreshold: *mut u8) -> i32 {
+pub unsafe fn DFR_test(LSparse: *mut [u32; 121], secondIterThreshold: *mut u8) -> i32 {
     let mut LSparse_loc: [[u32; 121]; 2] = [[0; 121]; 2]; /* vector of N_0 sparse blocks */
     /* transpose blocks of L, we need its columns */
     let mut i: usize = 0;

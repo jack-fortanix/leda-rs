@@ -15,7 +15,7 @@ fn int32_MINMAX(a: i32, b: i32) -> (i32, i32) {
     return (a ^ c, b ^ c);
 }
 
-pub unsafe fn int32_sort(mut x: *mut i32, mut n: isize) {
+pub unsafe fn int32_sort(x: *mut i32, n: isize) {
     let mut top: isize = 0;
     let mut p: isize = 0;
     let mut q: isize = 0;
