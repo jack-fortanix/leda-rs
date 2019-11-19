@@ -25,56 +25,11 @@ extern "C" {
 
 }
 
+use crate::types::*;
 use crate::gf2x_arith::*;
 use crate::djbsort::int32_sort;
 
-/* *
- *
- * <gf2x_limbs.h>
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of LEDAcrypt using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
-/*----------------------------------------------------------------------------*/
-/*----------------------------------------------------------------------------*/
-/* limb size definitions for the multi-precision GF(2^x) library              */
-/*----------------------------------------------------------------------------*/
-// gcc -DCPU_WORD_BITS=64 ...
-pub type DIGIT = u64;
 pub type SIGNED_DIGIT = i64;
-#[derive ( Copy, Clone )]
-#[repr(C)]
-pub struct AES_XOF_struct {
-    pub buffer: [u8; 16],
-    pub buffer_pos: i32,
-    pub length_remaining: u64,
-    pub key: [u8; 32],
-    pub ctr: [u8; 16],
-}
 #[derive ( Copy, Clone )]
 #[repr ( C )]
 pub union toReverse_t {
