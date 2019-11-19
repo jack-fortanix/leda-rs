@@ -135,9 +135,9 @@ static mut qBlockWeights: [[u8; 2]; 2] =
 #[inline]
 unsafe extern "C" fn gf2x_mod_add(mut Res: *mut DIGIT, mut A: *const DIGIT,
                                   mut B: *const DIGIT) {
-    gf2x_add((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), Res,
-             (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), A,
-             (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), B);
+    gf2x_add((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), Res,
+             (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), A,
+             (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), B);
 }
 /* in place bit-transp. of a(x) % x^P+1  *
                                       * e.g.: a3 a2 a1 a0 --> a1 a2 a3 a0     */
@@ -147,7 +147,7 @@ unsafe extern "C" fn gf2x_mod_add(mut Res: *mut DIGIT, mut A: *const DIGIT,
 unsafe extern "C" fn population_count(mut upc: *mut DIGIT) -> i32 {
     let mut ret: i32 = 0i32;
     let mut i: i32 =
-        (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
     while i >= 0i32 {
         ret +=
             (*upc.offset(i as isize) as u64).count_ones() as
@@ -163,7 +163,7 @@ unsafe extern "C" fn population_count(mut upc: *mut DIGIT) -> i32 {
 unsafe extern "C" fn gf2x_get_coeff(mut poly: *const DIGIT,
                                     exponent: u32) -> DIGIT {
     let mut straightIdx: u32 =
-        (((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
+        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
               - 1i32) as u32).wrapping_sub(exponent);
     let mut digitIdx: u32 =
         straightIdx.wrapping_div((8i32 << 3i32) as u32);
@@ -248,7 +248,7 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
         while i < 2i32 {
             let mut j: i32 = 0i32;
             while j < 11i32 * 11i32 {
-                LPosOnes[i as usize][j as usize] = 57899i32 as u32;
+                LPosOnes[i as usize][j as usize] = crate::consts::P as i32 as u32;
                 j += 1
             }
             i += 1
@@ -300,11 +300,11 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
         [0; 1810]; // privateSyndrome := yVar* Htr
     memcpy(codewordPoly.as_mut_ptr() as *mut libc::c_void,
            ctx as *const libc::c_void,
-           (2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
+           (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
                 8i32) as u64); // end for i
     let mut i_1: u32 = 0i32 as u32;
     while i_1 < 2i32 as u32 {
-        gf2x_transpose_in_place(codewordPoly.as_mut_ptr().offset(i_1.wrapping_mul(((57899i32
+        gf2x_transpose_in_place(codewordPoly.as_mut_ptr().offset(i_1.wrapping_mul(((crate::consts::P as i32
                                                                                         +
                                                                                         (8i32
                                                                                              <<
@@ -323,14 +323,14 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
     }
     let mut privateSyndrome: [DIGIT; 905] = [0; 905];
     memset(privateSyndrome.as_mut_ptr() as *mut libc::c_void, 0i32,
-           ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as
+           ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as
                u64);
     let mut aux: [DIGIT; 905] = [0; 905];
     let mut i_2: i32 = 0i32;
     while i_2 < 2i32 {
         gf2x_mod_mul_dense_to_sparse(aux.as_mut_ptr(),
                                      codewordPoly.as_mut_ptr().offset((i_2 *
-                                                                           ((57899i32
+                                                                           ((crate::consts::P as i32
                                                                                  +
                                                                                  (8i32
                                                                                       <<
@@ -354,7 +354,7 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
     }
     gf2x_transpose_in_place(privateSyndrome.as_mut_ptr());
     memset(decoded_err as *mut libc::c_void, 0i32,
-           (2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
+           (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
                 8i32) as u64);
     /*perform syndrome decoding to obtain error vector */
     let mut ok: i32 = 0;
@@ -368,7 +368,7 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
     let mut i_3: i32 = 0i32;
     while i_3 < 2i32 {
         err_weight +=
-            population_count(decoded_err.offset(((57899i32 + (8i32 << 3i32) -
+            population_count(decoded_err.offset(((crate::consts::P as i32 + (8i32 << 3i32) -
                                                       1i32) / (8i32 << 3i32) *
                                                      i_3) as isize));
         i_3 += 1
@@ -377,7 +377,7 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
     /* correct input codeword */
     let mut i_4: u32 = 0i32 as u32;
     while i_4 < 2i32 as u32 {
-        gf2x_mod_add(correct_codeword.offset(i_4.wrapping_mul(((57899i32 +
+        gf2x_mod_add(correct_codeword.offset(i_4.wrapping_mul(((crate::consts::P as i32 +
                                                                     (8i32 <<
                                                                          3i32)
                                                                     - 1i32) /
@@ -387,7 +387,7 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
                                                                   u32)
                                                  as isize),
                      (ctx as
-                          *mut DIGIT).offset(i_4.wrapping_mul(((57899i32 +
+                          *mut DIGIT).offset(i_4.wrapping_mul(((crate::consts::P as i32 +
                                                                     (8i32 <<
                                                                          3i32)
                                                                     - 1i32) /
@@ -396,7 +396,7 @@ unsafe extern "C" fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
                                                                   as
                                                                   u32)
                                                  as isize) as *const DIGIT,
-                     decoded_err.offset(i_4.wrapping_mul(((57899i32 +
+                     decoded_err.offset(i_4.wrapping_mul(((crate::consts::P as i32 +
                                                                (8i32 << 3i32)
                                                                - 1i32) /
                                                               (8i32 << 3i32))
@@ -443,20 +443,20 @@ unsafe extern "C" fn poly_seq_into_bytestream(mut output: *mut u8,
     let mut bitValue: DIGIT = 0; // end for i
     let mut output_bit_cursor: u32 =
         byteOutputLength.wrapping_mul(8i32 as
-                                          u32).wrapping_sub(numPoly.wrapping_mul(57899i32
+                                          u32).wrapping_sub(numPoly.wrapping_mul(crate::consts::P as i32
                                                                                               as
                                                                                               u32));
-    if (57899i32 as u32).wrapping_mul(numPoly) >
+    if (crate::consts::P as i32 as u32).wrapping_mul(numPoly) >
            (8i32 as u32).wrapping_mul(byteOutputLength) {
         return 0i32
     }
     let mut i: i32 = 0i32;
     while (i as u32) < numPoly {
         let mut exponent: u32 = 0i32 as u32;
-        while exponent < 57899i32 as u32 {
+        while exponent < crate::consts::P as i32 as u32 {
             bitValue =
                 gf2x_get_coeff(zPoly.offset((i *
-                                                 ((57899i32 + (8i32 << 3i32) -
+                                                 ((crate::consts::P as i32 + (8i32 << 3i32) -
                                                        1i32) /
                                                       (8i32 << 3i32))) as
                                                 isize) as *const DIGIT,
@@ -469,8 +469,8 @@ unsafe extern "C" fn poly_seq_into_bytestream(mut output: *mut u8,
         // end for exponent
     }
     let mut padsize: i32 =
-        if (2i32 - 1i32) * 57899i32 % 8i32 != 0 {
-            (8i32) - (2i32 - 1i32) * 57899i32 % 8i32
+        if (2i32 - 1i32) * crate::consts::P as i32 % 8i32 != 0 {
+            (8i32) - (2i32 - 1i32) * crate::consts::P as i32 % 8i32
         } else { 0i32 };
     char_left_bit_shift_n(byteOutputLength as i32, output, padsize);
     return 1i32;
@@ -518,7 +518,7 @@ pub unsafe extern "C" fn decrypt_Kobara_Imai(sk: *const privateKeyMcEliece_t,
     * ciphertext. Note: storage endiannes in BE hardware should flip bytes */
     memcpy(correctedCodeword.as_mut_ptr() as *mut libc::c_void,
            ctx as *const libc::c_void,
-           (2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
+           (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
                 8i32) as u64);
     thresholds[1] = (*sk).secondIterThreshold as i32;
     if decrypt_McEliece(err.as_mut_ptr(), correctedCodeword.as_mut_ptr(), sk,
@@ -529,21 +529,21 @@ pub unsafe extern "C" fn decrypt_Kobara_Imai(sk: *const privateKeyMcEliece_t,
     * portion, followed by syndrome turn back iword into a bytesequence */
     let mut paddedSequenceLen: u64 = 0;
     if clen <=
-           (2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
+           (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
                 8i32) as u64 {
         paddedSequenceLen =
-            (((2i32 - 1i32) * 57899i32 + 7i32) / 8i32) as u64
+            (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u64
     } else {
         paddedSequenceLen =
             clen.wrapping_sub((2i32 *
-                                   ((57899i32 + (8i32 << 3i32) - 1i32) /
+                                   ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                         (8i32 << 3i32)) * 8i32) as
                                   u64).wrapping_sub(1i32 as
                                                                       u64).wrapping_add((((2i32
                                                                                                              -
                                                                                                              1i32)
                                                                                                             *
-                                                                                                            57899i32
+                                                                                                            crate::consts::P as i32
                                                                                                             +
                                                                                                             7i32)
                                                                                                            /
@@ -557,35 +557,35 @@ pub unsafe extern "C" fn decrypt_Kobara_Imai(sk: *const privateKeyMcEliece_t,
     memset(paddedOutput.as_mut_ptr() as *mut libc::c_void, 0i32,
            paddedSequenceLen);
     poly_seq_into_bytestream(paddedOutput.as_mut_ptr(),
-                             (((2i32 - 1i32) * 57899i32 + 7i32) / 8i32) as
+                             (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as
                                  u32, correctedCodeword.as_mut_ptr(),
                              (2i32 - 1i32) as u32);
     /* move back leftover padded string (if present) onto its position*/
     if clen >
-           (2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
+           (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
                 8i32) as u64 {
         /* meld back byte split across iword and leftover. Recall that leftover is
     * built with leading zeroes, and output from iword has trailing zeroes
     * so no masking away is needed */
         let ref mut fresh3 =
-            *paddedOutput.as_mut_ptr().offset((((2i32 - 1i32) * 57899i32 +
+            *paddedOutput.as_mut_ptr().offset((((2i32 - 1i32) * crate::consts::P as i32 +
                                                     7i32) / 8i32 - 1i32) as
                                                   isize);
         *fresh3 =
             (*fresh3 as i32 |
                  *ctx.offset((2i32 *
-                                  ((57899i32 + (8i32 << 3i32) - 1i32) /
+                                  ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                        (8i32 << 3i32)) * 8i32) as isize) as
                      i32) as u8;
         let mut remainingToCopy: i32 =
-            paddedSequenceLen.wrapping_sub((((2i32 - 1i32) * 57899i32 + 7i32)
+            paddedSequenceLen.wrapping_sub((((2i32 - 1i32) * crate::consts::P as i32 + 7i32)
                                                 / 8i32) as u64) as
                 i32;
-        memmove(paddedOutput.as_mut_ptr().offset((((2i32 - 1i32) * 57899i32 +
+        memmove(paddedOutput.as_mut_ptr().offset((((2i32 - 1i32) * crate::consts::P as i32 +
                                                        7i32) / 8i32) as isize)
                     as *mut libc::c_void,
                 ctx.offset((2i32 *
-                                ((57899i32 + (8i32 << 3i32) - 1i32) /
+                                ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                      (8i32 << 3i32)) * 8i32) as
                                isize).offset(1) as *const libc::c_void,
                 remainingToCopy as u64);

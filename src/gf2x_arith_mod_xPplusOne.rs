@@ -169,7 +169,7 @@ unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
                                     exponent: u32,
                                     mut value: DIGIT) {
     let mut straightIdx: i32 =
-        (((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
+        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
               - 1i32) as u32).wrapping_sub(exponent) as i32;
     let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
     let mut inDigitIdx: u32 =
@@ -188,9 +188,9 @@ unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
 #[inline]
 unsafe extern "C" fn gf2x_mod_add(mut Res: *mut DIGIT, mut A: *const DIGIT,
                                   mut B: *const DIGIT) {
-    gf2x_add((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), Res,
-             (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), A,
-             (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), B);
+    gf2x_add((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), Res,
+             (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), A,
+             (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), B);
 }
 /* *
  *
@@ -232,26 +232,26 @@ unsafe extern "C" fn gf2x_mod(mut out: *mut DIGIT, nin: i32,
                               mut in_0: *const DIGIT) {
     let mut aux: [DIGIT; 906] = [0; 906];
     memcpy(aux.as_mut_ptr() as *mut libc::c_void, in_0 as *const libc::c_void,
-           (((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + 1i32) *
+           (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + 1i32) *
                 8i32) as u64);
-    right_bit_shift_n((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) +
+    right_bit_shift_n((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) +
                           1i32, aux.as_mut_ptr(),
-                      57899i32 -
+                      crate::consts::P as i32 -
                           (8i32 << 3i32) *
-                              ((57899i32 + 1i32 + (8i32 << 3i32) - 1i32) /
+                              ((crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) /
                                    (8i32 << 3i32) - 1i32));
-    gf2x_add((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), out,
-             (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
+    gf2x_add((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), out,
+             (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
              aux.as_mut_ptr().offset(1) as *const DIGIT,
-             (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-             in_0.offset(((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32))
+             (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
+             in_0.offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32))
                              as isize));
     let ref mut fresh0 = *out.offset(0);
     *fresh0 &=
         ((1i32 as DIGIT) <<
-             57899i32 -
+             crate::consts::P as i32 -
                  (8i32 << 3i32) *
-                     ((57899i32 + 1i32 + (8i32 << 3i32) - 1i32) /
+                     ((crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) /
                           (8i32 << 3i32) -
                           1i32)).wrapping_sub(1i32 as u64);
 }
@@ -346,47 +346,47 @@ pub unsafe extern "C" fn gf2x_transpose_in_place(mut A: *mut DIGIT) {
     let mut a00: DIGIT = 0;
     let mut i: i32 = 0;
     let mut slack_bits_amount: i32 =
-        (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32) -
-            57899i32;
-    if (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) == 1i32 {
+        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32) -
+            crate::consts::P as i32;
+    if (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) == 1i32 {
         a00 = *A.offset(0) & mask;
         right_bit_shift(1i32, A);
         rev1 = reverse_digit(*A.offset(0));
-        rev1 >>= (8i32 << 3i32) - 57899i32 % (8i32 << 3i32);
+        rev1 >>= (8i32 << 3i32) - crate::consts::P as i32 % (8i32 << 3i32);
         *A.offset(0) = rev1 & !mask | a00;
         return
     }
     a00 =
-        *A.offset(((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32)
+        *A.offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32)
                       as isize) & mask;
-    right_bit_shift((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), A);
-    i = (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+    right_bit_shift((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), A);
+    i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
     while i >=
-              ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + 1i32) /
+              ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + 1i32) /
                   2i32 {
         rev1 = reverse_digit(*A.offset(i as isize));
         rev2 =
-            reverse_digit(*A.offset(((57899i32 + (8i32 << 3i32) - 1i32) /
+            reverse_digit(*A.offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                          (8i32 << 3i32) - 1i32 - i) as
                                         isize));
         *A.offset(i as isize) = rev2;
-        *A.offset(((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32
+        *A.offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32
                        - i) as isize) = rev1;
         i -= 1
     }
-    if (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) % 2i32 == 1i32 {
-        *A.offset(((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) / 2i32)
+    if (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) % 2i32 == 1i32 {
+        *A.offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) / 2i32)
                       as isize) =
-            reverse_digit(*A.offset(((57899i32 + (8i32 << 3i32) - 1i32) /
+            reverse_digit(*A.offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                          (8i32 << 3i32) / 2i32) as isize))
     }
     if slack_bits_amount != 0 {
-        right_bit_shift_n((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
+        right_bit_shift_n((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
                           A, slack_bits_amount);
     }
-    *A.offset(((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32) as
+    *A.offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32) as
                   isize) =
-        *A.offset(((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32)
+        *A.offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32)
                       as isize) & !mask | a00;
 }
 // end transpose_in_place
@@ -397,18 +397,18 @@ pub unsafe extern "C" fn rotate_bit_left(mut in_0: *mut DIGIT)
  {
     let mut mask: DIGIT = 0; /* clear shifted bit */
     let mut rotated_bit: DIGIT = 0;
-    if (57899i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) ==
-           (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) {
+    if (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) ==
+           (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) {
         let mut msb_offset_in_digit: i32 =
-            57899i32 -
+            crate::consts::P as i32 -
                 (8i32 << 3i32) *
-                    ((57899i32 + 1i32 + (8i32 << 3i32) - 1i32) /
+                    ((crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) /
                          (8i32 << 3i32) - 1i32) - 1i32;
         mask = (0x1i32 as DIGIT) << msb_offset_in_digit;
         rotated_bit = (*in_0.offset(0) & mask != 0) as i32 as DIGIT;
         let ref mut fresh3 = *in_0.offset(0);
         *fresh3 &= !mask;
-        left_bit_shift((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
+        left_bit_shift((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
                        in_0);
     } else {
         /* NUM_DIGITS_GF2X_MODULUS == 1 + NUM_DIGITS_GF2X_ELEMENT and
@@ -420,11 +420,11 @@ pub unsafe extern "C" fn rotate_bit_left(mut in_0: *mut DIGIT)
         rotated_bit = (*in_0.offset(0) & mask != 0) as i32 as DIGIT;
         let ref mut fresh4 = *in_0.offset(0);
         *fresh4 &= !mask;
-        left_bit_shift((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
+        left_bit_shift((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
                        in_0);
     }
     let ref mut fresh5 =
-        *in_0.offset(((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) -
+        *in_0.offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) -
                           1i32) as isize);
     *fresh5 |= rotated_bit;
 }
@@ -435,16 +435,16 @@ pub unsafe extern "C" fn rotate_bit_right(mut in_0: *mut DIGIT)
  /*  x^{-1} * in(x) mod x^P+1 */
  {
     let mut rotated_bit: DIGIT =
-        *in_0.offset(((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) -
+        *in_0.offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) -
                           1i32) as isize) & 0x1i32 as DIGIT;
-    right_bit_shift((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
+    right_bit_shift((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
                     in_0);
-    if (57899i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) ==
-           (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) {
+    if (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) ==
+           (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) {
         let mut msb_offset_in_digit: i32 =
-            57899i32 -
+            crate::consts::P as i32 -
                 (8i32 << 3i32) *
-                    ((57899i32 + 1i32 + (8i32 << 3i32) - 1i32) /
+                    ((crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) /
                          (8i32 << 3i32) - 1i32) - 1i32;
         rotated_bit = rotated_bit << msb_offset_in_digit
     } else {
@@ -678,67 +678,67 @@ pub unsafe extern "C" fn gf2x_mod_inverse(mut out: *mut DIGIT,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     let mut mask: DIGIT = 0;
-    u[((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32) as usize] =
+    u[((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32) as usize] =
         0x1i32 as DIGIT;
-    v[((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32) as usize] =
+    v[((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32) as usize] =
         0i32 as DIGIT;
-    s[((57899i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32) as
+    s[((crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32) as
           usize] = 0x1i32 as DIGIT;
-    if 57899i32 -
+    if crate::consts::P as i32 -
            (8i32 << 3i32) *
-               ((57899i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) -
+               ((crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) -
                     1i32) == 0i32 {
         mask = 0x1i32 as DIGIT
     } else {
         mask =
             (0x1i32 as DIGIT) <<
-                57899i32 -
+                crate::consts::P as i32 -
                     (8i32 << 3i32) *
-                        ((57899i32 + 1i32 + (8i32 << 3i32) - 1i32) /
+                        ((crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) /
                              (8i32 << 3i32) - 1i32)
     }
     s[0] |= mask;
-    i = (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+    i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
     while i >= 0i32 && *in_0.offset(i as isize) == 0i32 as u64 {
         i -= 1
     }
     if i < 0i32 { return 0i32 }
-    if (57899i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) ==
-           1i32 + (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) {
-        i = (57899i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+    if (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) ==
+           1i32 + (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) {
+        i = (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
         while i >= 1i32 {
             f[i as usize] = *in_0.offset((i - 1i32) as isize);
             i -= 1
         }
     } else {
         /* they are equal */
-        i = (57899i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+        i = (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
         while i >= 0i32 { f[i as usize] = *in_0.offset(i as isize); i -= 1 }
     }
     i = 1i32;
-    while i <= 2i32 * 57899i32 {
+    while i <= 2i32 * crate::consts::P as i32 {
         if f[0] & mask == 0i32 as u64 {
-            left_bit_shift((57899i32 + 1i32 + (8i32 << 3i32) - 1i32) /
+            left_bit_shift((crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) /
                                (8i32 << 3i32), f.as_mut_ptr());
             rotate_bit_left(u.as_mut_ptr());
             delta += 1i32 as libc::c_long
         } else {
             if s[0] & mask != 0i32 as u64 {
-                gf2x_add((57899i32 + 1i32 + (8i32 << 3i32) - 1i32) /
+                gf2x_add((crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) /
                              (8i32 << 3i32), s.as_mut_ptr(),
-                         (57899i32 + 1i32 + (8i32 << 3i32) - 1i32) /
+                         (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) /
                              (8i32 << 3i32), s.as_mut_ptr() as *const DIGIT,
-                         (57899i32 + 1i32 + (8i32 << 3i32) - 1i32) /
+                         (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) /
                              (8i32 << 3i32), f.as_mut_ptr() as *const DIGIT);
                 gf2x_mod_add(v.as_mut_ptr(), v.as_mut_ptr() as *const DIGIT,
                              u.as_mut_ptr() as *const DIGIT);
             }
-            left_bit_shift((57899i32 + 1i32 + (8i32 << 3i32) - 1i32) /
+            left_bit_shift((crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) /
                                (8i32 << 3i32), s.as_mut_ptr());
             if delta == 0i32 as libc::c_long {
-                gf2x_swap((57899i32 + 1i32 + (8i32 << 3i32) - 1i32) /
+                gf2x_swap((crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) /
                               (8i32 << 3i32), f.as_mut_ptr(), s.as_mut_ptr());
-                gf2x_swap((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
+                gf2x_swap((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
                           u.as_mut_ptr(), v.as_mut_ptr());
                 rotate_bit_left(u.as_mut_ptr());
                 delta = 1i32 as libc::c_long
@@ -749,7 +749,7 @@ pub unsafe extern "C" fn gf2x_mod_inverse(mut out: *mut DIGIT,
         }
         i += 1
     }
-    i = (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+    i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
     while i >= 0i32 { *out.offset(i as isize) = u[i as usize]; i -= 1 }
     return (delta == 0i32 as libc::c_long) as i32;
 }
@@ -811,16 +811,16 @@ pub unsafe extern "C" fn gf2x_mod_inverse_KTT(mut out: *mut DIGIT,
     r[0] = 0i32 as DIGIT;
     memcpy(r.as_mut_ptr().offset(1) as *mut libc::c_void,
            in_0 as *const libc::c_void,
-           ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as
+           ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as
                u64);
     /* S starts set to the modulus */
-    s[((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + 1i32 - 1i32) as
+    s[((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + 1i32 - 1i32) as
           usize] = 1i32 as DIGIT; /* x */
     s[(0i32 + 1i32) as usize] |=
         (1i32 as DIGIT) <<
-            57899i32 -
+            crate::consts::P as i32 -
                 (8i32 << 3i32) *
-                    ((57899i32 + 1i32 + (8i32 << 3i32) - 1i32) /
+                    ((crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) /
                          (8i32 << 3i32) - 1i32);
     let mut v: [DIGIT; 1810] =
         [0i32 as DIGIT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -982,13 +982,13 @@ pub unsafe extern "C" fn gf2x_mod_inverse_KTT(mut out: *mut DIGIT,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    u[(2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) - 1i32) as
+    u[(2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) - 1i32) as
           usize] = 2i32 as DIGIT;
     let mut deg_r: i32 =
-        (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32) -
+        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32) -
             1i32;
     let mut deg_s: i32 =
-        (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32) -
+        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32) -
             1i32;
     let mut c: DIGIT = 0;
     let mut d: DIGIT = 0;
@@ -1009,11 +1009,11 @@ pub unsafe extern "C" fn gf2x_mod_inverse_KTT(mut out: *mut DIGIT,
         c = r[1];
         d = s[1];
         if c == 0i32 as u64 {
-            left_DIGIT_shift_n((57899i32 + (8i32 << 3i32) - 1i32) /
+            left_DIGIT_shift_n((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                    (8i32 << 3i32) + 1i32, r.as_mut_ptr(),
                                1i32);
             left_DIGIT_shift_n(2i32 *
-                                   ((57899i32 + (8i32 << 3i32) - 1i32) /
+                                   ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                         (8i32 << 3i32)), u.as_mut_ptr(),
                                1i32);
             deg_r = deg_r - (8i32 << 3i32)
@@ -1085,95 +1085,95 @@ pub unsafe extern "C" fn gf2x_mod_inverse_KTT(mut out: *mut DIGIT,
                 /* if ( (c & ((DIGIT 1) << (DIGIT_SIZE_b-1))) == 0) */
             }
             /*update r , s */
-            gf2x_digit_times_poly_mul((57899i32 + (8i32 << 3i32) - 1i32) /
+            gf2x_digit_times_poly_mul((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                           (8i32 << 3i32) + 2i32,
                                       r_h00.as_mut_ptr(),
-                                      (57899i32 + (8i32 << 3i32) - 1i32) /
+                                      (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                           (8i32 << 3i32) + 1i32,
                                       r.as_mut_ptr() as *const DIGIT, h00);
-            gf2x_digit_times_poly_mul((57899i32 + (8i32 << 3i32) - 1i32) /
+            gf2x_digit_times_poly_mul((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                           (8i32 << 3i32) + 2i32,
                                       s_h01.as_mut_ptr(),
-                                      (57899i32 + (8i32 << 3i32) - 1i32) /
+                                      (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                           (8i32 << 3i32) + 1i32,
                                       s.as_mut_ptr() as *const DIGIT, h01);
-            gf2x_digit_times_poly_mul((57899i32 + (8i32 << 3i32) - 1i32) /
+            gf2x_digit_times_poly_mul((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                           (8i32 << 3i32) + 2i32,
                                       r_h10.as_mut_ptr(),
-                                      (57899i32 + (8i32 << 3i32) - 1i32) /
+                                      (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                           (8i32 << 3i32) + 1i32,
                                       r.as_mut_ptr() as *const DIGIT, h10);
-            gf2x_digit_times_poly_mul((57899i32 + (8i32 << 3i32) - 1i32) /
+            gf2x_digit_times_poly_mul((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                           (8i32 << 3i32) + 2i32,
                                       s_h11.as_mut_ptr(),
-                                      (57899i32 + (8i32 << 3i32) - 1i32) /
+                                      (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                           (8i32 << 3i32) + 1i32,
                                       s.as_mut_ptr() as *const DIGIT, h11);
-            gf2x_add((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) +
+            gf2x_add((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) +
                          1i32, r.as_mut_ptr(),
-                     (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) +
+                     (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) +
                          1i32, r_h00.as_mut_ptr().offset(1) as *const DIGIT,
-                     (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) +
+                     (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) +
                          1i32, s_h01.as_mut_ptr().offset(1) as *const DIGIT);
-            gf2x_add((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) +
+            gf2x_add((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) +
                          1i32, s.as_mut_ptr(),
-                     (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) +
+                     (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) +
                          1i32, r_h10.as_mut_ptr().offset(1) as *const DIGIT,
-                     (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) +
+                     (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) +
                          1i32, s_h11.as_mut_ptr().offset(1) as *const DIGIT);
             /* *********************** update u, v *************************/
             gf2x_digit_times_poly_mul(2i32 *
-                                          ((57899i32 + (8i32 << 3i32) - 1i32)
+                                          ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32)
                                                / (8i32 << 3i32)) + 1i32,
                                       u_h00.as_mut_ptr(),
                                       2i32 *
-                                          ((57899i32 + (8i32 << 3i32) - 1i32)
+                                          ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32)
                                                / (8i32 << 3i32)),
                                       u.as_mut_ptr() as *const DIGIT, h00);
             gf2x_digit_times_poly_mul(2i32 *
-                                          ((57899i32 + (8i32 << 3i32) - 1i32)
+                                          ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32)
                                                / (8i32 << 3i32)) + 1i32,
                                       v_h01.as_mut_ptr(),
                                       2i32 *
-                                          ((57899i32 + (8i32 << 3i32) - 1i32)
+                                          ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32)
                                                / (8i32 << 3i32)),
                                       v.as_mut_ptr() as *const DIGIT, h01);
             gf2x_digit_times_poly_mul(2i32 *
-                                          ((57899i32 + (8i32 << 3i32) - 1i32)
+                                          ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32)
                                                / (8i32 << 3i32)) + 1i32,
                                       u_h10.as_mut_ptr(),
                                       2i32 *
-                                          ((57899i32 + (8i32 << 3i32) - 1i32)
+                                          ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32)
                                                / (8i32 << 3i32)),
                                       u.as_mut_ptr() as *const DIGIT, h10);
             gf2x_digit_times_poly_mul(2i32 *
-                                          ((57899i32 + (8i32 << 3i32) - 1i32)
+                                          ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32)
                                                / (8i32 << 3i32)) + 1i32,
                                       v_h11.as_mut_ptr(),
                                       2i32 *
-                                          ((57899i32 + (8i32 << 3i32) - 1i32)
+                                          ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32)
                                                / (8i32 << 3i32)),
                                       v.as_mut_ptr() as *const DIGIT, h11);
             gf2x_add(2i32 *
-                         ((57899i32 + (8i32 << 3i32) - 1i32) /
+                         ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                               (8i32 << 3i32)), u.as_mut_ptr(),
                      2i32 *
-                         ((57899i32 + (8i32 << 3i32) - 1i32) /
+                         ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                               (8i32 << 3i32)),
                      u_h00.as_mut_ptr().offset(1) as *const DIGIT,
                      2i32 *
-                         ((57899i32 + (8i32 << 3i32) - 1i32) /
+                         ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                               (8i32 << 3i32)),
                      v_h01.as_mut_ptr().offset(1) as *const DIGIT);
             gf2x_add(2i32 *
-                         ((57899i32 + (8i32 << 3i32) - 1i32) /
+                         ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                               (8i32 << 3i32)), v.as_mut_ptr(),
                      2i32 *
-                         ((57899i32 + (8i32 << 3i32) - 1i32) /
+                         ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                               (8i32 << 3i32)),
                      u_h10.as_mut_ptr().offset(1) as *const DIGIT,
                      2i32 *
-                         ((57899i32 + (8i32 << 3i32) - 1i32) /
+                         ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                               (8i32 << 3i32)),
                      v_h11.as_mut_ptr().offset(1) as *const DIGIT);
         }
@@ -1181,12 +1181,12 @@ pub unsafe extern "C" fn gf2x_mod_inverse_KTT(mut out: *mut DIGIT,
     if deg_r == 0i32 {
         memcpy(out as *mut libc::c_void,
                u.as_mut_ptr() as *const libc::c_void,
-               ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as
+               ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as
                    u64);
     } else {
         memcpy(out as *mut libc::c_void,
                v.as_mut_ptr() as *const libc::c_void,
-               ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as
+               ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as
                    u64);
     }
     return 0i32;
@@ -1197,12 +1197,12 @@ pub unsafe extern "C" fn gf2x_mod_mul(mut Res: *mut DIGIT,
                                       mut A: *const DIGIT,
                                       mut B: *const DIGIT) {
     let mut aux: [DIGIT; 1810] = [0; 1810];
-    gf2x_mul_TC3(2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)),
+    gf2x_mul_TC3(2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)),
                  aux.as_mut_ptr(),
-                 (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), A,
-                 (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), B);
+                 (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), A,
+                 (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), B);
     gf2x_mod(Res,
-             2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)),
+             2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)),
              aux.as_mut_ptr() as *const DIGIT);
 }
 // end gf2x_mod_mul
@@ -1222,11 +1222,11 @@ unsafe extern "C" fn gf2x_fmac(mut Res: *mut DIGIT, mut operand: *const DIGIT,
     let mut inDigitShiftMask: SIGNED_DIGIT =
         ((inDigitShift > 0i32 as u32) as i32 as SIGNED_DIGIT)
             << (8i32 << 3i32) - 1i32 >> (8i32 << 3i32) - 1i32;
-    i = (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+    i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
     while i >= 0i32 {
         tmp = *operand.offset(i as isize);
         let ref mut fresh7 =
-            *Res.offset((((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
+            *Res.offset((((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
                               + i) as u32).wrapping_sub(digitShift)
                             as isize);
         *fresh7 ^= prevLo | tmp << inDigitShift;
@@ -1239,7 +1239,7 @@ unsafe extern "C" fn gf2x_fmac(mut Res: *mut DIGIT, mut operand: *const DIGIT,
         i -= 1
     }
     let ref mut fresh8 =
-        *Res.offset((((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + i)
+        *Res.offset((((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + i)
                          as u32).wrapping_sub(digitShift) as isize);
     *fresh8 ^= prevLo;
 }
@@ -1336,14 +1336,14 @@ pub unsafe extern "C" fn gf2x_mod_mul_dense_to_sparse(mut Res: *mut DIGIT,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     let mut i: u32 = 0i32 as u32;
     while i < nPos {
-        if *sparse.offset(i as isize) != 57899i32 as u32 {
+        if *sparse.offset(i as isize) != crate::consts::P as i32 as u32 {
             gf2x_fmac(resDouble.as_mut_ptr(), dense,
                       *sparse.offset(i as isize));
         }
         i = i.wrapping_add(1)
     }
     gf2x_mod(Res,
-             2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)),
+             2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)),
              resDouble.as_mut_ptr() as *const DIGIT);
 }
 // end gf2x_mod_mul
@@ -1358,9 +1358,9 @@ pub unsafe extern "C" fn gf2x_transpose_in_place_sparse(mut sizeA:
     let mut j: i32 = 0;
     if *A.offset(i as isize) == 0i32 as u32 { i = 1i32 }
     j = i;
-    while i < sizeA && *A.offset(i as isize) != 57899i32 as u32 {
+    while i < sizeA && *A.offset(i as isize) != crate::consts::P as i32 as u32 {
         *A.offset(i as isize) =
-            (57899i32 as u32).wrapping_sub(*A.offset(i as isize));
+            (crate::consts::P as i32 as u32).wrapping_sub(*A.offset(i as isize));
         i += 1
     }
     i -= 1i32;
@@ -1392,14 +1392,14 @@ pub unsafe extern "C" fn gf2x_mod_mul_sparse(mut sizeR: i32,
             let mut prod: u32 =
                 (*A.offset(i as isize)).wrapping_add(*B.offset(j as isize));
             prod =
-                if prod >= 57899i32 as u32 {
-                    prod.wrapping_sub(57899i32 as u32)
+                if prod >= crate::consts::P as i32 as u32 {
+                    prod.wrapping_sub(crate::consts::P as i32 as u32)
                 } else { prod };
-            if *A.offset(i as isize) != 57899i32 as u32 &&
-                   *B.offset(j as isize) != 57899i32 as u32 {
+            if *A.offset(i as isize) != crate::consts::P as i32 as u32 &&
+                   *B.offset(j as isize) != crate::consts::P as i32 as u32 {
                 *Res.offset(lastFilledPos as isize) = prod
             } else {
-                *Res.offset(lastFilledPos as isize) = 57899i32 as u32
+                *Res.offset(lastFilledPos as isize) = crate::consts::P as i32 as u32
             }
             lastFilledPos = lastFilledPos.wrapping_add(1);
             j += 1
@@ -1407,7 +1407,7 @@ pub unsafe extern "C" fn gf2x_mod_mul_sparse(mut sizeR: i32,
         i += 1
     }
     while lastFilledPos < sizeR as u32 {
-        *Res.offset(lastFilledPos as isize) = 57899i32 as u32;
+        *Res.offset(lastFilledPos as isize) = crate::consts::P as i32 as u32;
         lastFilledPos = lastFilledPos.wrapping_add(1)
     }
     int32_sort(Res as *mut i32, sizeR as isize);
@@ -1417,12 +1417,12 @@ pub unsafe extern "C" fn gf2x_mod_mul_sparse(mut sizeR: i32,
     let mut write_idx: i32 = 0i32;
     let mut read_idx: i32 = 0i32;
     while read_idx < sizeR &&
-              *Res.offset(read_idx as isize) != 57899i32 as u32 {
+              *Res.offset(read_idx as isize) != crate::consts::P as i32 as u32 {
         lastReadPos = *Res.offset(read_idx as isize);
         read_idx += 1;
         duplicateCount = 1i32;
         while *Res.offset(read_idx as isize) == lastReadPos &&
-                  *Res.offset(read_idx as isize) != 57899i32 as u32 {
+                  *Res.offset(read_idx as isize) != crate::consts::P as i32 as u32 {
             read_idx += 1;
             duplicateCount += 1
         }
@@ -1433,7 +1433,7 @@ pub unsafe extern "C" fn gf2x_mod_mul_sparse(mut sizeR: i32,
     }
     /* fill remaining cells with INVALID_POS_VALUE */
     while write_idx < sizeR {
-        *Res.offset(write_idx as isize) = 57899i32 as u32;
+        *Res.offset(write_idx as isize) = crate::consts::P as i32 as u32;
         write_idx += 1
     };
 }
@@ -1455,8 +1455,8 @@ pub unsafe extern "C" fn gf2x_mod_add_sparse(mut sizeR: i32,
     let mut idxB: i32 = 0i32;
     let mut idxR: i32 = 0i32;
     while idxA < sizeA && idxB < sizeB &&
-              *A.offset(idxA as isize) != 57899i32 as u32 &&
-              *B.offset(idxB as isize) != 57899i32 as u32 {
+              *A.offset(idxA as isize) != crate::consts::P as i32 as u32 &&
+              *B.offset(idxB as isize) != crate::consts::P as i32 as u32 {
         if *A.offset(idxA as isize) == *B.offset(idxB as isize) {
             idxA += 1;
             idxB += 1
@@ -1473,20 +1473,20 @@ pub unsafe extern "C" fn gf2x_mod_add_sparse(mut sizeR: i32,
             idxR += 1
         }
     }
-    while idxA < sizeA && *A.offset(idxA as isize) != 57899i32 as u32
+    while idxA < sizeA && *A.offset(idxA as isize) != crate::consts::P as i32 as u32
           {
         *tmpRes.as_mut_ptr().offset(idxR as isize) = *A.offset(idxA as isize);
         idxA += 1;
         idxR += 1
     }
-    while idxB < sizeB && *B.offset(idxB as isize) != 57899i32 as u32
+    while idxB < sizeB && *B.offset(idxB as isize) != crate::consts::P as i32 as u32
           {
         *tmpRes.as_mut_ptr().offset(idxR as isize) = *B.offset(idxB as isize);
         idxB += 1;
         idxR += 1
     }
     while idxR < sizeR {
-        *tmpRes.as_mut_ptr().offset(idxR as isize) = 57899i32 as u32;
+        *tmpRes.as_mut_ptr().offset(idxR as isize) = crate::consts::P as i32 as u32;
         idxR += 1
     }
     memcpy(Res as *mut libc::c_void,
@@ -1545,200 +1545,200 @@ pub unsafe extern "C" fn rand_circulant_sparse_block(mut pos_ones:
     let mut placedOnes: i32 = 0i32;
     while placedOnes < countOnes {
         let mut p: i32 =
-            rand_range(57899i32,
-                       if 57899i32 == 0i32 {
+            rand_range(crate::consts::P as i32,
+                       if crate::consts::P as i32 == 0i32 {
                            1i32
                        } else {
                            (31i32 +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 1i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 1i32 {
                                      1i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 2i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 2i32 {
                                      2i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 3i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 3i32 {
                                      3i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 4i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 4i32 {
                                      4i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 5i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 5i32 {
                                      5i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 6i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 6i32 {
                                      6i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 7i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 7i32 {
                                      7i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 8i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 8i32 {
                                      8i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 9i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 9i32 {
                                      9i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 10i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 10i32 {
                                      10i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 11i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 11i32 {
                                      11i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 12i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 12i32 {
                                      12i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 13i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 13i32 {
                                      13i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 14i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 14i32 {
                                      14i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 15i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 15i32 {
                                      15i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 16i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 16i32 {
                                      16i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 17i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 17i32 {
                                      17i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 18i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 18i32 {
                                      18i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 19i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 19i32 {
                                      19i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 20i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 20i32 {
                                      20i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 21i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 21i32 {
                                      21i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 22i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 22i32 {
                                      22i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 23i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 23i32 {
                                      23i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 24i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 24i32 {
                                      24i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 25i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 25i32 {
                                      25i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 26i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 26i32 {
                                      26i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 27i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 27i32 {
                                      27i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 28i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 28i32 {
                                      28i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 29i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 29i32 {
                                      29i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 30i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 30i32 {
                                      30i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 31i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 31i32 {
                                      31i32
                                  } else { -1i32 })) +
-                               (if 57899i32 as u64 >=
+                               (if crate::consts::P as i32 as u64 >=
                                        1u64 << 32i32 - 1i32 &&
-                                       (57899i32 as u64) <
+                                       (crate::consts::P as i32 as u64) <
                                            1u64 << 32i32 {
                                     32i32
                                 } else { -1i32 })
@@ -1771,204 +1771,204 @@ pub unsafe extern "C" fn rand_circulant_blocks_sequence(mut sequence:
     let mut duplicated: i32 = 0;
     let mut counter: i32 = 0i32;
     memset(sequence as *mut libc::c_void, 0i32,
-           (2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
+           (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
                 8i32) as u64);
     while counter < countOnes {
         let mut p: i32 =
-            rand_range(2i32 * 57899i32,
-                       if 57899i32 == 0i32 {
+            rand_range(2i32 * crate::consts::P as i32,
+                       if crate::consts::P as i32 == 0i32 {
                            1i32
                        } else {
                            (31i32 +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 1i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 1i32 {
                                      1i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 2i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 2i32 {
                                      2i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 3i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 3i32 {
                                      3i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 4i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 4i32 {
                                      4i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 5i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 5i32 {
                                      5i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 6i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 6i32 {
                                      6i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 7i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 7i32 {
                                      7i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 8i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 8i32 {
                                      8i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 9i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 9i32 {
                                      9i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 10i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 10i32 {
                                      10i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 11i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 11i32 {
                                      11i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 12i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 12i32 {
                                      12i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 13i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 13i32 {
                                      13i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 14i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 14i32 {
                                      14i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 15i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 15i32 {
                                      15i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 16i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 16i32 {
                                      16i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 17i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 17i32 {
                                      17i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 18i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 18i32 {
                                      18i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 19i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 19i32 {
                                      19i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 20i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 20i32 {
                                      20i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 21i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 21i32 {
                                      21i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 22i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 22i32 {
                                      22i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 23i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 23i32 {
                                      23i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 24i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 24i32 {
                                      24i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 25i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 25i32 {
                                      25i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 26i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 26i32 {
                                      26i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 27i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 27i32 {
                                      27i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 28i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 28i32 {
                                      28i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 29i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 29i32 {
                                      29i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 30i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 30i32 {
                                      30i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 31i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 31i32 {
                                      31i32
                                  } else { -1i32 })) +
-                               (if 57899i32 as u64 >=
+                               (if crate::consts::P as i32 as u64 >=
                                        1u64 << 32i32 - 1i32 &&
-                                       (57899i32 as u64) <
+                                       (crate::consts::P as i32 as u64) <
                                            1u64 << 32i32 {
                                     32i32
                                 } else { -1i32 })
@@ -1989,10 +1989,10 @@ pub unsafe extern "C" fn rand_circulant_blocks_sequence(mut sequence:
     let mut j_0: i32 = 0i32;
     while j_0 < counter {
         let mut polyIndex: i32 =
-            *rndPos.as_mut_ptr().offset(j_0 as isize) / 57899i32;
+            *rndPos.as_mut_ptr().offset(j_0 as isize) / crate::consts::P as i32;
         let mut exponent: i32 =
-            *rndPos.as_mut_ptr().offset(j_0 as isize) % 57899i32;
-        gf2x_set_coeff(sequence.offset(((57899i32 + (8i32 << 3i32) - 1i32) /
+            *rndPos.as_mut_ptr().offset(j_0 as isize) % crate::consts::P as i32;
+        gf2x_set_coeff(sequence.offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                             (8i32 << 3i32) * polyIndex) as
                                            isize), exponent as u32,
                        1i32 as DIGIT);
@@ -2009,200 +2009,200 @@ pub unsafe extern "C" fn rand_error_pos(mut errorPos: *mut u32,
     let mut counter: i32 = 0i32;
     while counter < 199i32 {
         let mut p: i32 =
-            rand_range(2i32 * 57899i32,
-                       if 57899i32 == 0i32 {
+            rand_range(2i32 * crate::consts::P as i32,
+                       if crate::consts::P as i32 == 0i32 {
                            1i32
                        } else {
                            (31i32 +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 1i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 1i32 {
                                      1i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 2i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 2i32 {
                                      2i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 3i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 3i32 {
                                      3i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 4i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 4i32 {
                                      4i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 5i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 5i32 {
                                      5i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 6i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 6i32 {
                                      6i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 7i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 7i32 {
                                      7i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 8i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 8i32 {
                                      8i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 9i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 9i32 {
                                      9i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 10i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 10i32 {
                                      10i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 11i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 11i32 {
                                      11i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 12i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 12i32 {
                                      12i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 13i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 13i32 {
                                      13i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 14i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 14i32 {
                                      14i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 15i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 15i32 {
                                      15i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 16i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 16i32 {
                                      16i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 17i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 17i32 {
                                      17i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 18i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 18i32 {
                                      18i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 19i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 19i32 {
                                      19i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 20i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 20i32 {
                                      20i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 21i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 21i32 {
                                      21i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 22i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 22i32 {
                                      22i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 23i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 23i32 {
                                      23i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 24i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 24i32 {
                                      24i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 25i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 25i32 {
                                      25i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 26i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 26i32 {
                                      26i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 27i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 27i32 {
                                      27i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 28i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 28i32 {
                                      28i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 29i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 29i32 {
                                      29i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 30i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 30i32 {
                                      30i32
                                  } else { -1i32 }) +
-                                (if 57899i32 as u64 >=
+                                (if crate::consts::P as i32 as u64 >=
                                         1u64 << 31i32 - 1i32 &&
-                                        (57899i32 as u64) <
+                                        (crate::consts::P as i32 as u64) <
                                             1u64 << 31i32 {
                                      31i32
                                  } else { -1i32 })) +
-                               (if 57899i32 as u64 >=
+                               (if crate::consts::P as i32 as u64 >=
                                        1u64 << 32i32 - 1i32 &&
-                                       (57899i32 as u64) <
+                                       (crate::consts::P as i32 as u64) <
                                            1u64 << 32i32 {
                                     32i32
                                 } else { -1i32 })
@@ -2304,21 +2304,21 @@ pub unsafe extern "C" fn rand_error_pos(mut errorPos: *mut u32,
 pub unsafe extern "C" fn expand_error(mut sequence: *mut DIGIT,
                                       mut errorPos: *mut u32) {
     memset(sequence as *mut libc::c_void, 0i32,
-           (2i32 * ((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
+           (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) *
                 8i32) as u64);
     let mut j: i32 = 0i32;
     while j < 199i32 {
         let mut polyIndex: i32 =
             (*errorPos.offset(j as
-                                  isize)).wrapping_div(57899i32 as
+                                  isize)).wrapping_div(crate::consts::P as i32 as
                                                            u32) as
                 i32;
         let mut exponent: i32 =
             (*errorPos.offset(j as
-                                  isize)).wrapping_rem(57899i32 as
+                                  isize)).wrapping_rem(crate::consts::P as i32 as
                                                            u32) as
                 i32;
-        gf2x_set_coeff(sequence.offset(((57899i32 + (8i32 << 3i32) - 1i32) /
+        gf2x_set_coeff(sequence.offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) /
                                             (8i32 << 3i32) * polyIndex) as
                                            isize), exponent as u32,
                        1i32 as DIGIT);

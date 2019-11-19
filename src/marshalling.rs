@@ -37,7 +37,7 @@ pub type DIGIT = u64;
 pub unsafe extern "C" fn poly_to_byte_seq(mut bs: *mut u8,
                                           mut y: *mut DIGIT) {
     let mut i: i32 = 0i32;
-    while i < (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) {
+    while i < (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) {
         let mut a: DIGIT = *y.offset(i as isize);
         let mut v: i32 = 0i32;
         let mut u: i32 = 8i32 - 1i32;
@@ -89,7 +89,7 @@ pub unsafe extern "C" fn poly_to_byte_seq(mut bs: *mut u8,
 pub unsafe extern "C" fn byte_seq_to_poly(mut y: *mut DIGIT,
                                           mut bs: *mut u8) {
     let mut b: i32 = 0i32;
-    while b < (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32 {
+    while b < (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32 {
         let mut a: DIGIT = 0i32 as DIGIT;
         let mut v: i32 = 0i32;
         let mut u: i32 = 8i32 - 1i32;

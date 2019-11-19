@@ -43,7 +43,7 @@ unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
                                     exponent: u32,
                                     mut value: DIGIT) {
     let mut straightIdx: i32 =
-        (((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
+        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
               - 1i32) as u32).wrapping_sub(exponent) as i32;
     let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
     let mut inDigitIdx: u32 =
@@ -63,7 +63,7 @@ unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
 unsafe extern "C" fn gf2x_get_coeff(mut poly: *const DIGIT,
                                     exponent: u32) -> DIGIT {
     let mut straightIdx: u32 =
-        (((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
+        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
               - 1i32) as u32).wrapping_sub(exponent);
     let mut digitIdx: u32 =
         straightIdx.wrapping_div((8i32 << 3i32) as u32);
@@ -335,14 +335,14 @@ pub unsafe extern "C" fn constant_weight_to_binary_approximate(bitstreamOut:
     let mut last_one_position: u32 = -1i32 as u32;
     let mut idxDistances: u32 = 0i32 as u32;
     let mut current_inspected_position: u32 = 0i32 as u32;
-    while current_inspected_position < (2i32 * 57899i32) as u32 {
+    while current_inspected_position < (2i32 * crate::consts::P as i32) as u32 {
         let mut current_inspected_exponent: u32 = 0;
         let mut current_inspected_poly: u32 = 0;
         current_inspected_exponent =
-            current_inspected_position.wrapping_rem(57899i32 as u32);
+            current_inspected_position.wrapping_rem(crate::consts::P as i32 as u32);
         current_inspected_poly =
-            current_inspected_position.wrapping_div(57899i32 as u32);
-        if gf2x_get_coeff(constantWeightIn.offset(current_inspected_poly.wrapping_mul(((57899i32
+            current_inspected_position.wrapping_div(crate::consts::P as i32 as u32);
+        if gf2x_get_coeff(constantWeightIn.offset(current_inspected_poly.wrapping_mul(((crate::consts::P as i32
                                                                                             +
                                                                                             (8i32
                                                                                                  <<
@@ -374,7 +374,7 @@ pub unsafe extern "C" fn constant_weight_to_binary_approximate(bitstreamOut:
     /* perform encoding of distances into binary string*/
     let mut onesStillToPlaceOut: u32 = 199i32 as u32;
     let mut inPositionsStillAvailable: u32 =
-        (2i32 * 57899i32) as u32;
+        (2i32 * crate::consts::P as i32) as u32;
     let mut outputBitCursor: u32 = 0i32 as u32;
     let mut d: u32 = 0;
     let mut u: u32 = 0;
@@ -469,7 +469,7 @@ pub unsafe extern "C" fn binary_to_constant_weight_approximate(mut constantWeigh
     let mut idxDistances: u32 = 0i32 as u32;
     let mut onesStillToPlaceOut: u32 = 199i32 as u32;
     let mut outPositionsStillAvailable: u32 =
-        (2i32 * 57899i32) as u32;
+        (2i32 * crate::consts::P as i32) as u32;
     let mut bitstreamInCursor: u32 = 0i32 as u32;
     idxDistances = 0i32 as u32;
     while idxDistances < 199i32 as u32 &&
@@ -554,12 +554,12 @@ pub unsafe extern "C" fn binary_to_constant_weight_approximate(mut constantWeigh
                                                                                              as
                                                                                              u32))
                 as i32 as i32;
-        if current_one_position >= 2i32 * 57899i32 { return 0i32 }
+        if current_one_position >= 2i32 * crate::consts::P as i32 { return 0i32 }
         let mut polyIndex: u32 =
-            (current_one_position / 57899i32) as u32;
+            (current_one_position / crate::consts::P as i32) as u32;
         let mut exponent: u32 =
-            (current_one_position % 57899i32) as u32;
-        gf2x_set_coeff(constantWeightOut.offset((((57899i32 + (8i32 << 3i32) -
+            (current_one_position % crate::consts::P as i32) as u32;
+        gf2x_set_coeff(constantWeightOut.offset((((crate::consts::P as i32 + (8i32 << 3i32) -
                                                        1i32) / (8i32 << 3i32))
                                                      as
                                                      u32).wrapping_mul(polyIndex)

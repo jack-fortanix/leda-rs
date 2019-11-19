@@ -50,7 +50,7 @@ pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [u32; 121],
             while k < 11i32 * 11i32 {
                 let mut l: i32 = 0i32;
                 while l < 11i32 * 11i32 {
-                    gamma[i_0 as usize][j_0 as usize][(57899i32 as
+                    gamma[i_0 as usize][j_0 as usize][(crate::consts::P as i32 as
                                                      u32).wrapping_add(LSparse_loc[i_0
                                                                                                 as
                                                                                                 usize][k
@@ -59,7 +59,7 @@ pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [u32; 121],
                                                                                                                                                 as
                                                                                                                                                 usize][l
                                                                                                                                                            as
-                                                                                                                                                           usize]).wrapping_rem(57899i32
+                                                                                                                                                           usize]).wrapping_rem(crate::consts::P as i32
                                                                                                                                                                                     as
                                                                                                                                                                                     u32)
                                                     as usize] += 1;
@@ -93,7 +93,7 @@ pub unsafe extern "C" fn DFR_test(mut LSparse: *mut [u32; 121],
         let mut j_2: i32 = 0i32;
         while j_2 < 2i32 {
             let mut k_0: i32 = 0i32;
-            while k_0 < 57899i32 {
+            while k_0 < crate::consts::P as i32 {
                 gammaHist[i_2 as
                               usize][gamma[i_2 as
                                                usize][j_2 as

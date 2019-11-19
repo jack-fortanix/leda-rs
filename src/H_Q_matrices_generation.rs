@@ -49,11 +49,11 @@ pub unsafe extern "C" fn transposeHPosOnes(mut HtrPosOnes:
         let mut k: i32 = 0i32;
         while k < 11i32 {
             (*HtrPosOnes.offset(i as isize))[k as usize] =
-                (57899i32 as
+                (crate::consts::P as i32 as
                      u32).wrapping_sub((*HPosOnes.offset(i as
                                                                       isize))[k
                                                                                   as
-                                                                                  usize]).wrapping_rem(57899i32
+                                                                                  usize]).wrapping_rem(crate::consts::P as i32
                                                                                                            as
                                                                                                            u32);
             k += 1
@@ -88,12 +88,12 @@ pub unsafe extern "C" fn transposeQPosOnes(mut QtrPosOnes:
                                                                         as
                                                                         usize]
                                                     as usize] =
-                    (57899i32 as
+                    (crate::consts::P as i32 as
                          u32).wrapping_sub((*QPosOnes.offset(source_row_idx
                                                                           as
                                                                           isize))[currQoneIdx
                                                                                       as
-                                                                                      usize]).wrapping_rem(57899i32
+                                                                                      usize]).wrapping_rem(crate::consts::P as i32
                                                                                                                as
                                                                                                                u32);
                 transposed_ones_idx[blockIdx as usize] =

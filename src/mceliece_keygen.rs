@@ -51,7 +51,7 @@ unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
                                     exponent: u32,
                                     mut value: DIGIT) {
     let mut straightIdx: i32 =
-        (((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
+        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
               - 1i32) as u32).wrapping_sub(exponent) as i32;
     let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
     let mut inDigitIdx: u32 =
@@ -108,7 +108,7 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
         while i < 2i32 {
             let mut j: i32 = 0i32;
             while j < 11i32 * 11i32 {
-                LPosOnes[i as usize][j as usize] = 57899i32 as u32;
+                LPosOnes[i as usize][j as usize] = crate::consts::P as i32 as u32;
                 j += 1
             }
             i += 1
@@ -154,7 +154,7 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
             is_L_full =
                 (is_L_full != 0 &&
                      LPosOnes[i_1 as usize][(11i32 * 11i32 - 1i32) as usize]
-                         != 57899i32 as u32) as i32;
+                         != crate::consts::P as i32 as u32) as i32;
             i_1 += 1
         }
         (*sk).rejections =
@@ -211,7 +211,7 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
     let mut j_0: i32 = 0i32;
     while j_0 < 11i32 * 11i32 {
         if LPosOnes[(2i32 - 1i32) as usize][j_0 as usize] !=
-               57899i32 as u32 {
+               crate::consts::P as i32 as u32 {
             gf2x_set_coeff(Ln0dense.as_mut_ptr(),
                            LPosOnes[(2i32 - 1i32) as usize][j_0 as usize],
                            1i32 as DIGIT);
@@ -264,7 +264,7 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
     let mut i_2: i32 = 0i32;
     while i_2 < 2i32 - 1i32 {
         gf2x_mod_mul_dense_to_sparse((*pk).Mtr.as_mut_ptr().offset((i_2 *
-                                                                        ((57899i32
+                                                                        ((crate::consts::P as i32
                                                                               +
                                                                               (8i32
                                                                                    <<
@@ -286,7 +286,7 @@ pub unsafe extern "C" fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
     let mut i_3: i32 = 0i32;
     while i_3 < 2i32 - 1i32 {
         gf2x_transpose_in_place((*pk).Mtr.as_mut_ptr().offset((i_3 *
-                                                                   ((57899i32
+                                                                   ((crate::consts::P as i32
                                                                          +
                                                                          (8i32
                                                                               <<

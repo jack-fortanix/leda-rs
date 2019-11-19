@@ -68,7 +68,7 @@ static mut qBlockWeights: [[u8; 2]; 2] =
 #[inline]
 unsafe extern "C" fn gf2x_copy(mut dest: *mut DIGIT, mut in_0: *const DIGIT) {
     let mut i: i32 =
-        (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
     while i >= 0i32 {
         *dest.offset(i as isize) = *in_0.offset(i as isize);
         i -= 1
@@ -78,7 +78,7 @@ unsafe extern "C" fn gf2x_copy(mut dest: *mut DIGIT, mut in_0: *const DIGIT) {
 unsafe extern "C" fn gf2x_get_coeff(mut poly: *const DIGIT,
                                     exponent: u32) -> DIGIT {
     let mut straightIdx: u32 =
-        (((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
+        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
               - 1i32) as u32).wrapping_sub(exponent);
     let mut digitIdx: u32 =
         straightIdx.wrapping_div((8i32 << 3i32) as u32);
@@ -92,7 +92,7 @@ unsafe extern "C" fn gf2x_get_coeff(mut poly: *const DIGIT,
 unsafe extern "C" fn gf2x_toggle_coeff(mut poly: *mut DIGIT,
                                        exponent: u32) {
     let mut straightIdx: i32 =
-        (((57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
+        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
               - 1i32) as u32).wrapping_sub(exponent) as i32;
     let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
     let mut inDigitIdx: u32 =
@@ -154,13 +154,13 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
     loop  {
         gf2x_copy(currSyndrome.as_mut_ptr(), privateSyndrome as *const DIGIT);
         memset(unsatParityChecks.as_mut_ptr() as *mut libc::c_void, 0i32,
-               ((2i32 * 57899i32) as
+               ((2i32 * crate::consts::P as i32) as
                     u64).wrapping_mul(::std::mem::size_of::<u8>()
                                                     as u64));
         let mut i: i32 = 0i32;
         while i < 2i32 {
             let mut valueIdx: i32 = 0i32;
-            while valueIdx < 57899i32 {
+            while valueIdx < crate::consts::P as i32 {
                 let mut HtrOneIdx: i32 = 0i32;
                 while HtrOneIdx < 11i32 {
                     let mut tmp: u32 =
@@ -169,12 +169,12 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
                                                                usize].wrapping_add(valueIdx
                                                                                        as
                                                                                        u32)
-                               >= 57899i32 as u32 {
+                               >= crate::consts::P as i32 as u32 {
                             (*HtrPosOnes.offset(i as
                                                     isize))[HtrOneIdx as
                                                                 usize].wrapping_add(valueIdx
                                                                                         as
-                                                                                        u32).wrapping_sub(57899i32
+                                                                                        u32).wrapping_sub(crate::consts::P as i32
                                                                                                                        as
                                                                                                                        u32)
                         } else {
@@ -186,9 +186,9 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
                         };
                     if gf2x_get_coeff(currSyndrome.as_mut_ptr() as
                                           *const DIGIT, tmp) != 0 {
-                        unsatParityChecks[(i * 57899i32 + valueIdx) as usize]
+                        unsatParityChecks[(i * crate::consts::P as i32 + valueIdx) as usize]
                             =
-                            unsatParityChecks[(i * 57899i32 + valueIdx) as
+                            unsatParityChecks[(i * crate::consts::P as i32 + valueIdx) as
                                                   usize].wrapping_add(1)
                     }
                     HtrOneIdx += 1
@@ -205,7 +205,7 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
         while i_0 < 2i32 {
             let mut j: i32 =
                 0i32; // position in the column of QtrPosOnes[][...]
-            while j < 57899i32 {
+            while j < crate::consts::P as i32 {
                 let mut currQoneIdx: i32 = 0i32;
                 let mut endQblockIdx: i32 = 0i32;
                 let mut correlation: i32 = 0i32;
@@ -215,7 +215,7 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
                         qBlockWeights[blockIdx as usize][i_0 as usize] as
                             i32;
                     let mut currblockoffset: i32 =
-                        blockIdx * 57899i32;
+                        blockIdx * crate::consts::P as i32;
                     while currQoneIdx < endQblockIdx {
                         let mut tmp_0: i32 =
                             (*QtrPosOnes.offset(i_0 as
@@ -225,8 +225,8 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
                                                                                         u32)
                                 as i32;
                         tmp_0 =
-                            if tmp_0 >= 57899i32 {
-                                (tmp_0) - 57899i32
+                            if tmp_0 >= crate::consts::P as i32 {
+                                (tmp_0) - crate::consts::P as i32
                             } else { tmp_0 };
                         currQBitPos[currQoneIdx as usize] = tmp_0 as u32;
                         currQBlkPos[currQoneIdx as usize] =
@@ -240,7 +240,7 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
                 }
                 /* Correlation based flipping */
                 if correlation >= corrt_syndrome_based {
-                    gf2x_toggle_coeff(out.offset(((57899i32 + (8i32 << 3i32) -
+                    gf2x_toggle_coeff(out.offset(((crate::consts::P as i32 + (8i32 << 3i32) -
                                                        1i32) / (8i32 << 3i32)
                                                       * i_0) as isize),
                                       j as u32);
@@ -257,8 +257,8 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
                                                                                                         usize]);
                             syndromePosToFlip =
                                 if syndromePosToFlip >=
-                                       57899i32 as u32 {
-                                    syndromePosToFlip.wrapping_sub(57899i32 as
+                                       crate::consts::P as i32 as u32 {
+                                    syndromePosToFlip.wrapping_sub(crate::consts::P as i32 as
                                                                        u32)
                                 } else { syndromePosToFlip };
                             gf2x_toggle_coeff(privateSyndrome,
@@ -276,7 +276,7 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
         }
         iteration = iteration + 1i32;
         check = 0i32;
-        while check < (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) &&
+        while check < (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) &&
                   {
                       let fresh0 = check;
                       check = check + 1;
@@ -285,12 +285,12 @@ pub unsafe extern "C" fn bf_decoding(mut out: *mut DIGIT,
                   } {
         }
         if !(iteration < 2i32 &&
-                 check < (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32))
+                 check < (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32))
            {
             break ;
         }
     }
-    return (check == (57899i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as
+    return (check == (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as
                i32;
 }
 // end QdecodeSyndromeThresh_bitFlip_sparse
