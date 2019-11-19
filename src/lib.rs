@@ -11,7 +11,6 @@ mod encrypt;
 mod gf2x_arith_mod_xPplusOne;
 mod gf2x_arith;
 mod H_Q_matrices_generation;
-mod marshalling;
 mod mceliece_cca2_decrypt;
 mod mceliece_cca2_encrypt;
 mod mceliece_keygen;
