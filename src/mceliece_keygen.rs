@@ -13,7 +13,7 @@ pub unsafe fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t,
                                sk: *mut privateKeyMcEliece_t) {
     randombytes((*sk).prng_seed.as_mut_ptr(), 32i32 as u64);
 
-    let mut keys_expander = seedexpander_from_trng((*sk).prng_seed.as_ptr());
+    let mut keys_expander = seedexpander_from_trng(&(*sk).prng_seed).unwrap();
     // sequence of N0 circ block matrices (p x p): Hi
     let mut HPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
     /* Sparse representation of the transposed circulant matrix H,

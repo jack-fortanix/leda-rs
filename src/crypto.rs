@@ -47,16 +47,18 @@ pub static mut DRBG_ctx: AES256_CTR_DRBG_struct =
  */
 
 unsafe fn seedexpander_init(mut ctx: *mut AES_XOF_struct,
-                            seed: *const u8,
+                            seed: &[u8],
                             diversifier: &[u8],
-                            maxlen: u32) -> i32 {
+                            maxlen: u32) -> Result<()> {
+    if seed.len() != 32 {
+        return Err(Error::Custom("Unexpected seed input size to seed expander".into()));
+    }
+
     (*ctx).length_remaining = maxlen as u64;
-    memset((*ctx).key.as_mut_ptr() as *mut libc::c_void, 0i32,
-           32i32 as u64);
-    let mut max_accessible_seed_len: i32 =
-        if 32i32 < 32i32 { 32i32 } else { 32i32 };
+    memset((*ctx).key.as_mut_ptr() as *mut libc::c_void, 0i32, 32i32 as u64);
+    let mut max_accessible_seed_len: i32 = 32;
     memcpy((*ctx).key.as_mut_ptr() as *mut libc::c_void,
-           seed as *const libc::c_void,
+           seed.as_ptr() as *const libc::c_void,
            max_accessible_seed_len as u64);
 
     let maxlen_b = maxlen.to_be_bytes();
@@ -80,10 +82,10 @@ unsafe fn seedexpander_init(mut ctx: *mut AES_XOF_struct,
     ];
 
     (*ctx).ctr = ctr;
-    (*ctx).buffer_pos = 16i32;
+    (*ctx).buffer_pos = 16;
     memset((*ctx).buffer.as_mut_ptr() as *mut libc::c_void, 0i32,
            16i32 as u64);
-    return 0i32;
+    Ok(())
 }
 /*
  seedexpander()
@@ -325,26 +327,18 @@ pub unsafe fn deterministic_random_byte_generator(output: *mut u8,
 /* *****  End of NIST supplied code ****************/
 // end deterministic_random_byte_generator
 
-pub unsafe fn seedexpander_from_trng(trng_entropy: *const u8) -> AES_XOF_struct {
+pub unsafe fn seedexpander_from_trng(trng_entropy: &[u8]) -> Result<AES_XOF_struct> {
     let mut ctx: AES_XOF_struct =
         AES_XOF_struct{buffer: [0; 16],
                        buffer_pos: 0,
                        length_remaining: 0,
                        key: [0; 32],
                        ctr: [0; 16],};
-    /*the NIST seedexpander will however access 32B from this buffer */
-    let mut prng_buffer_size: u32 = 32;
-    let mut prng_buffer: [u8; 32] =
-        [0i32 as u8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    memcpy(prng_buffer.as_mut_ptr() as *mut libc::c_void,
-           trng_entropy as *const libc::c_void,
-           prng_buffer_size as u64);
     let mut diversifier: [u8; 8] = [0; 8];
+
+    let max_len = (10 * 1024 * 1024) as u32;
     /* the required seed expansion will be quite small, set the max number of
     * bytes conservatively to 10 MiB*/
-    seedexpander_init(&mut ctx, prng_buffer.as_mut_ptr(), &diversifier,
-                      (10i32 * 1024i32 * 1024i32) as u32);
-
-     ctx
+    seedexpander_init(&mut ctx, &trng_entropy, &diversifier, max_len)?;
+    Ok(ctx)
 }

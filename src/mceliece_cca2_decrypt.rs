@@ -27,7 +27,7 @@ unsafe fn decrypt_McEliece(mut decoded_err: *mut DIGIT,
                            ctx: *const u8)
  -> i32 {
     let mut mceliece_decrypt_expander =
-        seedexpander_from_trng((*sk).prng_seed.as_ptr());
+        seedexpander_from_trng(&(*sk).prng_seed).unwrap();
     /* rebuild secret key values */
     let mut HPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
     let mut QPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
