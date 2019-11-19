@@ -1,5 +1,4 @@
-#![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
-         non_upper_case_globals, unused_assignments, unused_mut)]
+
 extern "C" {
     // end gf2x_add
     /*----------------------------------------------------------------------------*/
@@ -26,6 +25,7 @@ extern "C" {
 
 }
 
+use crate::gf2x_arith::*;
 use crate::djbsort::int32_sort;
 
 /* *
@@ -81,148 +81,7 @@ pub union toReverse_t {
     pub inByte: [u8; 8],
     pub digitValue: DIGIT,
 }
-/* *
- *
- * <gf2x_arith.h>
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of LEDAcrypt using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
-/*----------------------------------------------------------------------------*/
-/*
- * Elements of GF(2)[x] are stored in compact dense binary form.
- *
- * Each bit in a byte is assumed to be the coefficient of a binary
- * polynomial f(x), in Big-Endian format (i.e., reading everything from
- * left to right, the most significant element is met first):
- *
- * byte:(0000 0000) == 0x00 ... f(x) == 0
- * byte:(0000 0001) == 0x01 ... f(x) == 1
- * byte:(0000 0010) == 0x02 ... f(x) == x
- * byte:(0000 0011) == 0x03 ... f(x) == x+1
- * ...                      ... ...
- * byte:(0000 1111) == 0x0F ... f(x) == x^{3}+x^{2}+x+1
- * ...                      ... ...
- * byte:(1111 1111) == 0xFF ... f(x) == x^{7}+x^{6}+x^{5}+x^{4}+x^{3}+x^{2}+x+1
- *
- *
- * A "machine word" (A_i) is considered as a DIGIT.
- * Bytes in a DIGIT are assumed in Big-Endian format:
- * E.g., if sizeof(DIGIT) == 4:
- * A_i: A_{i,3} A_{i,2} A_{i,1} A_{i,0}.
- * A_{i,3} denotes the most significant byte, A_{i,0} the least significant one.
- * f(x) ==   x^{31} + ... + x^{24} +
- *         + x^{23} + ... + x^{16} +
- *         + x^{15} + ... + x^{8}  +
- *         + x^{7}  + ... + x^{0}
- *
- *
- * Multi-precision elements (i.e., with multiple DIGITs) are stored in
- * Big-endian format:
- *           A = A_{n-1} A_{n-2} ... A_1 A_0
- *
- *           position[A_{n-1}] == 0
- *           position[A_{n-2}] == 1
- *           ...
- *           position[A_{1}]  ==  n-2
- *           position[A_{0}]  ==  n-1
- */
-/*----------------------------------------------------------------------------*/
-/*----------------------------------------------------------------------------*/
-#[inline]
-unsafe extern "C" fn gf2x_add(nr: i32, mut Res: *mut DIGIT,
-                              _na: i32, mut A: *const DIGIT,
-                              _nb: i32, mut B: *const DIGIT) {
-    let mut i: u32 = 0i32 as u32;
-    while i < nr as u32 {
-        *Res.offset(i as isize) =
-            *A.offset(i as isize) ^ *B.offset(i as isize);
-        i = i.wrapping_add(1)
-    };
-}
-#[inline]
-unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
-                                    exponent: u32,
-                                    mut value: DIGIT) {
-    let mut straightIdx: i32 =
-        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
-              - 1i32) as u32).wrapping_sub(exponent) as i32;
-    let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
-    let mut inDigitIdx: u32 =
-        (straightIdx % (8i32 << 3i32)) as u32;
-    let mut mask: DIGIT =
-        !((1i32 as DIGIT) <<
-              (((8i32 << 3i32) - 1i32) as
-                   u32).wrapping_sub(inDigitIdx));
-    *poly.offset(digitIdx as isize) = *poly.offset(digitIdx as isize) & mask;
-    *poly.offset(digitIdx as isize) =
-        *poly.offset(digitIdx as isize) |
-            (value & 1i32 as DIGIT) <<
-                (((8i32 << 3i32) - 1i32) as
-                     u32).wrapping_sub(inDigitIdx);
-}
-#[inline]
-unsafe extern "C" fn gf2x_mod_add(mut Res: *mut DIGIT, mut A: *const DIGIT,
-                                  mut B: *const DIGIT) {
-    gf2x_add((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), Res,
-             (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), A,
-             (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), B);
-}
-/* *
- *
- * <gf2x_arith_mod_xPplusOne.c>
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of LEDAcrypt using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
+
 // memcpy(...), memset(...)
 /*----------------------------------------------------------------------------*/
 /* specialized for nin == 2 * NUM_DIGITS_GF2X_ELEMENT, as it is only used

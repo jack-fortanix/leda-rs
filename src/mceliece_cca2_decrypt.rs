@@ -1,6 +1,7 @@
 
 use crate::types::*;
 use crate::consts::*;
+use crate::gf2x_arith::*;
 
 extern "C" {
     /*----------------------------------------------------------------------------*/
@@ -76,100 +77,6 @@ extern "C" {
     static mut thresholds: [i32; 2];
 }
 
-/*----------------------------------------------------------------------------*/
-/*
- * Elements of GF(2)[x] are stored in compact dense binary form.
- *
- * Each bit in a byte is assumed to be the coefficient of a binary
- * polynomial f(x), in Big-Endian format (i.e., reading everything from
- * left to right, the most significant element is met first):
- *
- * byte:(0000 0000) == 0x00 ... f(x) == 0
- * byte:(0000 0001) == 0x01 ... f(x) == 1
- * byte:(0000 0010) == 0x02 ... f(x) == x
- * byte:(0000 0011) == 0x03 ... f(x) == x+1
- * ...                      ... ...
- * byte:(0000 1111) == 0x0F ... f(x) == x^{3}+x^{2}+x+1
- * ...                      ... ...
- * byte:(1111 1111) == 0xFF ... f(x) == x^{7}+x^{6}+x^{5}+x^{4}+x^{3}+x^{2}+x+1
- *
- *
- * A "machine word" (A_i) is considered as a DIGIT.
- * Bytes in a DIGIT are assumed in Big-Endian format:
- * E.g., if sizeof(DIGIT) == 4:
- * A_i: A_{i,3} A_{i,2} A_{i,1} A_{i,0}.
- * A_{i,3} denotes the most significant byte, A_{i,0} the least significant one.
- * f(x) ==   x^{31} + ... + x^{24} +
- *         + x^{23} + ... + x^{16} +
- *         + x^{15} + ... + x^{8}  +
- *         + x^{7}  + ... + x^{0}
- *
- *
- * Multi-precision elements (i.e., with multiple DIGITs) are stored in
- * Big-endian format:
- *           A = A_{n-1} A_{n-2} ... A_1 A_0
- *
- *           position[A_{n-1}] == 0
- *           position[A_{n-2}] == 1
- *           ...
- *           position[A_{1}]  ==  n-2
- *           position[A_{0}]  ==  n-1
- */
-/*----------------------------------------------------------------------------*/
-/*----------------------------------------------------------------------------*/
-#[inline]
-unsafe extern "C" fn gf2x_add(nr: i32, mut Res: *mut DIGIT,
-                              _na: i32, A: *const DIGIT,
-                              _nb: i32, B: *const DIGIT) {
-    let mut i: u32 = 0i32 as u32;
-    while i < nr as u32 {
-        *Res.offset(i as isize) =
-            *A.offset(i as isize) ^ *B.offset(i as isize);
-        i = i.wrapping_add(1)
-    };
-}
-/*---------------------------------------------------------------------------*/
-#[inline]
-unsafe extern "C" fn gf2x_mod_add(mut Res: *mut DIGIT, A: *const DIGIT,
-                                  B: *const DIGIT) {
-    gf2x_add((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), Res,
-             (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), A,
-             (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), B);
-}
-/* in place bit-transp. of a(x) % x^P+1  *
-                                      * e.g.: a3 a2 a1 a0 --> a1 a2 a3 a0     */
-/*---------------------------------------------------------------------------*/
-/* population count for a single polynomial */
-#[inline]
-unsafe extern "C" fn population_count(upc: *const DIGIT) -> i32 {
-    let mut ret: i32 = 0i32;
-    let mut i: i32 =
-        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
-    while i >= 0i32 {
-        ret +=
-            (*upc.offset(i as isize) as u64).count_ones() as
-                i32;
-        i -= 1
-    }
-    return ret;
-}
-// end population_count
-/*--------------------------------------------------------------------------*/
-/* returns the coefficient of the x^exponent term as the LSB of a digit */
-#[inline]
-unsafe extern "C" fn gf2x_get_coeff(mut poly: *const DIGIT,
-                                    exponent: u32) -> DIGIT {
-    let mut straightIdx: u32 =
-        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
-              - 1i32) as u32).wrapping_sub(exponent);
-    let mut digitIdx: u32 =
-        straightIdx.wrapping_div((8i32 << 3i32) as u32);
-    let mut inDigitIdx: u32 =
-        straightIdx.wrapping_rem((8i32 << 3i32) as u32);
-    return *poly.offset(digitIdx as isize) >>
-               (((8i32 << 3i32) - 1i32) as
-                    u32).wrapping_sub(inDigitIdx) & 1i32 as DIGIT;
-}
 /* *
  *
  * @version 2.0 (March 2019)

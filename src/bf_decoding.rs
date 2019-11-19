@@ -1,6 +1,7 @@
 
 use crate::types::*;
 use crate::consts::*;
+use crate::gf2x_arith::*;
 
 extern "C" {
     #[no_mangle]
@@ -8,44 +9,6 @@ extern "C" {
      -> *mut libc::c_void;
 }
 
-#[inline]
-unsafe extern "C" fn gf2x_copy(mut dest: *mut DIGIT, mut in_0: *const DIGIT) {
-    let mut i: i32 =
-        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
-    while i >= 0i32 {
-        *dest.offset(i as isize) = *in_0.offset(i as isize);
-        i -= 1
-    };
-}
-#[inline]
-unsafe extern "C" fn gf2x_get_coeff(mut poly: *const DIGIT,
-                                    exponent: u32) -> DIGIT {
-    let mut straightIdx: u32 =
-        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
-              - 1i32) as u32).wrapping_sub(exponent);
-    let mut digitIdx: u32 =
-        straightIdx.wrapping_div((8i32 << 3i32) as u32);
-    let mut inDigitIdx: u32 =
-        straightIdx.wrapping_rem((8i32 << 3i32) as u32);
-    return *poly.offset(digitIdx as isize) >>
-               (((8i32 << 3i32) - 1i32) as
-                    u32).wrapping_sub(inDigitIdx) & 1i32 as DIGIT;
-}
-#[inline]
-unsafe extern "C" fn gf2x_toggle_coeff(mut poly: *mut DIGIT,
-                                       exponent: u32) {
-    let mut straightIdx: i32 =
-        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
-              - 1i32) as u32).wrapping_sub(exponent) as i32;
-    let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
-    let mut inDigitIdx: u32 =
-        (straightIdx % (8i32 << 3i32)) as u32;
-    let mut mask: DIGIT =
-        (1i32 as DIGIT) <<
-            (((8i32 << 3i32) - 1i32) as
-                 u32).wrapping_sub(inDigitIdx);
-    *poly.offset(digitIdx as isize) = *poly.offset(digitIdx as isize) ^ mask;
-}
 /* *
  *
  * <bf_decoding.c>

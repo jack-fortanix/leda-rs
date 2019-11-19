@@ -8,7 +8,65 @@ extern "C" {
     fn memset(_: *mut libc::c_void, _: i32, _: u64)
      -> *mut libc::c_void;
 }
-pub type DIGIT = u64;
+
+pub unsafe extern "C" fn gf2x_copy(mut dest: *mut DIGIT, mut in_0: *const DIGIT) {
+    let mut i: i32 =
+        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+    while i >= 0i32 {
+        *dest.offset(i as isize) = *in_0.offset(i as isize);
+        i -= 1
+    };
+}
+
+pub unsafe extern "C" fn population_count(upc: *const DIGIT) -> i32 {
+    let mut ret: i32 = 0i32;
+    let mut i: i32 =
+        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+    while i >= 0i32 {
+        ret +=
+            (*upc.offset(i as isize) as u64).count_ones() as
+                i32;
+        i -= 1
+    }
+    return ret;
+}
+
+pub unsafe extern "C" fn gf2x_get_coeff(mut poly: *const DIGIT,
+                                    exponent: u32) -> DIGIT {
+    let mut straightIdx: u32 =
+        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
+              - 1i32) as u32).wrapping_sub(exponent);
+    let mut digitIdx: u32 =
+        straightIdx.wrapping_div((8i32 << 3i32) as u32);
+    let mut inDigitIdx: u32 =
+        straightIdx.wrapping_rem((8i32 << 3i32) as u32);
+    return *poly.offset(digitIdx as isize) >>
+               (((8i32 << 3i32) - 1i32) as
+                    u32).wrapping_sub(inDigitIdx) & 1i32 as DIGIT;
+}
+
+pub unsafe extern "C" fn gf2x_mod_add(mut Res: *mut DIGIT, A: *const DIGIT,
+                                  B: *const DIGIT) {
+    gf2x_add((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), Res,
+             (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), A,
+             (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32), B);
+}
+
+pub unsafe extern "C" fn gf2x_toggle_coeff(mut poly: *mut DIGIT,
+                                       exponent: u32) {
+    let mut straightIdx: i32 =
+        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
+              - 1i32) as u32).wrapping_sub(exponent) as i32;
+    let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
+    let mut inDigitIdx: u32 =
+        (straightIdx % (8i32 << 3i32)) as u32;
+    let mut mask: DIGIT =
+        (1i32 as DIGIT) <<
+            (((8i32 << 3i32) - 1i32) as
+                 u32).wrapping_sub(inDigitIdx);
+    *poly.offset(digitIdx as isize) = *poly.offset(digitIdx as isize) ^ mask;
+}
+
 /* *
  *
  * <gf2x_arith.h>
@@ -80,9 +138,7 @@ pub type DIGIT = u64;
  *           position[A_{0}]  ==  n-1
  */
 /*----------------------------------------------------------------------------*/
-/*----------------------------------------------------------------------------*/
-#[inline]
-unsafe extern "C" fn gf2x_add(nr: i32, mut Res: *mut DIGIT,
+pub unsafe extern "C" fn gf2x_add(nr: i32, mut Res: *mut DIGIT,
                               _na: i32, mut A: *const DIGIT,
                               _nb: i32, mut B: *const DIGIT) {
     let mut i: u32 = 0i32 as u32;
@@ -92,7 +148,34 @@ unsafe extern "C" fn gf2x_add(nr: i32, mut Res: *mut DIGIT,
         i = i.wrapping_add(1)
     };
 }
-/* *
+
+
+/*--------------------------------------------------------------------------*/
+/* sets the coefficient of the x^exponent term as the LSB of a digit */
+pub unsafe extern "C" fn gf2x_set_coeff(mut poly: *mut DIGIT,
+                                    exponent: u32,
+                                    mut value: DIGIT) {
+    let mut straightIdx: i32 =
+        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
+              - 1i32) as u32).wrapping_sub(exponent) as i32;
+    let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
+    let mut inDigitIdx: u32 =
+        (straightIdx % (8i32 << 3i32)) as u32;
+    /* clear given coefficient */
+    let mut mask: DIGIT =
+        !((1i32 as DIGIT) <<
+              (((8i32 << 3i32) - 1i32) as
+                   u32).wrapping_sub(inDigitIdx));
+    *poly.offset(digitIdx as isize) = *poly.offset(digitIdx as isize) & mask;
+    *poly.offset(digitIdx as isize) =
+        *poly.offset(digitIdx as isize) |
+            (value & 1i32 as DIGIT) <<
+                (((8i32 << 3i32) - 1i32) as
+                     u32).wrapping_sub(inDigitIdx);
+}
+
+
+         /* *
  *
  * <gf2x_arith.c>
  *
