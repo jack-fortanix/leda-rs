@@ -5,8 +5,6 @@ use std::convert::TryInto;
 extern "C" {
     #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
 }
 
 /* *
@@ -261,22 +259,11 @@ pub unsafe fn deterministic_random_byte_generator(
         reseed_counter: 0,
     };
     let mut seed_material: [u8; 48] = [0; 48];
-    memset(
-        seed_material.as_mut_ptr() as *mut libc::c_void,
-        0i32,
-        48i32 as u64,
-    );
     memcpy(
         seed_material.as_mut_ptr() as *mut libc::c_void,
         seed as *const libc::c_void,
         seed_length as u64,
     );
-    memset(
-        ctx.key.as_mut_ptr() as *mut libc::c_void,
-        0i32,
-        32i32 as u64,
-    );
-    memset(ctx.v.as_mut_ptr() as *mut libc::c_void, 0i32, 16i32 as u64);
     AES256_CTR_DRBG_Update(
         seed_material.as_mut_ptr(),
         ctx.key.as_mut_ptr(),
