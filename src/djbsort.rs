@@ -6,7 +6,7 @@
 *****************************************************************************/
 
 #[inline]
-unsafe fn int32_MINMAX(a: &mut i32, b: &mut i32) {
+fn int32_MINMAX(a: &mut i32, b: &mut i32) {
     let ab: i32 = *b ^ *a;
     let mut c: i32 = *b - *a;
     c ^= ab & (c ^ *b);

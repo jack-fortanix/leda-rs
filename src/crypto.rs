@@ -77,25 +77,27 @@ pub static mut DRBG_ctx: AES256_CTR_DRBG_struct = AES256_CTR_DRBG_struct {
 };
 
 pub unsafe fn randombytes_init(entropy_input: &[u8]) {
-    memset(DRBG_ctx.key.as_mut_ptr() as *mut libc::c_void, 0, 32);
-    memset(DRBG_ctx.v.as_mut_ptr() as *mut libc::c_void, 0, 16);
+    DRBG_ctx.key.copy_from_slice(&[0u8; 32]);
+    DRBG_ctx.v.copy_from_slice(&[0u8; 16]);
+    DRBG_ctx.reseed_counter = 1;
 
     AES256_CTR_DRBG_Update(
         entropy_input.as_ptr(),
         &mut DRBG_ctx.key,
         &mut DRBG_ctx.v);
-    DRBG_ctx.reseed_counter = 1i32;
 }
 
-pub unsafe fn randombytes(x: *mut u8, mut xlen: u64) -> i32 {
+pub unsafe fn randombytes(x: &mut [u8]) {
+    let mut xlen = x.len();
+
     let mut block: [u8; 16] = [0; 16];
-    let mut i: i32 = 0i32;
-    while xlen > 0i32 as u64 {
+    let mut i: usize = 0;
+    while xlen > 0 {
         //increment v
-        let mut j: i32 = 15i32;
-        while j >= 0i32 {
-            if DRBG_ctx.v[j as usize] as i32 == 0xffi32 {
-                DRBG_ctx.v[j as usize] = 0i32 as u8;
+        let mut j: i32 = 15;
+        while j >= 0 {
+            if DRBG_ctx.v[j as usize] == 0xff {
+                DRBG_ctx.v[j as usize] = 0u8;
                 j -= 1
             } else {
                 DRBG_ctx.v[j as usize] = DRBG_ctx.v[j as usize].wrapping_add(1);
@@ -107,29 +109,18 @@ pub unsafe fn randombytes(x: *mut u8, mut xlen: u64) -> i32 {
             &DRBG_ctx.v,
             &mut block
         );
-        if xlen > 15i32 as u64 {
-            memcpy(
-                x.offset(i as isize) as *mut libc::c_void,
-                block.as_mut_ptr() as *const libc::c_void,
-                16i32 as u64,
-            );
-            i += 16i32;
-            xlen = xlen.wrapping_sub(16i32 as u64)
+
+        if xlen >= 16 {
+            &x[i..(i+16)].copy_from_slice(&block);
+            i += 16;
+            xlen -= 16; // can't wrap
         } else {
-            memcpy(
-                x.offset(i as isize) as *mut libc::c_void,
-                block.as_mut_ptr() as *const libc::c_void,
-                xlen as u64,
-            );
-            xlen = 0i32 as u64
+            &x[i..(i+xlen)].copy_from_slice(&block[0..xlen]);
+            xlen = 0
         }
     }
-    AES256_CTR_DRBG_Update(
-        ::std::ptr::null(),
-        &mut DRBG_ctx.key,
-        &mut DRBG_ctx.v);
+    AES256_CTR_DRBG_Update(::std::ptr::null(), &mut DRBG_ctx.key, &mut DRBG_ctx.v);
     DRBG_ctx.reseed_counter += 1;
-    return 0i32;
 }
 
 unsafe fn AES256_CTR_DRBG_Update(provided_data: *const u8, key: &mut [u8], v: &mut [u8]) {

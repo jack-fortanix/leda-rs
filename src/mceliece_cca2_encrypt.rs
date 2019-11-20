@@ -171,7 +171,7 @@ pub unsafe fn encrypt_Kobara_Imai(
     /* Generate PRNG pad */
 
     let mut secretSeed: [u8; 32] = [0; 32];
-    randombytes(secretSeed.as_mut_ptr(), 32);
+    randombytes(&mut secretSeed);
 
     let mut paddedSequenceLen: u64 = 0;
     let mut isPaddedSequenceOnlyKBits: i32 = 0i32;
@@ -320,7 +320,7 @@ pub unsafe fn encrypt_Kobara_Imai(
                 as u64,
         );
         /* draw filler randomness for cwenc input from an independent random*/
-        randombytes(secretSeed.as_mut_ptr(), 32);
+        randombytes(&mut secretSeed);
         x_deterministic_random_byte_generator(
             cwEncInputBuffer.as_mut_ptr().offset(48),
             1024i32 as u64,

@@ -9,7 +9,7 @@ use crate::H_Q_matrices_generation::*;
 /*----------------------------------------------------------------------------*/
 
 pub unsafe fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t, sk: *mut privateKeyMcEliece_t) {
-    randombytes((*sk).prng_seed.as_mut_ptr(), 32i32 as u64);
+    randombytes(&mut (*sk).prng_seed);
 
     let mut keys_expander = seedexpander_from_trng(&(*sk).prng_seed).unwrap();
     // sequence of N0 circ block matrices (p x p): Hi
