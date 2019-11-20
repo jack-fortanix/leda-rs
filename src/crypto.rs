@@ -52,7 +52,7 @@ pub fn seedexpander(ctx: &mut AES_XOF_struct, x: &mut [u8]) -> Result<()> {
     return Ok(());
 }
 
-unsafe fn AES256_ECB(key: &[u8], ptx: &[u8], ctx: &mut [u8]) {
+fn AES256_ECB(key: &[u8], ptx: &[u8], ctx: &mut [u8]) {
     let cipher = mbedtls::cipher::Cipher::<
         mbedtls::cipher::Encryption,
         mbedtls::cipher::TraditionalNoIv,
@@ -87,7 +87,7 @@ pub unsafe fn randombytes_init(entropy_input: &[u8]) {
         &mut DRBG_ctx.v);
 }
 
-pub unsafe fn randombytes(x: &mut [u8]) {
+pub fn randombytes_ctx(ctx: &mut AES256_CTR_DRBG_struct, x: &mut [u8]) {
     let mut xlen = x.len();
 
     let mut block: [u8; 16] = [0; 16];
@@ -96,19 +96,15 @@ pub unsafe fn randombytes(x: &mut [u8]) {
         //increment v
         let mut j: i32 = 15;
         while j >= 0 {
-            if DRBG_ctx.v[j as usize] == 0xff {
-                DRBG_ctx.v[j as usize] = 0u8;
+            if ctx.v[j as usize] == 0xff {
+                ctx.v[j as usize] = 0u8;
                 j -= 1
             } else {
-                DRBG_ctx.v[j as usize] = DRBG_ctx.v[j as usize].wrapping_add(1);
+                ctx.v[j as usize] = ctx.v[j as usize].wrapping_add(1);
                 break;
             }
         }
-        AES256_ECB(
-            &DRBG_ctx.key,
-            &DRBG_ctx.v,
-            &mut block
-        );
+        AES256_ECB(&ctx.key, &ctx.v, &mut block);
 
         if xlen >= 16 {
             &x[i..(i+16)].copy_from_slice(&block);
@@ -119,11 +115,15 @@ pub unsafe fn randombytes(x: &mut [u8]) {
             xlen = 0
         }
     }
-    AES256_CTR_DRBG_Update(::std::ptr::null(), &mut DRBG_ctx.key, &mut DRBG_ctx.v);
-    DRBG_ctx.reseed_counter += 1;
+    AES256_CTR_DRBG_Update(::std::ptr::null(), &mut ctx.key, &mut ctx.v);
+    ctx.reseed_counter += 1;
 }
 
-unsafe fn AES256_CTR_DRBG_Update(provided_data: *const u8, key: &mut [u8], v: &mut [u8]) {
+pub unsafe fn randombytes(x: &mut [u8]) {
+    randombytes_ctx(&mut DRBG_ctx, x)
+}
+
+fn AES256_CTR_DRBG_Update(provided_data: *const u8, key: &mut [u8], v: &mut [u8]) {
     let mut temp: [u8; 48] = [0; 48];
     for block in 0..3 {
         //increment v
@@ -141,8 +141,9 @@ unsafe fn AES256_CTR_DRBG_Update(provided_data: *const u8, key: &mut [u8], v: &m
         AES256_ECB(key, v, &mut temp[16*block..(16*(block+1))]);
     }
     if !provided_data.is_null() {
+        let provided_data = unsafe { std::slice::from_raw_parts(provided_data, 48) };
         for i in 0..48 {
-            temp[i] ^= *provided_data.offset(i as isize);
+            temp[i] ^= provided_data[i];
         }
     }
     key.copy_from_slice(&temp[0..32]);
