@@ -1,7 +1,7 @@
 use crate::bf_decoding::*;
 use crate::constant_weight_codec::*;
 use crate::consts::*;
-use crate::crypto::{deterministic_random_byte_generator, seedexpander_from_trng};
+use crate::crypto::*;
 use crate::gf2x_arith::*;
 use crate::gf2x_arith_mod_xPplusOne::*;
 use crate::types::*;
@@ -278,13 +278,7 @@ pub unsafe fn decrypt_Kobara_Imai(
             .wrapping_add((((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u64)
             as u64
     }
-    let vla = paddedSequenceLen as usize;
-    let mut paddedOutput: Vec<u8> = ::std::vec::from_elem(0, vla);
-    memset(
-        paddedOutput.as_mut_ptr() as *mut libc::c_void,
-        0i32,
-        paddedSequenceLen,
-    );
+    let mut paddedOutput: Vec<u8> = vec![0u8; paddedSequenceLen as usize];
     poly_seq_into_bytestream(
         paddedOutput.as_mut_ptr(),
         (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u32,
@@ -323,15 +317,8 @@ pub unsafe fn decrypt_Kobara_Imai(
             remainingToCopy as u64,
         );
     }
-    let mut outputHash: [u8; 48] = [
-        0i32 as u8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    ];
-    crate::crypto::sha3_384(
-        paddedOutput.as_mut_ptr(),
-        paddedSequenceLen as u32,
-        outputHash.as_mut_ptr(),
-    );
+
+    let outputHash = sha3_384_vec(&paddedOutput);
     /* rebuild message hash ^ seed from error vector */
     let mut cwEncOutputBuffer = vec![0u8; 1072];
     constant_weight_to_binary_approximate(
@@ -354,24 +341,13 @@ pub unsafe fn decrypt_Kobara_Imai(
         }
         i_0 += 1
     }
-    let vla_0 = paddedSequenceLen as usize;
-    let mut prngSequence: Vec<u8> = ::std::vec::from_elem(0, vla_0);
-    memset(
-        prngSequence.as_mut_ptr() as *mut libc::c_void,
-        0i32,
-        paddedSequenceLen,
-    );
-    deterministic_random_byte_generator(
-        prngSequence.as_mut_ptr(),
-        (vla_0 * ::std::mem::size_of::<u8>()) as u64 as u64,
-        secretSeed.as_mut_ptr(),
-        32i32 as u64,
-    );
+
+    let prngSequence = deterministic_random_byte_generator(&secretSeed, paddedSequenceLen as usize).unwrap();
     /* remove PRNG Pad from entire message */
     let mut i_1: i32 = 0i32;
     while (i_1 as u64) < paddedSequenceLen {
         let ref mut fresh4 = *paddedOutput.as_mut_ptr().offset(i_1 as isize);
-        *fresh4 = (*fresh4 as i32 ^ *prngSequence.as_mut_ptr().offset(i_1 as isize) as i32) as u8;
+        *fresh4 = (*fresh4 as i32 ^ prngSequence[i_1 as usize] as i32) as u8;
         i_1 += 1
     }
     /*test if Kobara Imai constant, default to zero, matches */

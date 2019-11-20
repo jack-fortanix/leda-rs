@@ -20,9 +20,15 @@ pub fn sha3_384(input: *const u8, inputByteLen: u32, output: *mut u8) {
     unsafe {
         let slice = std::slice::from_raw_parts(input, inputByteLen as usize);
         hasher.input(slice);
-        let result = hasher.result();
+        let result : Vec<u8> = hasher.result().as_slice().to_owned();
         std::ptr::copy(result.as_ptr(), output, result.len());
     }
+}
+
+pub fn sha3_384_vec(input: &[u8]) -> Vec<u8> {
+    let mut hasher = sha3::Sha3_384::new();
+    hasher.input(input);
+    hasher.result().as_slice().to_owned()
 }
 
 /*----------------------------------------------------------------------------*/
@@ -205,7 +211,18 @@ unsafe fn AES256_CTR_DRBG_Update(provided_data: *const u8, key: *mut u8, v: *mut
     );
 }
 
-pub unsafe fn deterministic_random_byte_generator(
+pub fn deterministic_random_byte_generator(seed: &[u8], olen: usize) -> Result<Vec<u8>> {
+    let mut output = vec![0u8; olen];
+
+    unsafe {
+        x_deterministic_random_byte_generator(output.as_mut_ptr(), output.len() as u64,
+                                              seed.as_ptr(), seed.len() as u64);
+    }
+
+    Ok(output)
+}
+
+pub unsafe fn x_deterministic_random_byte_generator(
     output: *mut u8,
     output_len: u64,
     seed: *const u8,

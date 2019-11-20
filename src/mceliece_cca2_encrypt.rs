@@ -1,5 +1,5 @@
 use crate::constant_weight_codec::{binary_to_constant_weight_approximate, bitstream_read};
-use crate::crypto::{deterministic_random_byte_generator, randombytes};
+use crate::crypto::*;
 use crate::gf2x_arith::*;
 use crate::gf2x_arith_mod_xPplusOne::*;
 use crate::types::*;
@@ -193,14 +193,8 @@ pub unsafe fn encrypt_Kobara_Imai(
             .wrapping_add(::std::mem::size_of::<u64>() as u64)
             .wrapping_add(bytePtxLen as u64)
     }
-    let vla = paddedSequenceLen as usize;
-    let mut prngSequence: Vec<u8> = ::std::vec::from_elem(0, vla);
-    deterministic_random_byte_generator(
-        prngSequence.as_mut_ptr(),
-        vla as u64,
-        secretSeed.as_mut_ptr(),
-        32i32 as u64,
-    );
+    let prngSequence = deterministic_random_byte_generator(&secretSeed, paddedSequenceLen as usize)?;
+
     /*to avoid the use of additional memory, exploit the memory allocated for
      * the ciphertext to host the prng-padded ptx+const+len. */
     memset(
@@ -224,7 +218,7 @@ pub unsafe fn encrypt_Kobara_Imai(
     let mut i: i32 = 0i32;
     while (i as u64) < paddedSequenceLen {
         let ref mut fresh3 = *output.offset(i as isize);
-        *fresh3 = (*fresh3 as i32 ^ *prngSequence.as_mut_ptr().offset(i as isize) as i32) as u8;
+        *fresh3 = (*fresh3 as i32 ^ *prngSequence.as_ptr().offset(i as isize) as i32) as u8;
         i += 1
     }
     if isPaddedSequenceOnlyKBits == 1i32 {
@@ -328,7 +322,7 @@ pub unsafe fn encrypt_Kobara_Imai(
         );
         /* draw filler randomness for cwenc input from an independent random*/
         randombytes(secretSeed.as_mut_ptr(), 32);
-        deterministic_random_byte_generator(
+        x_deterministic_random_byte_generator(
             cwEncInputBuffer.as_mut_ptr().offset(48),
             1024i32 as u64,
             secretSeed.as_mut_ptr(),
