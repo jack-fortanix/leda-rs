@@ -8,9 +8,13 @@ pub fn leda_gen_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
     let mut pk = vec![0u8; 7240];
     let mut sk = vec![0u8; 34];
     unsafe {
+        let mut seed = vec![0u8; 32];
+        crate::crypto::randombytes(&mut seed);
+
         key_gen_mceliece(
-            pk.as_mut_ptr() as *mut publicKeyMcEliece_t,
-            sk.as_mut_ptr() as *mut privateKeyMcEliece_t,
+            &seed,
+            &mut *(pk.as_mut_ptr() as *mut publicKeyMcEliece_t),
+            &mut *(sk.as_mut_ptr() as *mut privateKeyMcEliece_t),
         );
     }
 

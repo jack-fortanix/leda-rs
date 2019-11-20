@@ -1,17 +1,15 @@
 use crate::consts::*;
-use crate::crypto::{randombytes, seedexpander_from_trng};
+use crate::crypto::seedexpander_from_trng;
 use crate::dfr_test::DFR_test;
 use crate::gf2x_arith::*;
 use crate::gf2x_arith_mod_xPplusOne::*;
 use crate::types::*;
 use crate::H_Q_matrices_generation::*;
 
-/*----------------------------------------------------------------------------*/
+pub unsafe fn key_gen_mceliece(seed: &[u8], pk: &mut publicKeyMcEliece_t, sk: &mut privateKeyMcEliece_t) {
+    sk.prng_seed.copy_from_slice(seed);
 
-pub unsafe fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t, sk: *mut privateKeyMcEliece_t) {
-    randombytes(&mut (*sk).prng_seed);
-
-    let mut keys_expander = seedexpander_from_trng(&(*sk).prng_seed).unwrap();
+    let mut keys_expander = seedexpander_from_trng(&sk.prng_seed).unwrap();
     // sequence of N0 circ block matrices (p x p): Hi
     let mut HPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
     /* Sparse representation of the transposed circulant matrix H,
@@ -27,7 +25,7 @@ pub unsafe fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t, sk: *mut privateKey
     let mut LPosOnes: [[u32; 121]; 2] = [[0; 121]; 2];
     let mut is_L_full: i32 = 0;
     let mut isDFRok: i32 = 0;
-    (*sk).rejections = 0i32 as u8;
+    sk.rejections = 0i32 as u8;
     loop {
         generateHPosOnes(HPosOnes.as_mut_ptr(), &mut keys_expander);
         generateQPosOnes(QPosOnes.as_mut_ptr(), &mut keys_expander);
@@ -80,15 +78,15 @@ pub unsafe fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t, sk: *mut privateKey
                     != crate::consts::P as i32 as u32) as i32;
             i_1 += 1
         }
-        (*sk).rejections = ((*sk).rejections as i32 + 1i32) as u8;
+        sk.rejections = (sk.rejections as i32 + 1i32) as u8;
         if is_L_full != 0 {
-            isDFRok = DFR_test(LPosOnes.as_mut_ptr(), &mut (*sk).secondIterThreshold)
+            isDFRok = DFR_test(LPosOnes.as_mut_ptr(), &mut sk.secondIterThreshold)
         }
         if !(is_L_full == 0 || isDFRok == 0) {
             break;
         }
     }
-    (*sk).rejections = ((*sk).rejections as i32 - 1i32) as u8;
+    sk.rejections = (sk.rejections as i32 - 1i32) as u8;
     let mut Ln0dense: [DIGIT; 905] = [0; 905];
     let mut j_0: i32 = 0i32;
     while j_0 < 11 * 11 {
@@ -104,10 +102,10 @@ pub unsafe fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t, sk: *mut privateKey
     let mut Ln0Inv: [DIGIT; 905] = [0; 905];
     gf2x_mod_inverse(Ln0Inv.as_mut_ptr(), Ln0dense.as_mut_ptr() as *const DIGIT);
     gf2x_mod_mul_dense_to_sparse(
-        (*pk).Mtr.as_mut_ptr(),
+        pk.Mtr.as_mut_ptr(),
             Ln0Inv.as_mut_ptr() as *const DIGIT,
             LPosOnes[0 as usize].as_mut_ptr() as *const u32,
             (11 * 11) as u32,
         );
-    gf2x_transpose_in_place((*pk).Mtr.as_mut_ptr());
+    gf2x_transpose_in_place(pk.Mtr.as_mut_ptr());
 }
