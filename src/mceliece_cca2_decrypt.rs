@@ -318,7 +318,7 @@ pub unsafe fn decrypt_Kobara_Imai(
         );
     }
 
-    let outputHash = sha3_384_vec(&paddedOutput);
+    let outputHash = sha3_384(&paddedOutput);
     /* rebuild message hash ^ seed from error vector */
     let mut cwEncOutputBuffer = vec![0u8; 1072];
     constant_weight_to_binary_approximate(

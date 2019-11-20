@@ -9,23 +9,7 @@ extern "C" {
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
 }
 
-/* *
- *  Function to compute SHA3-384 on the input message.
- *  The output length is fixed to 48 bytes.
- */
-
-pub fn sha3_384(input: *const u8, inputByteLen: u32, output: *mut u8) {
-    let mut hasher = sha3::Sha3_384::new();
-
-    unsafe {
-        let slice = std::slice::from_raw_parts(input, inputByteLen as usize);
-        hasher.input(slice);
-        let result : Vec<u8> = hasher.result().as_slice().to_owned();
-        std::ptr::copy(result.as_ptr(), output, result.len());
-    }
-}
-
-pub fn sha3_384_vec(input: &[u8]) -> Vec<u8> {
+pub fn sha3_384(input: &[u8]) -> Vec<u8> {
     let mut hasher = sha3::Sha3_384::new();
     hasher.input(input);
     hasher.result().as_slice().to_owned()

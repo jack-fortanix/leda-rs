@@ -259,8 +259,7 @@ pub unsafe fn encrypt_Kobara_Imai(
         (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u64,
     );
     /* prepare hash of padded sequence, before leftover is moved to its final place */
-    let mut hashDigest = vec![0u8; 48];
-    crate::crypto::sha3_384(output, paddedSequenceLen as u32, hashDigest.as_mut_ptr());
+    let hashDigest = sha3_384(std::slice::from_raw_parts(output, paddedSequenceLen as usize));
     /* move leftover padded string (if present) onto its final position*/
     if bytePtxLen as u64
         > (((2i32 - 1i32) * crate::consts::P as i32) as u64)
@@ -299,7 +298,7 @@ pub unsafe fn encrypt_Kobara_Imai(
     let mut cwEncInputBuffer: [u8; 1072] = [0; 1072];
     memcpy(
         cwEncInputBuffer.as_mut_ptr() as *mut libc::c_void,
-        hashDigest.as_mut_ptr() as *const libc::c_void,
+        hashDigest.as_ptr() as *const libc::c_void,
         48i32 as u64,
     );
     let mut i_0: u32 = 0i32 as u32;
