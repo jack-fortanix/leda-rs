@@ -46,7 +46,7 @@ seedexpander()
    xlen - number of bytes to return
 */
 
-pub unsafe fn seedexpander(ctx: *mut AES_XOF_struct, x: &mut [u8]) -> Result<()> {
+pub unsafe fn seedexpander(ctx: &mut AES_XOF_struct, x: &mut [u8]) -> Result<()> {
     let mut xlen = x.len() as u64;
     let mut offset: u64 = 0;
     if xlen >= (*ctx).length_remaining {

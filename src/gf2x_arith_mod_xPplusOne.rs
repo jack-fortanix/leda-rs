@@ -566,7 +566,7 @@ pub unsafe fn gf2x_mod_add_sparse(
  * the NIST seedexpander seeded with the proper key.
  * Assumes that the maximum value for the range n is 2^32-1
  */
-unsafe fn rand_range(n: u32, seed_expander_ctx: *mut AES_XOF_struct) -> u32 {
+unsafe fn rand_range(n: u32, seed_expander_ctx: &mut AES_XOF_struct) -> u32 {
     let required_rnd_bytes = ((32 - n.leading_zeros() + 7) / 8) as usize;
     let mask = n.next_power_of_two() - 1;
 
@@ -590,7 +590,7 @@ unsafe fn rand_range(n: u32, seed_expander_ctx: *mut AES_XOF_struct) -> u32 {
 pub unsafe fn rand_circulant_sparse_block(
     mut pos_ones: *mut u32,
     countOnes: i32,
-    seed_expander_ctx: *mut AES_XOF_struct,
+    seed_expander_ctx: &mut AES_XOF_struct,
 ) {
     let mut duplicated: i32 = 0;
     let mut placedOnes: i32 = 0i32;
