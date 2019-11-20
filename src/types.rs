@@ -1,8 +1,16 @@
 use std::result::Result as StdResult;
+use mbedtls::Error as MbedtlsError;
 
 #[derive(Debug)]
 pub enum Error {
     Custom(String),
+    Mbedtls(mbedtls::Error),
+}
+
+impl From<MbedtlsError> for Error {
+    fn from(error: MbedtlsError) -> Error {
+        Error::Mbedtls(error)
+    }
 }
 
 pub type Result<T> = StdResult<T, Error>;
@@ -23,15 +31,10 @@ pub struct publicKeyMcEliece_t {
     pub Mtr: [DIGIT; 905],
 }
 
-#[derive(Copy, Clone)]
-#[repr(C)]
 pub struct AES_XOF_struct {
-    pub buffer: [u8; 16],
-    pub buffer_pos: i32,
-    pub length_remaining: u64,
-    pub key: [u8; 32],
-    pub ctr: [u8; 16],
+    pub ctr: Box<mbedtls::cipher::raw::Cipher>,
 }
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct AES256_CTR_DRBG_struct {

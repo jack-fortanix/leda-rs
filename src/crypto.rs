@@ -34,98 +34,43 @@ pub fn sha3_384(input: *const u8, inputByteLen: u32, output: *mut u8) {
 /*----------------------------------------------------------------------------*/
 
 pub unsafe fn seedexpander_from_trng(trng_entropy: &[u8]) -> Result<AES_XOF_struct> {
-    /* the required seed expansion will be quite small, set the max number of
-     * bytes conservatively to 10 MiB*/
-    let maxlen = (10 * 1024 * 1024) as u32;
-
     if trng_entropy.len() != 32 {
         return Err(Error::Custom(
             "Unexpected seed input size to seed expander".into(),
         ));
     }
 
-    let maxlen_b = maxlen.to_be_bytes();
-    let ctr: [u8; 16] = [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        maxlen_b[0],
-        maxlen_b[1],
-        maxlen_b[2],
-        maxlen_b[3],
-        0,
-        0,
-        0,
-        0,
-    ];
+    /* the required seed expansion will be quite small, set the max number of
+     * bytes conservatively to 10 MiB*/
+    let maxlen = (10 * 1024 * 1024) as u32;
+
+    let mlb = maxlen.to_be_bytes();
+    let ctr: [u8; 16] = [0, 0, 0, 0, 0, 0, 0, 0, mlb[0], mlb[1], mlb[2], mlb[3], 0, 0, 0, 0];
+
+    let mut cipher = Box::new(mbedtls::cipher::raw::Cipher::setup(
+        mbedtls::cipher::raw::CipherId::Aes,
+        mbedtls::cipher::raw::CipherMode::CTR,
+        256)?);
+
+    cipher.set_key(mbedtls::cipher::raw::Operation::Encrypt, &trng_entropy)?;
+
+    cipher.set_iv(&ctr)?;
 
     let ctx = AES_XOF_struct {
-        buffer: [0; 16],
-        buffer_pos: 16,
-        length_remaining: maxlen as u64,
-        key: trng_entropy.try_into().expect("Validated size"),
-        ctr: ctr,
+        ctr: cipher,
     };
 
     Ok(ctx)
 }
 
 pub unsafe fn seedexpander(ctx: &mut AES_XOF_struct, x: &mut [u8]) -> Result<()> {
-    let mut xlen = x.len() as u64;
-    let mut offset: u64 = 0;
-    if xlen >= (*ctx).length_remaining {
-        return Err(Error::Custom("XOF structure exhausted".into()));
-    }
-    (*ctx).length_remaining = (*ctx).length_remaining.wrapping_sub(xlen);
 
-    while xlen > 0i32 as u64 {
-        if xlen <= (16i32 - (*ctx).buffer_pos) as u64 {
-            // buffer has what we need
-            memcpy(
-                x.as_ptr().offset(offset as isize) as *mut libc::c_void,
-                (*ctx)
-                    .buffer
-                    .as_mut_ptr()
-                    .offset((*ctx).buffer_pos as isize) as *const libc::c_void,
-                xlen,
-            );
-            (*ctx).buffer_pos = ((*ctx).buffer_pos as u64).wrapping_add(xlen) as i32 as i32;
-            return Ok(());
-        }
-        // take what's in the buffer
-        memcpy(
-            x.as_ptr().offset(offset as isize) as *mut libc::c_void,
-            (*ctx)
-                .buffer
-                .as_mut_ptr()
-                .offset((*ctx).buffer_pos as isize) as *const libc::c_void,
-            (16i32 - (*ctx).buffer_pos) as u64,
-        );
-        xlen = xlen.wrapping_sub((16i32 - (*ctx).buffer_pos) as u64);
-        offset = offset.wrapping_add((16i32 - (*ctx).buffer_pos) as u64);
-        AES256_ECB(
-            (*ctx).key.as_ptr(),
-            (*ctx).ctr.as_ptr(),
-            (*ctx).buffer.as_mut_ptr(),
-        );
-        (*ctx).buffer_pos = 0i32;
-        //increment the counter
-        let mut i: i32 = 15i32;
-        while i >= 12i32 {
-            if (*ctx).ctr[i as usize] as i32 == 0xffi32 {
-                (*ctx).ctr[i as usize] = 0i32 as u8;
-                i -= 1
-            } else {
-                (*ctx).ctr[i as usize] = (*ctx).ctr[i as usize].wrapping_add(1);
-                break;
-            }
-        }
-    }
+    let mut output = vec![0u8; x.len() + 16];
+
+    ctx.ctr.update(&x, &mut output)?;
+
+    x.copy_from_slice(&output[0..x.len()]);
+
     return Ok(());
 }
 // Use whatever AES implementation you have. This uses AES from openSSL library
