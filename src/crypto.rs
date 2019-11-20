@@ -64,19 +64,11 @@ pub unsafe fn seedexpander_from_trng(trng_entropy: &[u8]) -> Result<AES_XOF_stru
 }
 
 pub unsafe fn seedexpander(ctx: &mut AES_XOF_struct, x: &mut [u8]) -> Result<()> {
-
     let mut output = vec![0u8; x.len() + 16];
-
     ctx.ctr.update(&x, &mut output)?;
-
     x.copy_from_slice(&output[0..x.len()]);
-
     return Ok(());
 }
-// Use whatever AES implementation you have. This uses AES from openSSL library
-//    key - 256-bit AES key
-//    ptx - a 128-bit plaintext value
-//    ctx - a 128-bit ciphertext value
 
 unsafe fn AES256_ECB(key: *const u8, ptx: *const u8, ctx: *mut u8) {
     let cipher = mbedtls::cipher::Cipher::<
@@ -236,6 +228,7 @@ pub unsafe fn deterministic_random_byte_generator(
         ctx.v.as_mut_ptr(),
     );
     ctx.reseed_counter = 1i32;
+
     /* Actual DRBG computation as from the randombytes(unsigned char *x,
      * unsigned long long xlen) from NIST */
     let mut block: [u8; 16] = [0; 16];
