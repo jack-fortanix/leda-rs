@@ -42,8 +42,7 @@ pub fn crypto_encrypt(msg: &[u8], pk: &[u8]) -> Result<Vec<u8>> {
         encrypt_Kobara_Imai(
             ctext.as_mut_ptr(),
             pk.as_ptr() as *mut publicKeyMcEliece_t,
-            msg.len() as u32,
-            msg.as_ptr())?;
+            msg)?;
 
         return Ok(ctext);
     }

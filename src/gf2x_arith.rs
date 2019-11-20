@@ -9,11 +9,8 @@ extern "C" {
 }
 
 pub unsafe fn gf2x_copy(mut dest: *mut DIGIT, input: *const DIGIT) {
-    let mut i: i32 = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
-    //assert_eq!(i + 1, NUM_DIGITS_GF2X_ELEMENT as i32);
-    while i >= 0i32 {
+    for i in 0..NUM_DIGITS_GF2X_ELEMENT {
         *dest.offset(i as isize) = *input.offset(i as isize);
-        i -= 1
     }
 }
 
@@ -305,11 +302,6 @@ pub unsafe fn right_bit_shift_n(length: i32, mut input: *mut DIGIT, amount: i32)
     }
     *input.offset(j as isize) >>= amount;
 }
-/* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
-/* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
-// end right_bit_shift_n
-/*----------------------------------------------------------------------------*/
-/* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
 
 pub unsafe fn left_bit_shift_n(length: i32, mut input: *mut DIGIT, amount: i32) {
     if amount > 8i32 << 3i32 {
@@ -334,7 +326,7 @@ pub unsafe fn left_bit_shift_n(length: i32, mut input: *mut DIGIT, amount: i32) 
 /*----------------------------------------------------------------------------*/
 #[inline]
 unsafe fn gf2x_exact_div_x_plus_one(na: i32, mut A: *mut DIGIT) {
-    let mut t: DIGIT = 0i32 as DIGIT;
+    let mut t: DIGIT = 0;
     let mut i: i32 = na - 1i32;
     while i >= 0i32 {
         t ^= *A.offset(i as isize);

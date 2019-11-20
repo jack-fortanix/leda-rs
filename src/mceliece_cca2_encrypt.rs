@@ -164,12 +164,17 @@ unsafe fn bytestream_into_poly_seq(
 pub unsafe fn encrypt_Kobara_Imai(
     output: *mut u8,
     pk: *const publicKeyMcEliece_t,
-    bytePtxLen: u32,
-    ptx: *const u8) -> Result<()> {
+    msg: &[u8]) -> Result<()> {
+
     /* Generate PRNG pad */
+
     let mut secretSeed: [u8; 32] = [0; 32];
+    randombytes(secretSeed.as_mut_ptr(), 32);
+
     let mut paddedSequenceLen: u64 = 0;
     let mut isPaddedSequenceOnlyKBits: i32 = 0i32;
+    let bytePtxLen : u32 = msg.len() as u32;
+    let ptx : *const u8 = msg.as_ptr();
     if bytePtxLen as u64
         <= (((2i32 - 1i32) * crate::consts::P as i32) as u64)
             .wrapping_sub(
@@ -188,7 +193,6 @@ pub unsafe fn encrypt_Kobara_Imai(
     }
     let vla = paddedSequenceLen as usize;
     let mut prngSequence: Vec<u8> = ::std::vec::from_elem(0, vla);
-    randombytes(secretSeed.as_mut_ptr(), 32i32 as u64);
     deterministic_random_byte_generator(
         prngSequence.as_mut_ptr(),
         vla as u64,
@@ -321,7 +325,7 @@ pub unsafe fn encrypt_Kobara_Imai(
                 as u64,
         );
         /* draw filler randomness for cwenc input from an independent random*/
-        randombytes(secretSeed.as_mut_ptr(), 32i32 as u64);
+        randombytes(secretSeed.as_mut_ptr(), 32);
         deterministic_random_byte_generator(
             cwEncInputBuffer.as_mut_ptr().offset(48),
             1024i32 as u64,
