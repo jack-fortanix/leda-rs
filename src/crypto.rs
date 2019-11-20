@@ -157,19 +157,6 @@ pub fn deterministic_random_byte_generator(seed: &[u8], olen: usize) -> Result<V
 }
 
 pub fn drbg(output: &mut [u8], seed: &[u8]) -> Result<()> {
-    unsafe {
-        x_deterministic_random_byte_generator(output.as_mut_ptr(), output.len() as u64,
-                                              seed.as_ptr(), seed.len() as u64);
-    }
-
-    Ok(())
-}
-
-pub unsafe fn x_deterministic_random_byte_generator(
-    output: *mut u8,
-    output_len: u64,
-    seed: *const u8,
-    seed_length: u64) {
     /* DRBG context initialization */
     let mut ctx: AES256_CTR_DRBG_struct = AES256_CTR_DRBG_struct {
         key: [0; 32],
@@ -177,18 +164,14 @@ pub unsafe fn x_deterministic_random_byte_generator(
         reseed_counter: 0,
     };
     let mut seed_material: [u8; 48] = [0; 48];
-    memcpy(
-        seed_material.as_mut_ptr() as *mut libc::c_void,
-        seed as *const libc::c_void,
-        seed_length as u64,
-    );
+    seed_material[0..seed.len()].copy_from_slice(seed);
     AES256_CTR_DRBG_Update(
         seed_material.as_ptr(),
         &mut ctx.key,
         &mut ctx.v);
     ctx.reseed_counter = 1i32;
 
-    let mut output = std::slice::from_raw_parts_mut(output, output_len as usize);
-    randombytes_ctx(&mut ctx, &mut output);
-}
+    randombytes_ctx(&mut ctx, output);
 
+    Ok(())
+}
