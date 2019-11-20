@@ -162,40 +162,6 @@ pub unsafe fn gf2x_set_coeff(mut poly: *mut DIGIT, exponent: u32, mut value: DIG
         | (value & 1i32 as DIGIT) << (((8i32 << 3i32) - 1i32) as u32).wrapping_sub(inDigitIdx);
 }
 
-/* *
- *
- * <gf2x_arith.c>
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of LEDAcrypt using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
-// memset(...)
-/*----------------------------------------------------------------------------*/
-
 pub unsafe fn gf2x_mul_comb(
     nr: i32,
     mut Res: *mut DIGIT,
@@ -343,7 +309,7 @@ unsafe fn gf2x_exact_div_x_plus_one(na: i32, mut A: *mut DIGIT) {
 // end gf2x_exact_div_x_plus_one
 /*---------------------------------------------------------------------------*/
 
-pub unsafe fn gf2x_mul_Kar(
+unsafe fn gf2x_mul_Kar(
     nr: i32,
     mut Res: *mut DIGIT,
     na: i32,
