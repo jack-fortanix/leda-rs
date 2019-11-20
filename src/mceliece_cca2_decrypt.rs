@@ -168,7 +168,7 @@ unsafe fn decrypt_McEliece(
     return 1i32;
 }
 /*----------------------------------------------------------------------------*/
-unsafe fn char_left_bit_shift_n(length: i32, mut in_0: *mut u8, amount: i32) {
+unsafe fn char_left_bit_shift_n(length: i32, mut input: *mut u8, amount: i32) {
     if amount > 8i32 {
         panic!("assertion");
     }
@@ -178,15 +178,15 @@ unsafe fn char_left_bit_shift_n(length: i32, mut in_0: *mut u8, amount: i32) {
     let mut j: i32 = 0;
     let mask: u8 = !(((0x1i32 as u8 as i32) << 8i32 - amount) - 1i32) as u8;
     while j < length - 1i32 {
-        let ref mut fresh0 = *in_0.offset(j as isize);
+        let ref mut fresh0 = *input.offset(j as isize);
         *fresh0 = ((*fresh0 as i32) << amount) as u8;
-        let ref mut fresh1 = *in_0.offset(j as isize);
+        let ref mut fresh1 = *input.offset(j as isize);
         *fresh1 = (*fresh1 as i32
-            | (*in_0.offset((j + 1i32) as isize) as i32 & mask as i32) >> 8i32 - amount)
+            | (*input.offset((j + 1i32) as isize) as i32 & mask as i32) >> 8i32 - amount)
             as u8;
         j += 1
     }
-    let ref mut fresh2 = *in_0.offset(j as isize);
+    let ref mut fresh2 = *input.offset(j as isize);
     *fresh2 = ((*fresh2 as i32) << amount) as u8;
 }
 // end right_bit_shift_n

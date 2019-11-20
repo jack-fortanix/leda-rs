@@ -8,11 +8,11 @@ extern "C" {
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
 }
 
-pub unsafe fn gf2x_copy(mut dest: *mut DIGIT, in_0: *const DIGIT) {
+pub unsafe fn gf2x_copy(mut dest: *mut DIGIT, input: *const DIGIT) {
     let mut i: i32 = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
     //assert_eq!(i + 1, NUM_DIGITS_GF2X_ELEMENT as i32);
     while i >= 0i32 {
-        *dest.offset(i as isize) = *in_0.offset(i as isize);
+        *dest.offset(i as isize) = *input.offset(i as isize);
         i -= 1
     }
 }
@@ -286,7 +286,7 @@ unsafe fn gf2x_add_asymm(
 /*----------------------------------------------------------------------------*/
 /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
 
-pub unsafe fn right_bit_shift_n(length: i32, mut in_0: *mut DIGIT, amount: i32) {
+pub unsafe fn right_bit_shift_n(length: i32, mut input: *mut DIGIT, amount: i32) {
     if amount >= 8i32 << 3i32 {
         panic!("amount > DIGIT_SIZE");
     }
@@ -298,12 +298,12 @@ pub unsafe fn right_bit_shift_n(length: i32, mut in_0: *mut DIGIT, amount: i32) 
     mask = ((0x1i32 as DIGIT) << amount).wrapping_sub(1i32 as u64);
     j = length - 1i32;
     while j > 0i32 {
-        *in_0.offset(j as isize) >>= amount;
-        let ref mut fresh2 = *in_0.offset(j as isize);
-        *fresh2 |= (*in_0.offset((j - 1i32) as isize) & mask) << (8i32 << 3i32) - amount;
+        *input.offset(j as isize) >>= amount;
+        let ref mut fresh2 = *input.offset(j as isize);
+        *fresh2 |= (*input.offset((j - 1i32) as isize) & mask) << (8i32 << 3i32) - amount;
         j -= 1
     }
-    *in_0.offset(j as isize) >>= amount;
+    *input.offset(j as isize) >>= amount;
 }
 /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
 /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
@@ -311,7 +311,7 @@ pub unsafe fn right_bit_shift_n(length: i32, mut in_0: *mut DIGIT, amount: i32) 
 /*----------------------------------------------------------------------------*/
 /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
 
-pub unsafe fn left_bit_shift_n(length: i32, mut in_0: *mut DIGIT, amount: i32) {
+pub unsafe fn left_bit_shift_n(length: i32, mut input: *mut DIGIT, amount: i32) {
     if amount > 8i32 << 3i32 {
         panic!("amount > DIGIT_SIZE_b");
     }
@@ -323,12 +323,12 @@ pub unsafe fn left_bit_shift_n(length: i32, mut in_0: *mut DIGIT, amount: i32) {
     mask = !((0x1i32 as DIGIT) << (8i32 << 3i32) - amount).wrapping_sub(1i32 as u64);
     j = 0i32;
     while j < length - 1i32 {
-        *in_0.offset(j as isize) <<= amount;
-        let ref mut fresh3 = *in_0.offset(j as isize);
-        *fresh3 |= (*in_0.offset((j + 1i32) as isize) & mask) >> (8i32 << 3i32) - amount;
+        *input.offset(j as isize) <<= amount;
+        let ref mut fresh3 = *input.offset(j as isize);
+        *fresh3 |= (*input.offset((j + 1i32) as isize) & mask) >> (8i32 << 3i32) - amount;
         j += 1
     }
-    *in_0.offset(j as isize) <<= amount;
+    *input.offset(j as isize) <<= amount;
 }
 // end left_bit_shift_n
 /*----------------------------------------------------------------------------*/

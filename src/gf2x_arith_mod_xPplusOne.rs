@@ -18,11 +18,11 @@ pub type SIGNED_DIGIT = i64;
 /* specialized for nin == 2 * NUM_DIGITS_GF2X_ELEMENT, as it is only used
  * by gf2x_mul */
 #[inline]
-unsafe fn gf2x_mod(mut out: *mut DIGIT, _nin: i32, mut in_0: *const DIGIT) {
+unsafe fn gf2x_mod(mut out: *mut DIGIT, _nin: i32, mut input: *const DIGIT) {
     let mut aux: [DIGIT; 906] = [0; 906];
     memcpy(
         aux.as_mut_ptr() as *mut libc::c_void,
-        in_0 as *const libc::c_void,
+        input as *const libc::c_void,
         (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + 1i32) * 8i32) as u64,
     );
     right_bit_shift_n(
@@ -39,7 +39,7 @@ unsafe fn gf2x_mod(mut out: *mut DIGIT, _nin: i32, mut in_0: *const DIGIT) {
         (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
         aux.as_mut_ptr().offset(1) as *const DIGIT,
         (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-        in_0.offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as isize),
+        input.offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as isize),
     );
     let ref mut fresh0 = *out.offset(0);
     *fresh0 &= ((1i32 as DIGIT)
@@ -51,29 +51,29 @@ unsafe fn gf2x_mod(mut out: *mut DIGIT, _nin: i32, mut in_0: *const DIGIT) {
 }
 // end gf2x_mod
 /*----------------------------------------------------------------------------*/
-unsafe fn left_bit_shift(length: i32, mut in_0: *mut DIGIT) {
+unsafe fn left_bit_shift(length: i32, mut input: *mut DIGIT) {
     let mut j: i32 = 0; /* logical shift does not need clearing */
     j = 0i32;
     while j < length - 1i32 {
-        *in_0.offset(j as isize) <<= 1i32;
-        let ref mut fresh1 = *in_0.offset(j as isize);
-        *fresh1 |= *in_0.offset((j + 1i32) as isize) >> (8i32 << 3i32) - 1i32;
+        *input.offset(j as isize) <<= 1i32;
+        let ref mut fresh1 = *input.offset(j as isize);
+        *fresh1 |= *input.offset((j + 1i32) as isize) >> (8i32 << 3i32) - 1i32;
         j += 1
     }
-    *in_0.offset(j as isize) <<= 1i32;
+    *input.offset(j as isize) <<= 1i32;
 }
 // end left_bit_shift
 /*----------------------------------------------------------------------------*/
-unsafe fn right_bit_shift(length: i32, mut in_0: *mut DIGIT) {
+unsafe fn right_bit_shift(length: i32, mut input: *mut DIGIT) {
     let mut j: i32 = 0;
     j = length - 1i32;
     while j > 0i32 {
-        *in_0.offset(j as isize) >>= 1i32;
-        let ref mut fresh2 = *in_0.offset(j as isize);
-        *fresh2 |= (*in_0.offset((j - 1i32) as isize) & 0x1i32 as DIGIT) << (8i32 << 3i32) - 1i32;
+        *input.offset(j as isize) >>= 1i32;
+        let ref mut fresh2 = *input.offset(j as isize);
+        *fresh2 |= (*input.offset((j - 1i32) as isize) & 0x1i32 as DIGIT) << (8i32 << 3i32) - 1i32;
         j -= 1
     }
-    *in_0.offset(j as isize) >>= 1i32;
+    *input.offset(j as isize) >>= 1i32;
 }
 // end right_bit_shift
 /*----------------------------------------------------------------------------*/
@@ -147,7 +147,7 @@ pub unsafe fn gf2x_transpose_in_place(mut A: *mut DIGIT) {
 // end transpose_in_place
 /*----------------------------------------------------------------------------*/
 
-pub unsafe fn rotate_bit_left(mut in_0: *mut DIGIT)
+pub unsafe fn rotate_bit_left(mut input: *mut DIGIT)
 /*  equivalent to x * in(x) mod x^P+1 */
 {
     let mut mask: DIGIT = 0; /* clear shifted bit */
@@ -161,27 +161,27 @@ pub unsafe fn rotate_bit_left(mut in_0: *mut DIGIT)
                     - 1i32)
             - 1i32;
         mask = (0x1i32 as DIGIT) << msb_offset_in_digit;
-        rotated_bit = (*in_0.offset(0) & mask != 0) as i32 as DIGIT;
-        let ref mut fresh3 = *in_0.offset(0);
+        rotated_bit = (*input.offset(0) & mask != 0) as i32 as DIGIT;
+        let ref mut fresh3 = *input.offset(0);
         *fresh3 &= !mask;
         left_bit_shift(
             (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-            in_0,
+            input,
         );
     } else {
         /* NUM_DIGITS_GF2X_MODULUS == 1 + NUM_DIGITS_GF2X_ELEMENT and
          * MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS == 0
          */
         mask = (0x1i32 as DIGIT) << (8i32 << 3i32) - 1i32; /* clear shifted bit */
-        rotated_bit = (*in_0.offset(0) & mask != 0) as i32 as DIGIT;
-        let ref mut fresh4 = *in_0.offset(0);
+        rotated_bit = (*input.offset(0) & mask != 0) as i32 as DIGIT;
+        let ref mut fresh4 = *input.offset(0);
         *fresh4 &= !mask;
         left_bit_shift(
             (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-            in_0,
+            input,
         );
     }
-    let ref mut fresh5 = *in_0.offset(
+    let ref mut fresh5 = *input.offset(
         ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32) as isize,
     );
     *fresh5 |= rotated_bit;
@@ -189,15 +189,15 @@ pub unsafe fn rotate_bit_left(mut in_0: *mut DIGIT)
 // end rotate_bit_left
 /*----------------------------------------------------------------------------*/
 
-pub unsafe fn rotate_bit_right(mut in_0: *mut DIGIT)
+pub unsafe fn rotate_bit_right(mut input: *mut DIGIT)
 /*  x^{-1} * in(x) mod x^P+1 */
 {
-    let mut rotated_bit: DIGIT = *in_0.offset(
+    let mut rotated_bit: DIGIT = *input.offset(
         ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32) as isize,
     ) & 0x1i32 as DIGIT;
     right_bit_shift(
         (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-        in_0,
+        input,
     );
     if (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
         == (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
@@ -214,7 +214,7 @@ pub unsafe fn rotate_bit_right(mut in_0: *mut DIGIT)
          */
         rotated_bit = rotated_bit << (8i32 << 3i32) - 1i32
     }
-    let ref mut fresh6 = *in_0.offset(0);
+    let ref mut fresh6 = *input.offset(0);
     *fresh6 |= rotated_bit;
 }
 
@@ -249,7 +249,7 @@ unsafe fn gf2x_swap(length: i32, mut f: *mut DIGIT, mut s: *mut DIGIT) {
  *
  */
 
-pub unsafe fn gf2x_mod_inverse(mut out: *mut DIGIT, mut in_0: *const DIGIT) -> i32
+pub unsafe fn gf2x_mod_inverse(mut out: *mut DIGIT, mut input: *const DIGIT) -> i32
 /* in^{-1} mod x^P-1 */ {
     let mut i: i32 = 0;
     let mut delta: libc::c_long = 0i32 as libc::c_long;
@@ -279,7 +279,7 @@ pub unsafe fn gf2x_mod_inverse(mut out: *mut DIGIT, mut in_0: *const DIGIT) -> i
     }
     s[0] |= mask;
     i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
-    while i >= 0i32 && *in_0.offset(i as isize) == 0i32 as u64 {
+    while i >= 0i32 && *input.offset(i as isize) == 0i32 as u64 {
         i -= 1
     }
     if i < 0i32 {
@@ -290,14 +290,14 @@ pub unsafe fn gf2x_mod_inverse(mut out: *mut DIGIT, mut in_0: *const DIGIT) -> i
     {
         i = (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
         while i >= 1i32 {
-            f[i as usize] = *in_0.offset((i - 1i32) as isize);
+            f[i as usize] = *input.offset((i - 1i32) as isize);
             i -= 1
         }
     } else {
         /* they are equal */
         i = (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
         while i >= 0i32 {
-            f[i as usize] = *in_0.offset(i as isize);
+            f[i as usize] = *input.offset(i as isize);
             i -= 1
         }
     }
