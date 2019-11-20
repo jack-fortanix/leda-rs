@@ -35,8 +35,6 @@ pub struct AES_XOF_struct {
     pub ctr: Box<mbedtls::cipher::raw::Cipher>,
 }
 
-#[derive(Copy, Clone)]
-#[repr(C)]
 pub struct AES256_CTR_DRBG_struct {
     pub key: [u8; 32],
     pub v: [u8; 16],

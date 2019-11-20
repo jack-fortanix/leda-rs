@@ -76,21 +76,12 @@ pub static mut DRBG_ctx: AES256_CTR_DRBG_struct = AES256_CTR_DRBG_struct {
     reseed_counter: 0,
 };
 
-pub unsafe fn randombytes_init(entropy_input: *const u8) {
-    let mut seed_material: [u8; 48] = [0; 48];
-    memcpy(
-        seed_material.as_mut_ptr() as *mut libc::c_void,
-        entropy_input as *const libc::c_void,
-        48i32 as u64,
-    );
+pub unsafe fn randombytes_init(entropy_input: &[u8]) {
     memset(DRBG_ctx.key.as_mut_ptr() as *mut libc::c_void, 0, 32);
-    memset(
-        DRBG_ctx.v.as_mut_ptr() as *mut libc::c_void,
-        0i32,
-        16,
-    );
+    memset(DRBG_ctx.v.as_mut_ptr() as *mut libc::c_void, 0, 16);
+
     AES256_CTR_DRBG_Update(
-        seed_material.as_ptr(),
+        entropy_input.as_ptr(),
         &mut DRBG_ctx.key,
         &mut DRBG_ctx.v);
     DRBG_ctx.reseed_counter = 1i32;
@@ -143,8 +134,7 @@ pub unsafe fn randombytes(x: *mut u8, mut xlen: u64) -> i32 {
 
 unsafe fn AES256_CTR_DRBG_Update(provided_data: *const u8, key: &mut [u8], v: &mut [u8]) {
     let mut temp: [u8; 48] = [0; 48];
-    let mut i: usize = 0;
-    while i < 3 {
+    for block in 0..3 {
         //increment v
         let mut j: i32 = 15i32;
         while j >= 0i32 {
@@ -157,27 +147,15 @@ unsafe fn AES256_CTR_DRBG_Update(provided_data: *const u8, key: &mut [u8], v: &m
                 break;
             }
         }
-        AES256_ECB(key, v, &mut temp[16*i..(16*(i+1))]);
-        i += 1
+        AES256_ECB(key, v, &mut temp[16*block..(16*(block+1))]);
     }
     if !provided_data.is_null() {
-        let mut i_0: i32 = 0i32;
-        while i_0 < 48i32 {
-            temp[i_0 as usize] =
-                (temp[i_0 as usize] as i32 ^ *provided_data.offset(i_0 as isize) as i32) as u8;
-            i_0 += 1
+        for i in 0..48 {
+            temp[i] ^= *provided_data.offset(i as isize);
         }
     }
-    memcpy(
-        key.as_mut_ptr() as *mut libc::c_void,
-        temp.as_mut_ptr() as *const libc::c_void,
-        32u64,
-    );
-    memcpy(
-        v.as_mut_ptr() as *mut libc::c_void,
-        temp.as_mut_ptr().offset(32) as *const libc::c_void,
-        16u64,
-    );
+    key.copy_from_slice(&temp[0..32]);
+    v.copy_from_slice(&temp[32..48]);
 }
 
 pub fn deterministic_random_byte_generator(seed: &[u8], olen: usize) -> Result<Vec<u8>> {
