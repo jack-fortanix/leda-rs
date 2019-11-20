@@ -1,13 +1,5 @@
 use crate::types::*;
 use sha3::Digest;
-use std::convert::TryInto;
-
-extern "C" {
-    #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
-}
 
 pub fn sha3_384(input: &[u8]) -> Vec<u8> {
     let mut hasher = sha3::Sha3_384::new();
@@ -70,23 +62,6 @@ fn AES256_ECB(key: &[u8], ptx: &[u8], ctx: &mut [u8]) {
     cipher.encrypt(ptx, ctx).unwrap();
 }
 
-pub static mut DRBG_ctx: AES256_CTR_DRBG_struct = AES256_CTR_DRBG_struct {
-    key: [0; 32],
-    v: [0; 16],
-    reseed_counter: 0,
-};
-
-pub unsafe fn randombytes_init(entropy_input: &[u8]) {
-    DRBG_ctx.key.copy_from_slice(&[0u8; 32]);
-    DRBG_ctx.v.copy_from_slice(&[0u8; 16]);
-    DRBG_ctx.reseed_counter = 1;
-
-    AES256_CTR_DRBG_Update(
-        entropy_input.as_ptr(),
-        &mut DRBG_ctx.key,
-        &mut DRBG_ctx.v);
-}
-
 pub fn randombytes_ctx(ctx: &mut AES256_CTR_DRBG_struct, x: &mut [u8]) {
     let mut xlen = x.len();
 
@@ -115,7 +90,7 @@ pub fn randombytes_ctx(ctx: &mut AES256_CTR_DRBG_struct, x: &mut [u8]) {
             xlen = 0
         }
     }
-    AES256_CTR_DRBG_Update(::std::ptr::null(), &mut ctx.key, &mut ctx.v);
+    AES256_CTR_DRBG_Update(&[], &mut ctx.key, &mut ctx.v);
     ctx.reseed_counter += 1;
 }
 
@@ -123,7 +98,24 @@ pub unsafe fn randombytes(x: &mut [u8]) {
     randombytes_ctx(&mut DRBG_ctx, x)
 }
 
-fn AES256_CTR_DRBG_Update(provided_data: *const u8, key: &mut [u8], v: &mut [u8]) {
+pub static mut DRBG_ctx: AES256_CTR_DRBG_struct = AES256_CTR_DRBG_struct {
+    key: [0; 32],
+    v: [0; 16],
+    reseed_counter: 0,
+};
+
+pub unsafe fn randombytes_init(entropy_input: &[u8]) {
+    DRBG_ctx.key.copy_from_slice(&[0u8; 32]);
+    DRBG_ctx.v.copy_from_slice(&[0u8; 16]);
+    DRBG_ctx.reseed_counter = 1;
+
+    AES256_CTR_DRBG_Update(
+        &entropy_input,
+        &mut DRBG_ctx.key,
+        &mut DRBG_ctx.v);
+}
+
+fn AES256_CTR_DRBG_Update(provided_data: &[u8], key: &mut [u8], v: &mut [u8]) {
     let mut temp: [u8; 48] = [0; 48];
     for block in 0..3 {
         //increment v
@@ -140,11 +132,8 @@ fn AES256_CTR_DRBG_Update(provided_data: *const u8, key: &mut [u8], v: &mut [u8]
         }
         AES256_ECB(key, v, &mut temp[16*block..(16*(block+1))]);
     }
-    if !provided_data.is_null() {
-        let provided_data = unsafe { std::slice::from_raw_parts(provided_data, 48) };
-        for i in 0..48 {
-            temp[i] ^= provided_data[i];
-        }
+    for i in 0..provided_data.len() {
+        temp[i] ^= provided_data[i];
     }
     key.copy_from_slice(&temp[0..32]);
     v.copy_from_slice(&temp[32..48]);
@@ -163,10 +152,8 @@ pub fn drbg(output: &mut [u8], seed: &[u8]) -> Result<()> {
         v: [0; 16],
         reseed_counter: 0,
     };
-    let mut seed_material: [u8; 48] = [0; 48];
-    seed_material[0..seed.len()].copy_from_slice(seed);
     AES256_CTR_DRBG_Update(
-        seed_material.as_ptr(),
+        &seed,
         &mut ctx.key,
         &mut ctx.v);
     ctx.reseed_counter = 1i32;
