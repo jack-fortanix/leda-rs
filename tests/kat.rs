@@ -100,17 +100,17 @@ pub fn all_kats() {
 
         unsafe { randombytes_init(&kat.seed); }
 
-        let (sk,pk) = crypto_encrypt_keypair().unwrap();
+        let (sk,pk) = leda_gen_keypair().unwrap();
 
         assert_eq!(sk.to_hex(), kat.sk.to_hex());
         assert_eq!(pk.to_hex(), kat.pk.to_hex());
 
-        let ctext = crypto_encrypt(&kat.msg, &kat.pk).unwrap();
+        let ctext = leda_encrypt(&kat.msg, &kat.pk).unwrap();
 
         assert_eq!(ctext.len(), kat.clen);
         assert_eq!(ctext.to_hex(), kat.ctext.to_hex());
 
-        let recovered = crypto_decrypt(&ctext, &kat.sk).unwrap();
+        let recovered = leda_decrypt(&ctext, &kat.sk).unwrap();
 
         assert_eq!(recovered.to_hex(), kat.msg.to_hex());
     }

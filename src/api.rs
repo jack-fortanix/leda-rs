@@ -4,7 +4,7 @@ use crate::mceliece_cca2_encrypt::encrypt_Kobara_Imai;
 use crate::mceliece_keygen::key_gen_mceliece;
 use crate::types::*;
 
-pub fn crypto_encrypt_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
+pub fn leda_gen_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
     let mut pk = vec![0u8; 7240];
     let mut sk = vec![0u8; 34];
     unsafe {
@@ -17,7 +17,7 @@ pub fn crypto_encrypt_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
     Ok((sk, pk))
 }
 
-pub fn crypto_encrypt(msg: &[u8], pk: &[u8]) -> Result<Vec<u8>> {
+pub fn leda_encrypt(msg: &[u8], pk: &[u8]) -> Result<Vec<u8>> {
     /* NIST API provides a byte aligned message: all bytes are assumed full.
      * Therefore, if mlen exceeds
      * floor( (k-8*(KOBARA_IMAI_CONSTANT_LENGTH_B+sizeof(KI_LENGTH_FIELD_TYPE)))/8 )
@@ -48,7 +48,7 @@ pub fn crypto_encrypt(msg: &[u8], pk: &[u8]) -> Result<Vec<u8>> {
     }
 }
 
-pub fn crypto_decrypt(ctext: &[u8], sk: &[u8]) -> Result<Vec<u8>> {
+pub fn leda_decrypt(ctext: &[u8], sk: &[u8]) -> Result<Vec<u8>> {
     let r = unsafe {
         decrypt_Kobara_Imai(
             sk.as_ptr() as *const privateKeyMcEliece_t,

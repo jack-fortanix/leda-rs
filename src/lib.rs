@@ -9,13 +9,14 @@
 mod consts;
 mod types;
 
+mod api;
+
 mod H_Q_matrices_generation;
 mod bf_decoding;
 mod constant_weight_codec;
 mod crypto;
 mod dfr_test;
 mod djbsort;
-mod encrypt;
 mod gf2x_arith;
 mod gf2x_arith_mod_xPplusOne;
 mod mceliece_cca2_decrypt;
@@ -23,7 +24,7 @@ mod mceliece_cca2_encrypt;
 mod mceliece_keygen;
 
 pub use crypto::randombytes_init;
-pub use encrypt::crypto_decrypt;
-pub use encrypt::crypto_encrypt;
-pub use encrypt::crypto_encrypt_keypair;
+pub use api::leda_decrypt;
+pub use api::leda_encrypt;
+pub use api::leda_gen_keypair;
 pub use types::{Error, Result};
