@@ -58,11 +58,11 @@ pub unsafe fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t, sk: *mut privateKey
                         as *const u32,
                 );
                 gf2x_mod_add_sparse(
-                    11i32 * 11i32,
+                    11 * 11,
                     LPosOnes[colQ as usize].as_mut_ptr(),
-                    11i32 * 11i32,
+                    11 * 11,
                     LPosOnes[colQ as usize].as_mut_ptr(),
-                    11i32 * 11i32,
+                    11 * 11,
                     auxPosOnes.as_mut_ptr(),
                 );
                 processedQOnes[i_0 as usize] = (processedQOnes[i_0 as usize] as i32
@@ -76,7 +76,7 @@ pub unsafe fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t, sk: *mut privateKey
         let mut i_1: i32 = 0i32;
         while i_1 < 2i32 {
             is_L_full = (is_L_full != 0
-                && LPosOnes[i_1 as usize][(11i32 * 11i32 - 1i32) as usize]
+                && LPosOnes[i_1 as usize][(11 * 11 - 1i32) as usize]
                     != crate::consts::P as i32 as u32) as i32;
             i_1 += 1
         }
@@ -91,7 +91,7 @@ pub unsafe fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t, sk: *mut privateKey
     (*sk).rejections = ((*sk).rejections as i32 - 1i32) as u8;
     let mut Ln0dense: [DIGIT; 905] = [0; 905];
     let mut j_0: i32 = 0i32;
-    while j_0 < 11i32 * 11i32 {
+    while j_0 < 11 * 11 {
         if LPosOnes[(2i32 - 1i32) as usize][j_0 as usize] != crate::consts::P as i32 as u32 {
             gf2x_set_coeff(
                 Ln0dense.as_mut_ptr(),
@@ -103,24 +103,11 @@ pub unsafe fn key_gen_mceliece(pk: *mut publicKeyMcEliece_t, sk: *mut privateKey
     }
     let mut Ln0Inv: [DIGIT; 905] = [0; 905];
     gf2x_mod_inverse(Ln0Inv.as_mut_ptr(), Ln0dense.as_mut_ptr() as *const DIGIT);
-    let mut i_2: i32 = 0i32;
-    while i_2 < 2i32 - 1i32 {
-        gf2x_mod_mul_dense_to_sparse(
-            (*pk).Mtr.as_mut_ptr().offset(
-                (i_2 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
-                    as isize,
-            ),
+    gf2x_mod_mul_dense_to_sparse(
+        (*pk).Mtr.as_mut_ptr(),
             Ln0Inv.as_mut_ptr() as *const DIGIT,
-            LPosOnes[i_2 as usize].as_mut_ptr() as *const u32,
-            (11i32 * 11i32) as u32,
+            LPosOnes[0 as usize].as_mut_ptr() as *const u32,
+            (11 * 11) as u32,
         );
-        i_2 += 1
-    }
-    let mut i_3: i32 = 0i32;
-    while i_3 < 2i32 - 1i32 {
-        gf2x_transpose_in_place((*pk).Mtr.as_mut_ptr().offset(
-            (i_3 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32))) as isize,
-        ));
-        i_3 += 1
-    }
+    gf2x_transpose_in_place((*pk).Mtr.as_mut_ptr());
 }
