@@ -12,6 +12,7 @@ pub unsafe fn key_gen_mceliece(
     sk: &mut privateKeyMcEliece_t,
 ) {
     sk.prng_seed.copy_from_slice(seed);
+    sk.rejections = 0;
 
     let mut keys_expander = seedexpander_from_trng(&sk.prng_seed).unwrap();
     // sequence of N0 circ block matrices (p x p): Hi
@@ -27,20 +28,13 @@ pub unsafe fn key_gen_mceliece(
     let mut QPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
     /*Rejection-sample for a full L*/
     let mut LPosOnes: [[u32; 121]; 2] = [[0; 121]; 2];
-    let mut is_L_full: i32 = 0;
-    let mut isDFRok: i32 = 0;
-    sk.rejections = 0i32 as u8;
     loop {
         generateHPosOnes(HPosOnes.as_mut_ptr(), &mut keys_expander);
         generateQPosOnes(QPosOnes.as_mut_ptr(), &mut keys_expander);
-        let mut i: i32 = 0i32;
-        while i < 2i32 {
-            let mut j: i32 = 0i32;
-            while j < 11i32 * 11i32 {
-                LPosOnes[i as usize][j as usize] = crate::consts::P as i32 as u32;
-                j += 1
+        for i in 0..2 {
+            for j in 0..(11*11) {
+                LPosOnes[i][j] = crate::consts::P as u32;
             }
-            i += 1
         }
         let mut auxPosOnes: [u32; 121] = [0; 121];
         let mut processedQOnes: [u8; 2] = [0i32 as u8, 0];
@@ -74,7 +68,7 @@ pub unsafe fn key_gen_mceliece(
             }
             colQ += 1
         }
-        is_L_full = 1i32;
+        let mut is_L_full = 1i32;
         let mut i_1: i32 = 0i32;
         while i_1 < 2i32 {
             is_L_full = (is_L_full != 0
@@ -82,15 +76,15 @@ pub unsafe fn key_gen_mceliece(
                     != crate::consts::P as i32 as u32) as i32;
             i_1 += 1
         }
-        sk.rejections = (sk.rejections as i32 + 1i32) as u8;
+        let mut isDFRok: i32 = 0;
         if is_L_full != 0 {
             isDFRok = DFR_test(LPosOnes.as_mut_ptr(), &mut sk.secondIterThreshold)
         }
         if !(is_L_full == 0 || isDFRok == 0) {
             break;
         }
+        sk.rejections += 1;
     }
-    sk.rejections = (sk.rejections as i32 - 1i32) as u8;
     let mut Ln0dense: [DIGIT; 905] = [0; 905];
     let mut j_0: i32 = 0i32;
     while j_0 < 11 * 11 {

@@ -38,11 +38,11 @@ pub unsafe fn gf2x_get_coeff(mut poly: *const DIGIT, exponent: u32) -> DIGIT {
 
 pub unsafe fn gf2x_mod_add(mut Res: *mut DIGIT, A: *const DIGIT, B: *const DIGIT) {
     gf2x_add(
-        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
+        NUM_DIGITS_GF2X_ELEMENT as i32,
         Res,
-        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
+        NUM_DIGITS_GF2X_ELEMENT as i32,
         A,
-        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
+        NUM_DIGITS_GF2X_ELEMENT as i32,
         B,
     );
 }
