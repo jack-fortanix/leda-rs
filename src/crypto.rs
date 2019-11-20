@@ -152,13 +152,17 @@ fn AES256_CTR_DRBG_Update(provided_data: *const u8, key: &mut [u8], v: &mut [u8]
 
 pub fn deterministic_random_byte_generator(seed: &[u8], olen: usize) -> Result<Vec<u8>> {
     let mut output = vec![0u8; olen];
+    drbg(&mut output, seed)?;
+    Ok(output)
+}
 
+pub fn drbg(output: &mut [u8], seed: &[u8]) -> Result<()> {
     unsafe {
         x_deterministic_random_byte_generator(output.as_mut_ptr(), output.len() as u64,
                                               seed.as_ptr(), seed.len() as u64);
     }
 
-    Ok(output)
+    Ok(())
 }
 
 pub unsafe fn x_deterministic_random_byte_generator(
@@ -184,44 +188,7 @@ pub unsafe fn x_deterministic_random_byte_generator(
         &mut ctx.v);
     ctx.reseed_counter = 1i32;
 
-    /* Actual DRBG computation as from the randombytes(unsigned char *x,
-     * unsigned long long xlen) from NIST */
-    let mut block: [u8; 16] = [0; 16];
-    let mut i: i32 = 0i32;
-    let mut length_remaining: i32 = output_len as i32;
-    while length_remaining > 0i32 {
-        //increment v
-        let mut j: i32 = 15i32;
-        while j >= 0i32 {
-            if ctx.v[j as usize] as i32 == 0xffi32 {
-                ctx.v[j as usize] = 0i32 as u8;
-                j -= 1
-            } else {
-                ctx.v[j as usize] = ctx.v[j as usize].wrapping_add(1);
-                break;
-            }
-        }
-        AES256_ECB(&ctx.key, &ctx.v, &mut block);
-        if length_remaining > 15i32 {
-            memcpy(
-                output.offset(i as isize) as *mut libc::c_void,
-                block.as_mut_ptr() as *const libc::c_void,
-                16i32 as u64,
-            );
-            i += 16i32;
-            length_remaining -= 16i32
-        } else {
-            memcpy(
-                output.offset(i as isize) as *mut libc::c_void,
-                block.as_mut_ptr() as *const libc::c_void,
-                length_remaining as u64,
-            );
-            length_remaining = 0i32
-        }
-    }
-    AES256_CTR_DRBG_Update(::std::ptr::null(), &mut ctx.key, &mut ctx.v);
-    ctx.reseed_counter += 1;
+    let mut output = std::slice::from_raw_parts_mut(output, output_len as usize);
+    randombytes_ctx(&mut ctx, &mut output);
 }
-/* *****  End of NIST supplied code ****************/
-// end deterministic_random_byte_generator
 

@@ -321,12 +321,7 @@ pub unsafe fn encrypt_Kobara_Imai(
         );
         /* draw filler randomness for cwenc input from an independent random*/
         randombytes(&mut secretSeed);
-        x_deterministic_random_byte_generator(
-            cwEncInputBuffer.as_mut_ptr().offset(48),
-            1024i32 as u64,
-            secretSeed.as_mut_ptr(),
-            32i32 as u64,
-        );
+        drbg(&mut cwEncInputBuffer[48..1072], &secretSeed)?;
         binaryToConstantWeightOk = binary_to_constant_weight_approximate(
             cwEncodedError.as_mut_ptr(),
             cwEncInputBuffer.as_mut_ptr(),
