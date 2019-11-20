@@ -1,5 +1,5 @@
-use std::result::Result as StdResult;
 use mbedtls::Error as MbedtlsError;
+use std::result::Result as StdResult;
 
 #[derive(Debug)]
 pub enum Error {

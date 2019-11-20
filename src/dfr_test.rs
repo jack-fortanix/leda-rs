@@ -65,7 +65,7 @@ pub unsafe fn DFR_test(LSparse: *mut [u32; 121], secondIterThreshold: *mut u8) -
         i_1 += 1
     }
     /* build histogram of values in gamma */
-    let mut gammaHist: [[u32; 122]; 2] = [ [0; 122], [0; 122] ];
+    let mut gammaHist: [[u32; 122]; 2] = [[0; 122], [0; 122]];
     let mut i_2: i32 = 0i32;
     while i_2 < 2i32 {
         let mut j_2: i32 = 0i32;

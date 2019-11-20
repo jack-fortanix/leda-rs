@@ -46,7 +46,8 @@ pub fn leda_encrypt(msg: &[u8], pk: &[u8]) -> Result<Vec<u8>> {
         encrypt_Kobara_Imai(
             ctext.as_mut_ptr(),
             pk.as_ptr() as *mut publicKeyMcEliece_t,
-            msg)?;
+            msg,
+        )?;
 
         return Ok(ctext);
     }

@@ -6,7 +6,11 @@ use crate::gf2x_arith_mod_xPplusOne::*;
 use crate::types::*;
 use crate::H_Q_matrices_generation::*;
 
-pub unsafe fn key_gen_mceliece(seed: &[u8], pk: &mut publicKeyMcEliece_t, sk: &mut privateKeyMcEliece_t) {
+pub unsafe fn key_gen_mceliece(
+    seed: &[u8],
+    pk: &mut publicKeyMcEliece_t,
+    sk: &mut privateKeyMcEliece_t,
+) {
     sk.prng_seed.copy_from_slice(seed);
 
     let mut keys_expander = seedexpander_from_trng(&sk.prng_seed).unwrap();
@@ -103,9 +107,9 @@ pub unsafe fn key_gen_mceliece(seed: &[u8], pk: &mut publicKeyMcEliece_t, sk: &m
     gf2x_mod_inverse(Ln0Inv.as_mut_ptr(), Ln0dense.as_mut_ptr() as *const DIGIT);
     gf2x_mod_mul_dense_to_sparse(
         pk.Mtr.as_mut_ptr(),
-            Ln0Inv.as_mut_ptr() as *const DIGIT,
-            LPosOnes[0 as usize].as_mut_ptr() as *const u32,
-            (11 * 11) as u32,
-        );
+        Ln0Inv.as_mut_ptr() as *const DIGIT,
+        LPosOnes[0 as usize].as_mut_ptr() as *const u32,
+        (11 * 11) as u32,
+    );
     gf2x_transpose_in_place(pk.Mtr.as_mut_ptr());
 }

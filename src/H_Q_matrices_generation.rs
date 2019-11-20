@@ -69,10 +69,7 @@ pub unsafe fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11], QPosOnes: *mut [u32;
 // end transposeHPosOnes
 /*----------------------------------------------------------------------------*/
 
-pub unsafe fn generateQPosOnes(
-    QPosOnes: *mut [u32; 11],
-    keys_expander: &mut AES_XOF_struct,
-) {
+pub unsafe fn generateQPosOnes(QPosOnes: *mut [u32; 11], keys_expander: &mut AES_XOF_struct) {
     let mut i: i32 = 0i32;
     while i < 2i32 {
         let mut placed_ones: i32 = 0i32;

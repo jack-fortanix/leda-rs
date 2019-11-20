@@ -572,7 +572,11 @@ unsafe fn rand_range(n: u32, seed_expander_ctx: &mut AES_XOF_struct) -> u32 {
 
     loop {
         let mut rnd_char_buffer: [u8; 4] = [0; 4];
-        seedexpander(seed_expander_ctx, &mut rnd_char_buffer[0..required_rnd_bytes]).unwrap();
+        seedexpander(
+            seed_expander_ctx,
+            &mut rnd_char_buffer[0..required_rnd_bytes],
+        )
+        .unwrap();
         /* obtain an endianness independent representation of the generated random
         bytes into an unsigned integer */
         let rnd_value: u32 = u32::from_le_bytes(rnd_char_buffer) & mask;
@@ -587,16 +591,15 @@ unsafe fn rand_range(n: u32, seed_expander_ctx: &mut AES_XOF_struct) -> u32 {
 /* Obtains fresh randomness and seed-expands it until all the required positions
  * for the '1's in the circulant block are obtained */
 
-pub unsafe fn rand_circulant_sparse_block(pos_ones: *mut u32,
-                                          countOnes: i32,
-                                          seed_expander_ctx: &mut AES_XOF_struct) {
+pub unsafe fn rand_circulant_sparse_block(
+    pos_ones: *mut u32,
+    countOnes: i32,
+    seed_expander_ctx: &mut AES_XOF_struct,
+) {
     let mut duplicated: i32 = 0;
     let mut placedOnes: i32 = 0i32;
     while placedOnes < countOnes {
-        let p = rand_range(
-            crate::consts::P as u32,
-            seed_expander_ctx,
-        );
+        let p = rand_range(crate::consts::P as u32, seed_expander_ctx);
         duplicated = 0i32;
         for j in 0..placedOnes {
             if *pos_ones.offset(j as isize) == p {

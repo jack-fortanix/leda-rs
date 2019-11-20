@@ -164,10 +164,10 @@ unsafe fn bytestream_into_poly_seq(
 pub unsafe fn encrypt_Kobara_Imai(
     output: *mut u8,
     pk: *const publicKeyMcEliece_t,
-    msg: &[u8]) -> Result<()> {
-
+    msg: &[u8],
+) -> Result<()> {
     // pull randombytes upwards:
-    
+
     /* Generate PRNG pad */
 
     let mut secretSeed: [u8; 32] = [0; 32];
@@ -175,8 +175,8 @@ pub unsafe fn encrypt_Kobara_Imai(
 
     let mut paddedSequenceLen: u64 = 0;
     let mut isPaddedSequenceOnlyKBits: i32 = 0i32;
-    let bytePtxLen : u32 = msg.len() as u32;
-    let ptx : *const u8 = msg.as_ptr();
+    let bytePtxLen: u32 = msg.len() as u32;
+    let ptx: *const u8 = msg.as_ptr();
     if bytePtxLen as u64
         <= (((2i32 - 1i32) * crate::consts::P as i32) as u64)
             .wrapping_sub(
@@ -193,7 +193,8 @@ pub unsafe fn encrypt_Kobara_Imai(
             .wrapping_add(::std::mem::size_of::<u64>() as u64)
             .wrapping_add(bytePtxLen as u64)
     }
-    let prngSequence = deterministic_random_byte_generator(&secretSeed, paddedSequenceLen as usize)?;
+    let prngSequence =
+        deterministic_random_byte_generator(&secretSeed, paddedSequenceLen as usize)?;
 
     /*to avoid the use of additional memory, exploit the memory allocated for
      * the ciphertext to host the prng-padded ptx+const+len. */
@@ -239,16 +240,19 @@ pub unsafe fn encrypt_Kobara_Imai(
                     .wrapping_div(8i32 as u64),
             )
             .wrapping_add(1i32 as u64)
-         {
-             // no-op
-         } else {
-             return Err(Error::Custom("(K+7)/8 !=  KOBARA_IMAI_CONSTANT_LENGTH_B+KI_LENGTH_FIELD_SIZE+MAX_BYTES_IN_IWORD+1".to_owned()));
-         }
+    {
+        // no-op
+    } else {
+        return Err(Error::Custom(
+            "(K+7)/8 !=  KOBARA_IMAI_CONSTANT_LENGTH_B+KI_LENGTH_FIELD_SIZE+MAX_BYTES_IN_IWORD+1"
+                .to_owned(),
+        ));
+    }
     let mut iwordBuffer: [u8; 7238] = [0; 7238];
     memcpy(
         iwordBuffer.as_mut_ptr() as *mut libc::c_void,
         output as *const libc::c_void,
-        7238 as u64
+        7238 as u64,
     );
     /* transform into an information word poly sequence */
     let mut informationWord: [DIGIT; 905] = [0; 905];
@@ -259,7 +263,10 @@ pub unsafe fn encrypt_Kobara_Imai(
         (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u64,
     );
     /* prepare hash of padded sequence, before leftover is moved to its final place */
-    let hashDigest = sha3_384(std::slice::from_raw_parts(output, paddedSequenceLen as usize));
+    let hashDigest = sha3_384(std::slice::from_raw_parts(
+        output,
+        paddedSequenceLen as usize,
+    ));
     /* move leftover padded string (if present) onto its final position*/
     if bytePtxLen as u64
         > (((2i32 - 1i32) * crate::consts::P as i32) as u64)

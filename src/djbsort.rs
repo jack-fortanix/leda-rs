@@ -37,14 +37,14 @@ pub unsafe fn int32_sort(x: *mut i32, n: isize) {
         while i + 2 * p <= n {
             j = i;
             while j < i + p {
-                int32_MINMAX(&mut *x.offset(j), &mut *x.offset(j+p));
+                int32_MINMAX(&mut *x.offset(j), &mut *x.offset(j + p));
                 j += 1
             }
             i += 2 * p
         }
         j = i;
         while j < n - p {
-            int32_MINMAX(&mut *x.offset(j), &mut *x.offset(j+p));
+            int32_MINMAX(&mut *x.offset(j), &mut *x.offset(j + p));
             j += 1
         }
         i = 0;
@@ -61,7 +61,7 @@ pub unsafe fn int32_sort(x: *mut i32, n: isize) {
                     let mut a: i32 = *x.offset((j + p) as isize);
                     r = q;
                     while r > p {
-                        int32_MINMAX(&mut a, &mut *x.offset(j+r));
+                        int32_MINMAX(&mut a, &mut *x.offset(j + r));
                         r >>= 1i32
                     }
                     *x.offset((j + p) as isize) = a;
@@ -84,7 +84,7 @@ pub unsafe fn int32_sort(x: *mut i32, n: isize) {
                             let mut a_0: i32 = *x.offset((j + p) as isize);
                             r = q;
                             while r > p {
-                                int32_MINMAX(&mut a_0, &mut *x.offset(j+r));
+                                int32_MINMAX(&mut a_0, &mut *x.offset(j + r));
                                 r >>= 1i32
                             }
                             *x.offset((j + p) as isize) = a_0;
@@ -98,7 +98,7 @@ pub unsafe fn int32_sort(x: *mut i32, n: isize) {
                         let mut a_1: i32 = *x.offset((j + p) as isize);
                         r = q;
                         while r > p {
-                            int32_MINMAX(&mut a_1, &mut *x.offset(j+r));
+                            int32_MINMAX(&mut a_1, &mut *x.offset(j + r));
                             r >>= 1i32
                         }
                         *x.offset((j + p) as isize) = a_1;

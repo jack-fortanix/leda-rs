@@ -23,8 +23,8 @@ mod mceliece_cca2_decrypt;
 mod mceliece_cca2_encrypt;
 mod mceliece_keygen;
 
-pub use crypto::randombytes_init;
 pub use api::leda_decrypt;
 pub use api::leda_encrypt;
 pub use api::leda_gen_keypair;
+pub use crypto::randombytes_init;
 pub use types::{Error, Result};

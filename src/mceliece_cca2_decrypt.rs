@@ -342,7 +342,8 @@ pub unsafe fn decrypt_Kobara_Imai(
         i_0 += 1
     }
 
-    let prngSequence = deterministic_random_byte_generator(&secretSeed, paddedSequenceLen as usize).unwrap();
+    let prngSequence =
+        deterministic_random_byte_generator(&secretSeed, paddedSequenceLen as usize).unwrap();
     /* remove PRNG Pad from entire message */
     let mut i_1: i32 = 0i32;
     while (i_1 as u64) < paddedSequenceLen {
