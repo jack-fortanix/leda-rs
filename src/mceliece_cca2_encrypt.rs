@@ -166,6 +166,8 @@ pub unsafe fn encrypt_Kobara_Imai(
     pk: *const publicKeyMcEliece_t,
     msg: &[u8]) -> Result<()> {
 
+    // pull randombytes upwards:
+    
     /* Generate PRNG pad */
 
     let mut secretSeed: [u8; 32] = [0; 32];

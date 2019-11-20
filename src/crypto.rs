@@ -33,18 +33,47 @@ pub fn sha3_384(input: *const u8, inputByteLen: u32, output: *mut u8) {
 /*              end PSEUDO-RAND GENERATOR ROUTINES for rnd.h                  */
 /*----------------------------------------------------------------------------*/
 
-pub static mut DRBG_ctx: AES256_CTR_DRBG_struct = AES256_CTR_DRBG_struct {
-    key: [0; 32],
-    v: [0; 16],
-    reseed_counter: 0,
-};
+pub unsafe fn seedexpander_from_trng(trng_entropy: &[u8]) -> Result<AES_XOF_struct> {
+    /* the required seed expansion will be quite small, set the max number of
+     * bytes conservatively to 10 MiB*/
+    let maxlen = (10 * 1024 * 1024) as u32;
 
-/*
-seedexpander()
-   ctx  - stores the current state of an instance of the seed expander
-   x    - returns the XOF data
-   xlen - number of bytes to return
-*/
+    if trng_entropy.len() != 32 {
+        return Err(Error::Custom(
+            "Unexpected seed input size to seed expander".into(),
+        ));
+    }
+
+    let maxlen_b = maxlen.to_be_bytes();
+    let ctr: [u8; 16] = [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        maxlen_b[0],
+        maxlen_b[1],
+        maxlen_b[2],
+        maxlen_b[3],
+        0,
+        0,
+        0,
+        0,
+    ];
+
+    let ctx = AES_XOF_struct {
+        buffer: [0; 16],
+        buffer_pos: 16,
+        length_remaining: maxlen as u64,
+        key: trng_entropy.try_into().expect("Validated size"),
+        ctr: ctr,
+    };
+
+    Ok(ctx)
+}
 
 pub unsafe fn seedexpander(ctx: &mut AES_XOF_struct, x: &mut [u8]) -> Result<()> {
     let mut xlen = x.len() as u64;
@@ -126,6 +155,12 @@ unsafe fn AES256_ECB(key: *const u8, ptx: *const u8, ctx: *mut u8) {
 
     cipher.encrypt(&inp, outp).unwrap();
 }
+
+pub static mut DRBG_ctx: AES256_CTR_DRBG_struct = AES256_CTR_DRBG_struct {
+    key: [0; 32],
+    v: [0; 16],
+    reseed_counter: 0,
+};
 
 pub unsafe fn randombytes_init(entropy_input: *const u8) {
     let mut seed_material: [u8; 48] = [0; 48];
@@ -297,44 +332,3 @@ pub unsafe fn deterministic_random_byte_generator(
 /* *****  End of NIST supplied code ****************/
 // end deterministic_random_byte_generator
 
-pub unsafe fn seedexpander_from_trng(trng_entropy: &[u8]) -> Result<AES_XOF_struct> {
-    /* the required seed expansion will be quite small, set the max number of
-     * bytes conservatively to 10 MiB*/
-    let maxlen = (10 * 1024 * 1024) as u32;
-
-    if trng_entropy.len() != 32 {
-        return Err(Error::Custom(
-            "Unexpected seed input size to seed expander".into(),
-        ));
-    }
-
-    let maxlen_b = maxlen.to_be_bytes();
-    let ctr: [u8; 16] = [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        maxlen_b[0],
-        maxlen_b[1],
-        maxlen_b[2],
-        maxlen_b[3],
-        0,
-        0,
-        0,
-        0,
-    ];
-
-    let ctx = AES_XOF_struct {
-        buffer: [0; 16],
-        buffer_pos: 16,
-        length_remaining: maxlen as u64,
-        key: trng_entropy.try_into().expect("Validated size"),
-        ctr: ctr,
-    };
-
-    Ok(ctx)
-}
