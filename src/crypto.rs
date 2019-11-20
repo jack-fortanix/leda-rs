@@ -46,13 +46,11 @@ seedexpander()
    xlen - number of bytes to return
 */
 
-pub unsafe fn seedexpander(ctx: *mut AES_XOF_struct, x: *mut u8, mut xlen: u64) -> i32 {
+pub unsafe fn seedexpander(ctx: *mut AES_XOF_struct, x: &mut [u8]) -> Result<()> {
+    let mut xlen = x.len() as u64;
     let mut offset: u64 = 0;
-    if x.is_null() {
-        return -2i32;
-    }
     if xlen >= (*ctx).length_remaining {
-        return -3i32;
+        return Err(Error::Custom("XOF structure exhausted".into()));
     }
     (*ctx).length_remaining = (*ctx).length_remaining.wrapping_sub(xlen);
 
@@ -60,7 +58,7 @@ pub unsafe fn seedexpander(ctx: *mut AES_XOF_struct, x: *mut u8, mut xlen: u64) 
         if xlen <= (16i32 - (*ctx).buffer_pos) as u64 {
             // buffer has what we need
             memcpy(
-                x.offset(offset as isize) as *mut libc::c_void,
+                x.as_ptr().offset(offset as isize) as *mut libc::c_void,
                 (*ctx)
                     .buffer
                     .as_mut_ptr()
@@ -68,11 +66,11 @@ pub unsafe fn seedexpander(ctx: *mut AES_XOF_struct, x: *mut u8, mut xlen: u64) 
                 xlen,
             );
             (*ctx).buffer_pos = ((*ctx).buffer_pos as u64).wrapping_add(xlen) as i32 as i32;
-            return 0i32;
+            return Ok(());
         }
         // take what's in the buffer
         memcpy(
-            x.offset(offset as isize) as *mut libc::c_void,
+            x.as_ptr().offset(offset as isize) as *mut libc::c_void,
             (*ctx)
                 .buffer
                 .as_mut_ptr()
@@ -99,7 +97,7 @@ pub unsafe fn seedexpander(ctx: *mut AES_XOF_struct, x: *mut u8, mut xlen: u64) 
             }
         }
     }
-    return 0i32;
+    return Ok(());
 }
 // Use whatever AES implementation you have. This uses AES from openSSL library
 //    key - 256-bit AES key
@@ -136,18 +134,14 @@ pub unsafe fn randombytes_init(entropy_input: *const u8) {
         entropy_input as *const libc::c_void,
         48i32 as u64,
     );
-    memset(
-        DRBG_ctx.key.as_mut_ptr() as *mut libc::c_void,
-        0i32,
-        32i32 as u64,
-    );
+    memset(DRBG_ctx.key.as_mut_ptr() as *mut libc::c_void, 0, 32);
     memset(
         DRBG_ctx.v.as_mut_ptr() as *mut libc::c_void,
         0i32,
-        16i32 as u64,
+        16,
     );
     AES256_CTR_DRBG_Update(
-        seed_material.as_mut_ptr(),
+        seed_material.as_ptr(),
         DRBG_ctx.key.as_mut_ptr(),
         DRBG_ctx.v.as_mut_ptr(),
     );
@@ -192,7 +186,7 @@ pub unsafe fn randombytes(x: *mut u8, mut xlen: u64) -> i32 {
         }
     }
     AES256_CTR_DRBG_Update(
-        0 as *mut u8,
+        ::std::ptr::null(),
         DRBG_ctx.key.as_mut_ptr(),
         DRBG_ctx.v.as_mut_ptr(),
     );
@@ -200,7 +194,7 @@ pub unsafe fn randombytes(x: *mut u8, mut xlen: u64) -> i32 {
     return 0i32;
 }
 
-unsafe fn AES256_CTR_DRBG_Update(provided_data: *mut u8, key: *mut u8, v: *mut u8) {
+unsafe fn AES256_CTR_DRBG_Update(provided_data: *const u8, key: *mut u8, v: *mut u8) {
     let mut temp: [u8; 48] = [0; 48];
     let mut i: i32 = 0i32;
     while i < 3i32 {
@@ -243,8 +237,7 @@ pub unsafe fn deterministic_random_byte_generator(
     output: *mut u8,
     output_len: u64,
     seed: *const u8,
-    seed_length: u64,
-) {
+    seed_length: u64) {
     /* DRBG context initialization */
     let mut ctx: AES256_CTR_DRBG_struct = AES256_CTR_DRBG_struct {
         key: [0; 32],
@@ -258,7 +251,7 @@ pub unsafe fn deterministic_random_byte_generator(
         seed_length as u64,
     );
     AES256_CTR_DRBG_Update(
-        seed_material.as_mut_ptr(),
+        seed_material.as_ptr(),
         ctx.key.as_mut_ptr(),
         ctx.v.as_mut_ptr(),
     );
@@ -298,7 +291,7 @@ pub unsafe fn deterministic_random_byte_generator(
             length_remaining = 0i32
         }
     }
-    AES256_CTR_DRBG_Update(0 as *mut u8, ctx.key.as_mut_ptr(), ctx.v.as_mut_ptr());
+    AES256_CTR_DRBG_Update(::std::ptr::null(), ctx.key.as_mut_ptr(), ctx.v.as_mut_ptr());
     ctx.reseed_counter += 1;
 }
 /* *****  End of NIST supplied code ****************/

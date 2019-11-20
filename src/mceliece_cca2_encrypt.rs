@@ -191,7 +191,7 @@ pub unsafe fn encrypt_Kobara_Imai(
     randombytes(secretSeed.as_mut_ptr(), 32i32 as u64);
     deterministic_random_byte_generator(
         prngSequence.as_mut_ptr(),
-        (vla * ::std::mem::size_of::<u8>()) as u64 as u64,
+        vla as u64,
         secretSeed.as_mut_ptr(),
         32i32 as u64,
     );
@@ -239,10 +239,11 @@ pub unsafe fn encrypt_Kobara_Imai(
                     .wrapping_div(8i32 as u64),
             )
             .wrapping_add(1i32 as u64)
-    {
-    } else {
-        return Err(Error::Custom("(K+7)/8 !=  KOBARA_IMAI_CONSTANT_LENGTH_B+KI_LENGTH_FIELD_SIZE+MAX_BYTES_IN_IWORD+1"));
-    }
+         {
+             // no-op
+         } else {
+             return Err(Error::Custom("(K+7)/8 !=  KOBARA_IMAI_CONSTANT_LENGTH_B+KI_LENGTH_FIELD_SIZE+MAX_BYTES_IN_IWORD+1".to_owned()));
+         }
     let mut iwordBuffer: [u8; 7238] = [0; 7238];
     memcpy(
         iwordBuffer.as_mut_ptr() as *mut libc::c_void,

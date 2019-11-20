@@ -566,17 +566,13 @@ pub unsafe fn gf2x_mod_add_sparse(
  * the NIST seedexpander seeded with the proper key.
  * Assumes that the maximum value for the range n is 2^32-1
  */
-unsafe fn rand_range(n: u32, mut seed_expander_ctx: *mut AES_XOF_struct) -> u32 {
-    let required_rnd_bytes = ((32 - n.leading_zeros() + 7) / 8) as u64;
+unsafe fn rand_range(n: u32, seed_expander_ctx: *mut AES_XOF_struct) -> u32 {
+    let required_rnd_bytes = ((32 - n.leading_zeros() + 7) / 8) as usize;
     let mask = n.next_power_of_two() - 1;
 
     loop {
         let mut rnd_char_buffer: [u8; 4] = [0; 4];
-        seedexpander(
-            seed_expander_ctx,
-            rnd_char_buffer.as_mut_ptr(),
-            required_rnd_bytes,
-        );
+        seedexpander(seed_expander_ctx, &mut rnd_char_buffer[0..required_rnd_bytes]).unwrap();
         /* obtain an endianness independent representation of the generated random
         bytes into an unsigned integer */
         let rnd_value: u32 = u32::from_le_bytes(rnd_char_buffer) & mask;
@@ -594,7 +590,7 @@ unsafe fn rand_range(n: u32, mut seed_expander_ctx: *mut AES_XOF_struct) -> u32 
 pub unsafe fn rand_circulant_sparse_block(
     mut pos_ones: *mut u32,
     countOnes: i32,
-    mut seed_expander_ctx: *mut AES_XOF_struct,
+    seed_expander_ctx: *mut AES_XOF_struct,
 ) {
     let mut duplicated: i32 = 0;
     let mut placedOnes: i32 = 0i32;
