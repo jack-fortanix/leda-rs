@@ -1,4 +1,3 @@
-use crate::consts::*;
 use crate::mceliece_cca2_decrypt::decrypt_Kobara_Imai;
 use crate::mceliece_cca2_encrypt::encrypt_Kobara_Imai;
 use crate::mceliece_keygen::key_gen_mceliece;
