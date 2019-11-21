@@ -17,18 +17,19 @@ extern "C" {
 unsafe fn decrypt_McEliece(
     mut decoded_err: *mut DIGIT,
     mut correct_codeword: *mut DIGIT,
-    mut sk: *const privateKeyMcEliece_t,
+    sk: &privateKeyMcEliece_t,
     thresholds: &[i32],
     ctx: *const u8) -> i32 {
-    let mut mceliece_decrypt_expander = seedexpander_from_trng(&(*sk).prng_seed).unwrap();
+
+    let mut xof = seedexpander_from_trng(&sk.prng_seed).unwrap();
     /* rebuild secret key values */
     let mut HPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
     let mut QPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
-    let mut rejections: i32 = (*sk).rejections as i32;
+    let mut rejections: i32 = sk.rejections as i32;
     let mut LPosOnes: [[u32; 121]; 2] = [[0; 121]; 2];
     loop {
-        generateHPosOnes(HPosOnes.as_mut_ptr(), &mut mceliece_decrypt_expander);
-        generateQPosOnes(QPosOnes.as_mut_ptr(), &mut mceliece_decrypt_expander);
+        generateHPosOnes(HPosOnes.as_mut_ptr(), &mut xof);
+        generateQPosOnes(QPosOnes.as_mut_ptr(), &mut xof);
         let mut i: i32 = 0i32;
         while i < 2i32 {
             let mut j: i32 = 0i32;
@@ -218,10 +219,7 @@ unsafe fn poly_seq_into_bytestream(
     return 1i32;
 }
 
-pub unsafe fn decrypt_Kobara_Imai(
-    sk: *const privateKeyMcEliece_t,
-    ctext: &[u8],
-) -> Result<Vec<u8>> {
+pub unsafe fn decrypt_Kobara_Imai(sk: &privateKeyMcEliece_t, ctext: &[u8]) -> Result<Vec<u8>> {
 
     // constituted by codeword || leftover
 
@@ -238,7 +236,7 @@ pub unsafe fn decrypt_Kobara_Imai(
         (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32) as u64,
     );
 
-    let thresholds: [i32; 2] = [64, (*sk).secondIterThreshold as i32];
+    let thresholds: [i32; 2] = [64, sk.secondIterThreshold as i32];
 
     if decrypt_McEliece(
         err.as_mut_ptr(),
