@@ -21,15 +21,14 @@ pub fn leda_gen_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
 }
 
 pub fn leda_encrypt(msg: &[u8], pk: &[u8]) -> Result<Vec<u8>> {
-    unsafe { encrypt_Kobara_Imai(&mut *(pk.as_ptr() as *mut publicKeyMcEliece_t), msg) }
+    unsafe { encrypt_Kobara_Imai(&*(pk.as_ptr() as *const publicKeyMcEliece_t), msg) }
 }
 
 pub fn leda_decrypt(ctext: &[u8], sk: &[u8]) -> Result<Vec<u8>> {
     unsafe {
         return decrypt_Kobara_Imai(
-            sk.as_ptr() as *const privateKeyMcEliece_t,
-            ctext.len() as u64,
-            ctext.as_ptr(),
+            &*(sk.as_ptr() as *const privateKeyMcEliece_t),
+            ctext
         )
     };
 }

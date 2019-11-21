@@ -220,11 +220,14 @@ unsafe fn poly_seq_into_bytestream(
 
 pub unsafe fn decrypt_Kobara_Imai(
     sk: *const privateKeyMcEliece_t,
-    clen: u64,
-    ctx: *const u8,
-) -> Result<Vec<u8>>
-// constituted by codeword || leftover
-{
+    ctext: &[u8],
+) -> Result<Vec<u8>> {
+
+    // constituted by codeword || leftover
+
+    let clen = ctext.len() as u64;
+    let ctx = ctext.as_ptr();
+
     let mut err: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
     let mut correctedCodeword: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
     /* first N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B bytes are the actual McE
