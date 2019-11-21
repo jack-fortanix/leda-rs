@@ -26,5 +26,5 @@ mod mceliece_keygen;
 pub use api::leda_decrypt;
 pub use api::leda_encrypt;
 pub use api::leda_gen_keypair;
-pub use crypto::randombytes_init;
+pub use crypto::{randombytes, randombytes_init};
 pub use types::{Error, Result};

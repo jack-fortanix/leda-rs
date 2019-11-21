@@ -70,13 +70,11 @@ pub fn randombytes_ctx(ctx: &mut AES256_CTR_DRBG_struct, x: &mut [u8]) {
     let mut i: usize = 0;
     while xlen > 0 {
         //increment v
-        let mut j: i32 = 15;
-        while j >= 0 {
-            if ctx.v[j as usize] == 0xff {
-                ctx.v[j as usize] = 0u8;
-                j -= 1
+        for j in (0..16).rev() {
+            if ctx.v[j] == 0xff {
+                ctx.v[j] = 0x00;
             } else {
-                ctx.v[j as usize] = ctx.v[j as usize].wrapping_add(1);
+                ctx.v[j] += 1;
                 break;
             }
         }
@@ -118,14 +116,11 @@ fn AES256_CTR_DRBG_Update(provided_data: &[u8], key: &mut [u8], v: &mut [u8]) {
     let mut temp: [u8; 48] = [0; 48];
     for block in 0..3 {
         //increment v
-        let mut j: i32 = 15i32;
-        while j >= 0i32 {
-            if v[j as usize] == 0xffu8 {
-                v[j as usize] = 0x00u8;
-                j -= 1
+        for j in (0..16).rev() {
+            if v[j] == 0xff {
+                v[j] = 0x00;
             } else {
-                let ref mut fresh0 = v[j as usize];
-                *fresh0 = (*fresh0).wrapping_add(1);
+                v[j] += 1;
                 break;
             }
         }

@@ -100,6 +100,11 @@ pub fn all_kats() {
 
         randombytes_init(&kat.seed);
 
+        /*
+        let mut kp_seed = vec![0u8; 32];
+        randombytes(&mut kp_seed);
+*/
+
         let (sk,pk) = leda_gen_keypair().unwrap();
 
         assert_eq!(sk.to_hex(), kat.sk.to_hex());
