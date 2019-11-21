@@ -227,7 +227,7 @@ pub unsafe fn decrypt_Kobara_Imai(
 // constituted by codeword || leftover
 {
     let mut err: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
-    let mut correctedCodeword: [DIGIT; 1810] = [0; 1810];
+    let mut correctedCodeword: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
     /* first N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B bytes are the actual McE
      * ciphertext. Note: storage endiannes in BE hardware should flip bytes */
     memcpy(

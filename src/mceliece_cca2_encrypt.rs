@@ -332,7 +332,7 @@ pub unsafe fn encrypt_Kobara_Imai(pk: &publicKeyMcEliece_t, msg: &[u8]) -> Resul
             (cwEncInputBuffer[i_0 as usize] as i32 ^ secretSeed[i_0 as usize] as i32) as u8;
         i_0 = i_0.wrapping_add(1)
     }
-    let mut cwEncodedError: [DIGIT; 1810] = [0; 1810];
+    let mut cwEncodedError: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
     /* continue drawing fresh randomness in case the constant weight encoding
      * fails */
     let mut binaryToConstantWeightOk: i32 = 0i32;
@@ -356,7 +356,7 @@ pub unsafe fn encrypt_Kobara_Imai(pk: &publicKeyMcEliece_t, msg: &[u8]) -> Resul
             break;
         }
     }
-    let mut codeword: [DIGIT; 1810] = [0; 1810];
+    let mut codeword: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
     encrypt_McEliece(
         codeword.as_mut_ptr(),
         pk,

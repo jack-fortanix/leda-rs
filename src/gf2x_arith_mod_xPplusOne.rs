@@ -361,7 +361,7 @@ pub unsafe fn gf2x_mod_inverse(mut out: *mut DIGIT, mut input: *const DIGIT) -> 
 // end gf2x_mod_inverse
 
 pub unsafe fn gf2x_mod_mul(mut Res: *mut DIGIT, mut A: *const DIGIT, mut B: *const DIGIT) {
-    let mut aux: [DIGIT; 1810] = [0; 1810];
+    let mut aux: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
     gf2x_mul_TC3(
         2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)),
         aux.as_mut_ptr(),
@@ -422,7 +422,7 @@ pub unsafe fn gf2x_mod_mul_dense_to_sparse(
     mut sparse: *const u32,
     mut nPos: u32,
 ) {
-    let mut resDouble: [DIGIT; 1810] = [0; 1810];
+    let mut resDouble: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
     let mut i: u32 = 0i32 as u32;
     while i < nPos {
         if *sparse.offset(i as isize) != crate::consts::P as i32 as u32 {
