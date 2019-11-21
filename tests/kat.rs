@@ -2,11 +2,11 @@ use rustc_serialize::hex::{ToHex, FromHex};
 use core::str::FromStr;
 use leda_rs::*;
 
+/*
 fn dump(n: &str, b: &[u8], l: usize) {
     println!("{} = [{}] {}", n, l, (b[0..l].to_hex()));
 }
 
-/*
 #[test]
 pub fn trial() {
     return;
@@ -98,7 +98,7 @@ pub fn all_kats() {
 
         println!("Leda count {}", kat.count);
 
-        unsafe { randombytes_init(&kat.seed); }
+        randombytes_init(&kat.seed);
 
         let (sk,pk) = leda_gen_keypair().unwrap();
 
