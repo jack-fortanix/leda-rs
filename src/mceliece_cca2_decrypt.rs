@@ -81,7 +81,7 @@ unsafe fn decrypt_McEliece(
     transposeHPosOnes(HtrPosOnes.as_mut_ptr(), HPosOnes.as_mut_ptr());
     transposeQPosOnes(QtrPosOnes.as_mut_ptr(), QPosOnes.as_mut_ptr());
     /* end rebuild secret key values */
-    let mut codewordPoly: [DIGIT; 1810] = [0; 1810]; // privateSyndrome := yVar* Htr
+    let mut codewordPoly: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT]; // privateSyndrome := yVar* Htr
     memcpy(
         codewordPoly.as_mut_ptr() as *mut libc::c_void,
         ctx as *const libc::c_void,
@@ -226,7 +226,7 @@ pub unsafe fn decrypt_Kobara_Imai(
 ) -> Vec<u8>
 // constituted by codeword || leftover
 {
-    let mut err: [DIGIT; 1810] = [0; 1810];
+    let mut err: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
     let mut correctedCodeword: [DIGIT; 1810] = [0; 1810];
     /* first N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B bytes are the actual McE
      * ciphertext. Note: storage endiannes in BE hardware should flip bytes */

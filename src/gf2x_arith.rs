@@ -8,20 +8,22 @@ extern "C" {
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
 }
 
-pub unsafe fn gf2x_copy(mut dest: &mut [DIGIT], input: &[DIGIT]) {
+pub fn gf2x_copy(mut dest: &mut [DIGIT], input: &[DIGIT]) {
     for i in 0..NUM_DIGITS_GF2X_ELEMENT {
         dest[i] = input[i];
     }
 }
 
-pub unsafe fn population_count(upc: *const DIGIT) -> i32 {
-    let mut ret: i32 = 0i32;
-    let mut i: i32 = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
-    while i >= 0i32 {
-        ret += (*upc.offset(i as isize) as u64).count_ones() as i32;
-        i -= 1
+pub fn safe_population_count(upc: &[DIGIT]) -> i32 {
+    let mut sum = 0;
+    for x in upc {
+        sum += x.count_ones();
     }
-    return ret;
+    return sum as i32;
+}
+
+pub unsafe fn population_count(upc: *const DIGIT) -> i32 {
+    safe_population_count(std::slice::from_raw_parts(upc, NUM_DIGITS_GF2X_ELEMENT))
 }
 
 pub unsafe fn gf2x_get_coeff(mut poly: *const DIGIT, exponent: u32) -> DIGIT {
