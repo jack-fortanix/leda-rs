@@ -28,7 +28,7 @@ pub struct privateKeyMcEliece_t {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct publicKeyMcEliece_t {
-    pub Mtr: [DIGIT; 905],
+    pub Mtr: [DIGIT; crate::consts::NUM_DIGITS_GF2X_ELEMENT],
 }
 
 pub struct AES_XOF_struct {

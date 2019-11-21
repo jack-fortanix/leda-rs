@@ -6,18 +6,18 @@ pub unsafe fn bf_decoding(
     out: *mut DIGIT,
     HtrPosOnes: *const [u32; 11],
     QtrPosOnes: *const [u32; 11],
-    privateSyndrome: *mut DIGIT,
+    privateSyndrome: &mut [DIGIT],
     thresholds: &[i32],
 ) -> i32
 //  1 polynomial
 {
     let mut currQBlkPos: [u32; 11] = [0; 11];
     let mut currQBitPos: [u32; 11] = [0; 11];
-    let mut currSyndrome: [DIGIT; 905] = [0; 905];
+    let mut currSyndrome: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     let mut check: i32 = 0;
     let mut iteration: i32 = 0i32;
     loop {
-        gf2x_copy(currSyndrome.as_mut_ptr(), privateSyndrome as *const DIGIT);
+        gf2x_copy(&mut currSyndrome, privateSyndrome);
         let mut unsatParityChecks: [u8; 115798] = [0; 115798];
         let mut i: i32 = 0i32;
         while i < 2i32 {
@@ -101,7 +101,7 @@ pub unsafe fn bf_decoding(
                                 } else {
                                     syndromePosToFlip
                                 };
-                            gf2x_toggle_coeff(privateSyndrome, syndromePosToFlip);
+                            gf2x_toggle_coeff(privateSyndrome.as_mut_ptr(), syndromePosToFlip);
                             HtrOneIdx_0 += 1
                         }
                         v += 1
@@ -118,7 +118,7 @@ pub unsafe fn bf_decoding(
         while check < (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) && {
             let fresh0 = check;
             check = check + 1;
-            (*privateSyndrome.offset(fresh0 as isize)) == 0i32 as u64
+            (privateSyndrome[fresh0 as usize]) == 0i32 as u64
         } {}
         if !(iteration < 2i32
             && check < (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32))

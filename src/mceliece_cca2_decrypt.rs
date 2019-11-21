@@ -12,8 +12,6 @@ extern "C" {
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
     #[no_mangle]
     fn memmove(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
 }
 
 unsafe fn decrypt_McEliece(
@@ -96,13 +94,8 @@ unsafe fn decrypt_McEliece(
         ) as isize));
         i_1 = i_1.wrapping_add(1)
     }
-    let mut privateSyndrome: [DIGIT; 905] = [0; 905];
-    memset(
-        privateSyndrome.as_mut_ptr() as *mut libc::c_void,
-        0i32,
-        ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as u64,
-    );
-    let mut aux: [DIGIT; 905] = [0; 905];
+    let mut privateSyndrome: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
+    let mut aux: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     let mut i_2: i32 = 0i32;
     while i_2 < 2i32 {
         gf2x_mod_mul_dense_to_sparse(
@@ -122,17 +115,12 @@ unsafe fn decrypt_McEliece(
         i_2 += 1
     }
     gf2x_transpose_in_place(privateSyndrome.as_mut_ptr());
-    memset(
-        decoded_err as *mut libc::c_void,
-        0i32,
-        (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32) as u64,
-    );
     /*perform syndrome decoding to obtain error vector */
     let ok = bf_decoding(
         decoded_err,
         HtrPosOnes.as_mut_ptr() as *const [u32; 11],
         QtrPosOnes.as_mut_ptr() as *const [u32; 11],
-        privateSyndrome.as_mut_ptr(),
+        &mut privateSyndrome,
         thresholds,
     );
     if ok == 0i32 {

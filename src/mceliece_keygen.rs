@@ -85,7 +85,7 @@ pub unsafe fn key_gen_mceliece(
         }
         sk.rejections += 1;
     }
-    let mut Ln0dense: [DIGIT; 905] = [0; 905];
+    let mut Ln0dense: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     let mut j_0: i32 = 0i32;
     while j_0 < 11 * 11 {
         if LPosOnes[(2i32 - 1i32) as usize][j_0 as usize] != crate::consts::P as i32 as u32 {
@@ -97,7 +97,7 @@ pub unsafe fn key_gen_mceliece(
         }
         j_0 += 1
     }
-    let mut Ln0Inv: [DIGIT; 905] = [0; 905];
+    let mut Ln0Inv: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     gf2x_mod_inverse(Ln0Inv.as_mut_ptr(), Ln0dense.as_mut_ptr() as *const DIGIT);
     gf2x_mod_mul_dense_to_sparse(
         pk.Mtr.as_mut_ptr(),

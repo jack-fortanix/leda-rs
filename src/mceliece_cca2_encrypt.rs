@@ -37,7 +37,7 @@ unsafe fn encrypt_McEliece(
         0i32,
         ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as u64,
     );
-    let mut saux: [DIGIT; 905] = [0; 905];
+    let mut saux: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     let mut i: i32 = 0i32;
     while i < 2i32 - 1i32 {
         memset(
@@ -273,7 +273,7 @@ pub unsafe fn encrypt_Kobara_Imai(pk: &publicKeyMcEliece_t, msg: &[u8]) -> Resul
         7238 as u64,
     );
     /* transform into an information word poly sequence */
-    let mut informationWord: [DIGIT; 905] = [0; 905];
+    let mut informationWord: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     bytestream_into_poly_seq(
         informationWord.as_mut_ptr(),
         2i32 - 1i32,

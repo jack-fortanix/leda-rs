@@ -10,6 +10,7 @@ use crate::crypto::seedexpander;
 use crate::djbsort::int32_sort;
 use crate::gf2x_arith::*;
 use crate::types::*;
+use crate::consts::*;
 
 pub type SIGNED_DIGIT = i64;
 
@@ -253,10 +254,10 @@ pub unsafe fn gf2x_mod_inverse(mut out: *mut DIGIT, mut input: *const DIGIT) -> 
 /* in^{-1} mod x^P-1 */ {
     let mut i: i32 = 0;
     let mut delta: libc::c_long = 0i32 as libc::c_long;
-    let mut u: [DIGIT; 905] = [0; 905];
-    let mut v: [DIGIT; 905] = [0; 905];
-    let mut s: [DIGIT; 905] = [0; 905];
-    let mut f: [DIGIT; 905] = [0; 905];
+    let mut u: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
+    let mut v: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
+    let mut s: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
+    let mut f: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     let mut mask: DIGIT = 0;
     u[((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32) as usize] =
         0x1i32 as DIGIT;

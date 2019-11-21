@@ -8,9 +8,9 @@ extern "C" {
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
 }
 
-pub unsafe fn gf2x_copy(mut dest: *mut DIGIT, input: *const DIGIT) {
+pub unsafe fn gf2x_copy(mut dest: &mut [DIGIT], input: &[DIGIT]) {
     for i in 0..NUM_DIGITS_GF2X_ELEMENT {
-        *dest.offset(i as isize) = *input.offset(i as isize);
+        dest[i] = input[i];
     }
 }
 
