@@ -19,8 +19,7 @@ unsafe fn decrypt_McEliece(
     mut correct_codeword: *mut DIGIT,
     mut sk: *const privateKeyMcEliece_t,
     thresholds: &[i32],
-    ctx: *const u8,
-) -> i32 {
+    ctx: *const u8) -> i32 {
     let mut mceliece_decrypt_expander = seedexpander_from_trng(&(*sk).prng_seed).unwrap();
     /* rebuild secret key values */
     let mut HPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
@@ -134,7 +133,7 @@ unsafe fn decrypt_McEliece(
         ));
         i_3 += 1
     }
-    if err_weight != 199i32 {
+    if err_weight != NUM_ERRORS as i32 {
         return 0i32;
     }
     /* correct input codeword */
@@ -223,7 +222,7 @@ pub unsafe fn decrypt_Kobara_Imai(
     sk: *const privateKeyMcEliece_t,
     clen: u64,
     ctx: *const u8,
-) -> Vec<u8>
+) -> Result<Vec<u8>>
 // constituted by codeword || leftover
 {
     let mut err: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
@@ -246,7 +245,7 @@ pub unsafe fn decrypt_Kobara_Imai(
         ctx,
     ) == 0i32
     {
-        panic!("decoding fail");
+        return Err(Error::DecryptionFailed);
     }
     /* correctedCodeword now contains the correct codeword, iword is the first
      * portion, followed by syndrome turn back iword into a bytesequence */
@@ -366,6 +365,6 @@ pub unsafe fn decrypt_Kobara_Imai(
             .offset(::std::mem::size_of::<u64>() as u64 as isize) as *const libc::c_void,
         correctlySizedBytePtxLen,
     );
-    return output;
+    return Ok(output);
 }
 // end decrypt_Kobara_Imai

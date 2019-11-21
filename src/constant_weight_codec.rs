@@ -1,5 +1,6 @@
 use crate::gf2x_arith::*;
 use crate::types::*;
+use crate::consts::*;
 
 pub unsafe fn bitstream_write(
     output: *mut u8,
@@ -156,7 +157,7 @@ pub unsafe fn constant_weight_to_binary_approximate(
     bitstreamOut: *mut u8,
     constantWeightIn: *const DIGIT,
 ) {
-    let mut distancesBetweenOnes: [u32; 199] = [0; 199];
+    let mut distancesBetweenOnes: [u32; NUM_ERRORS] = [0; NUM_ERRORS];
     /*compute the array of inter-ones distances. Note that there
     is an implicit one out of bounds to compute the first distance from */
     let mut last_one_position: u32 = -1i32 as u32;
@@ -184,17 +185,17 @@ pub unsafe fn constant_weight_to_binary_approximate(
         }
         current_inspected_position = current_inspected_position.wrapping_add(1)
     }
-    if idxDistances != 199i32 as u32 {
+    if idxDistances != NUM_ERRORS as u32 {
         panic!("idxDistances != NUM_ERRORS_T");
     }
     /* perform encoding of distances into binary string*/
-    let mut onesStillToPlaceOut: u32 = 199i32 as u32;
+    let mut onesStillToPlaceOut: u32 = NUM_ERRORS as u32;
     let mut inPositionsStillAvailable: u32 = (2i32 * crate::consts::P as i32) as u32;
     let mut outputBitCursor: u32 = 0i32 as u32;
     let mut d: u32 = 0;
     let mut u: u32 = 0;
     idxDistances = 0i32 as u32;
-    while idxDistances < 199i32 as u32 {
+    while idxDistances < NUM_ERRORS as u32 {
         estimate_d_u(
             &mut d,
             &mut u,
@@ -236,55 +237,21 @@ pub unsafe fn constant_weight_to_binary_approximate(
         idxDistances = idxDistances.wrapping_add(1)
     }
 }
-/* *
- *
- * <constant_weight_codec.h>
- *
- * @version 2.0 (March 2019)
- *
- * Reference ISO-C11 Implementation of the LEDAcrypt PKC cipher using GCC built-ins.
- *
- * In alphabetical order:
- *
- * @author Marco Baldi <m.baldi@univpm.it>
- * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
- * @author Franco Chiaraluce <f.chiaraluce@univpm.it>
- * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
- * @author Paolo Santini <p.santini@pm.univpm.it>
- *
- * This code is hereby placed in the public domain.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- **/
-/*----------------------------------------------------------------------------*/
-// end constant_weight_to_binary_approximate
-/*----------------------------------------------------------------------------*/
 
 pub unsafe fn binary_to_constant_weight_approximate(
     constantWeightOut: *mut DIGIT,
     bitstreamIn: *const u8,
     bitLength: i32,
 ) -> i32 {
-    let mut distancesBetweenOnes: [u32; 199] = [0; 199]; /* assuming trailing slack bits in the input
+    let mut distancesBetweenOnes: [u32; NUM_ERRORS] = [0; NUM_ERRORS]; /* assuming trailing slack bits in the input
                                                          stream. In case the slack bits in the input stream are leading, change to
                                                          8- (bitLength %8) - 1 */
     let mut idxDistances: u32 = 0i32 as u32;
-    let mut onesStillToPlaceOut: u32 = 199i32 as u32;
+    let mut onesStillToPlaceOut: u32 = NUM_ERRORS as u32;
     let mut outPositionsStillAvailable: u32 = (2i32 * crate::consts::P as i32) as u32;
     let mut bitstreamInCursor: u32 = 0i32 as u32;
     idxDistances = 0i32 as u32;
-    while idxDistances < 199i32 as u32 && outPositionsStillAvailable > onesStillToPlaceOut {
+    while idxDistances < NUM_ERRORS as u32 && outPositionsStillAvailable > onesStillToPlaceOut {
         /* lack of positions should not be possible */
         if outPositionsStillAvailable < onesStillToPlaceOut
             || outPositionsStillAvailable < 0i32 as u32
@@ -346,7 +313,7 @@ pub unsafe fn binary_to_constant_weight_approximate(
         idxDistances = idxDistances.wrapping_add(1)
     }
     if outPositionsStillAvailable == onesStillToPlaceOut {
-        while idxDistances < 199i32 as u32 {
+        while idxDistances < NUM_ERRORS as u32 {
             distancesBetweenOnes[idxDistances as usize] = 0i32 as u32;
             idxDistances = idxDistances.wrapping_add(1)
         }
@@ -360,7 +327,7 @@ pub unsafe fn binary_to_constant_weight_approximate(
     /*encode ones according to distancesBetweenOnes into constantWeightOut */
     let mut current_one_position: i32 = -1i32;
     let mut i: i32 = 0i32;
-    while i < 199i32 {
+    while i < NUM_ERRORS as i32 {
         current_one_position = (current_one_position as u32)
             .wrapping_add(distancesBetweenOnes[i as usize].wrapping_add(1i32 as u32))
             as i32 as i32;
