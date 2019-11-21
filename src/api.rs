@@ -22,35 +22,7 @@ pub fn leda_gen_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
 }
 
 pub fn leda_encrypt(msg: &[u8], pk: &[u8]) -> Result<Vec<u8>> {
-    /* NIST API provides a byte aligned message: all bytes are assumed full.
-     * Therefore, if mlen exceeds
-     * floor( (k-8*(KOBARA_IMAI_CONSTANT_LENGTH_B+sizeof(KI_LENGTH_FIELD_TYPE)))/8 )
-     * defined as MAX_BYTES_IN_IWORD the message will not fit , together with
-     * the constant and its length, in the information word
-     *
-     * The minimum ciphertext overhead is
-     * NUM_DIGITS_GF2X_ELEMENT +
-     * KOBARA_IMAI_CONSTANT_LENGTH_B +
-     * sizeof(KI_LENGTH_FIELD_TYPE)  */
-
-    let clen = if msg.len() <= MAX_BYTES_IN_IWORD {
-        N0 * NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_B
-    } else {
-        let leftover_len = msg.len() - MAX_BYTES_IN_IWORD;
-        N0 * NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_B + leftover_len
-    };
-
-    let mut ctext = vec![0u8; clen];
-
-    unsafe {
-        encrypt_Kobara_Imai(
-            ctext.as_mut_ptr(),
-            pk.as_ptr() as *mut publicKeyMcEliece_t,
-            msg,
-        )?;
-
-        return Ok(ctext);
-    }
+    unsafe { encrypt_Kobara_Imai(&mut *(pk.as_ptr() as *mut publicKeyMcEliece_t), msg) }
 }
 
 pub fn leda_decrypt(ctext: &[u8], sk: &[u8]) -> Result<Vec<u8>> {

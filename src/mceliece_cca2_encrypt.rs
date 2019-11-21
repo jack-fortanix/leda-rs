@@ -3,6 +3,7 @@ use crate::crypto::*;
 use crate::gf2x_arith::*;
 use crate::gf2x_arith_mod_xPplusOne::*;
 use crate::types::*;
+use crate::consts::*;
 
 extern "C" {
     #[no_mangle]
@@ -161,11 +162,28 @@ unsafe fn bytestream_into_poly_seq(
 // end bytestream_into_poly_seq
 /*----------------------------------------------------------------------------*/
 
-pub unsafe fn encrypt_Kobara_Imai(
-    output: *mut u8,
-    pk: *const publicKeyMcEliece_t,
-    msg: &[u8],
-) -> Result<()> {
+pub unsafe fn encrypt_Kobara_Imai(pk: &publicKeyMcEliece_t, msg: &[u8]) -> Result<Vec<u8>> {
+    /* NIST API provides a byte aligned message: all bytes are assumed full.
+     * Therefore, if mlen exceeds
+     * floor( (k-8*(KOBARA_IMAI_CONSTANT_LENGTH_B+sizeof(KI_LENGTH_FIELD_TYPE)))/8 )
+     * defined as MAX_BYTES_IN_IWORD the message will not fit , together with
+     * the constant and its length, in the information word
+     *
+     * The minimum ciphertext overhead is
+     * NUM_DIGITS_GF2X_ELEMENT +
+     * KOBARA_IMAI_CONSTANT_LENGTH_B +
+     * sizeof(KI_LENGTH_FIELD_TYPE)  */
+
+    let clen = if msg.len() <= MAX_BYTES_IN_IWORD {
+        N0 * NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_B
+    } else {
+        let leftover_len = msg.len() - MAX_BYTES_IN_IWORD;
+        N0 * NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_B + leftover_len
+    };
+
+    let mut ctext = vec![0u8; clen];
+    let output = ctext.as_mut_ptr();
+
     // pull randombytes upwards:
 
     /* Generate PRNG pad */
@@ -354,7 +372,7 @@ pub unsafe fn encrypt_Kobara_Imai(
         codeword.as_mut_ptr() as *const libc::c_void,
         (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32) as u64,
     );
-    return Ok(());
+    Ok(ctext)
 }
 /*----------------------------------------------------------------------------*/
 // end encrypt_Kobara_Imai
