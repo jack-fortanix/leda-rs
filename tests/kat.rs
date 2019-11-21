@@ -118,5 +118,18 @@ pub fn all_kats() {
         let recovered = leda_decrypt(&ctext, &kat.sk).unwrap();
 
         assert_eq!(recovered.to_hex(), kat.msg.to_hex());
+
+        let mut invalid_ctext = ctext.clone();
+
+        let idx = ((ctext[30] as usize)*239+ctext[32] as usize) % ctext.len();
+        invalid_ctext[idx] ^= 1;
+
+        let result = leda_decrypt(&invalid_ctext, &kat.sk);
+
+        match result {
+            Err(Error::DecryptionFailed) => { }
+            Err(_) => { panic!("Unexpected error") }
+            Ok(r) => { assert_eq!(r.to_hex(), kat.msg.to_hex()); }
+        }
     }
 }
