@@ -235,16 +235,10 @@ pub unsafe fn decrypt_Kobara_Imai(sk: &privateKeyMcEliece_t, ctext: &[u8]) -> Re
     /* first N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B bytes are the actual McE
      * ciphertext. Note: storage endiannes in BE hardware should flip bytes */
 
-    /*
-    for digit in 0..(N0*NUM_DIGITS_GF2X_ELEMENT) {
-        correctedCodeword[i] = DIGIT::from_le_bytes(ctext[8*i..8*(i+1)]);
+    for i in 0..correctedCodeword.len() {
+        let digit : [u8; 8] = ctext[(8*i)..(8*(i+1))].try_into().expect("8 bytes");
+        correctedCodeword[i] = u64::from_le_bytes(digit);
     }
-*/
-    memcpy(
-        correctedCodeword.as_mut_ptr() as *mut libc::c_void,
-        ctx as *const libc::c_void,
-        (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32) as u64,
-    );
 
     let thresholds: [i32; 2] = [64, sk.secondIterThreshold as i32];
     let mut err: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
