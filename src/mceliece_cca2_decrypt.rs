@@ -11,8 +11,6 @@ use std::convert::TryInto;
 
 extern "C" {
     #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    #[no_mangle]
     fn memmove(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
 }
 
@@ -141,6 +139,7 @@ unsafe fn decrypt_McEliece(
         return 0i32;
     }
     /* correct input codeword */
+
     let mut i_4: u32 = 0i32 as u32;
     while i_4 < 2i32 as u32 {
         gf2x_mod_add(
