@@ -250,10 +250,14 @@ unsafe fn gf2x_swap(length: i32, mut f: *mut DIGIT, mut s: *mut DIGIT) {
  *
  */
 
-pub unsafe fn gf2x_mod_inverse(mut out: *mut DIGIT, mut input: *const DIGIT) -> i32
+pub unsafe fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
 /* in^{-1} mod x^P-1 */ {
+
+    let out = out.as_mut_ptr();
+    let input = input.as_ptr();
+
     let mut i: i32 = 0;
-    let mut delta: libc::c_long = 0i32 as libc::c_long;
+    let mut delta: i32 = 0;
     let mut u: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     let mut v: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     let mut s: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
@@ -293,7 +297,7 @@ pub unsafe fn gf2x_mod_inverse(mut out: *mut DIGIT, mut input: *const DIGIT) -> 
                 f.as_mut_ptr(),
             );
             rotate_bit_left(u.as_mut_ptr());
-            delta += 1i32 as libc::c_long
+            delta += 1i32
         } else {
             if s[0] & GF2_INVERSE_MASK != 0i32 as u64 {
                 gf2x_add(
@@ -314,7 +318,7 @@ pub unsafe fn gf2x_mod_inverse(mut out: *mut DIGIT, mut input: *const DIGIT) -> 
                 (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
                 s.as_mut_ptr(),
             );
-            if delta == 0i32 as libc::c_long {
+            if delta == 0i32  {
                 gf2x_swap(
                     (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
                     f.as_mut_ptr(),
@@ -326,10 +330,10 @@ pub unsafe fn gf2x_mod_inverse(mut out: *mut DIGIT, mut input: *const DIGIT) -> 
                     v.as_mut_ptr(),
                 );
                 rotate_bit_left(u.as_mut_ptr());
-                delta = 1i32 as libc::c_long
+                delta = 1i32
             } else {
                 rotate_bit_right(u.as_mut_ptr());
-                delta = delta - 1i32 as libc::c_long
+                delta = delta - 1i32
             }
         }
         i += 1
@@ -339,7 +343,7 @@ pub unsafe fn gf2x_mod_inverse(mut out: *mut DIGIT, mut input: *const DIGIT) -> 
         *out.offset(i as isize) = u[i as usize];
         i -= 1
     }
-    return (delta == 0i32 as libc::c_long) as i32;
+    return (delta == 0i32) as i32;
 }
 // end gf2x_mod_inverse
 
