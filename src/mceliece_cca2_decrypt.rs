@@ -30,14 +30,10 @@ unsafe fn decrypt_McEliece(
     loop {
         generateHPosOnes(HPosOnes.as_mut_ptr(), &mut xof);
         generateQPosOnes(QPosOnes.as_mut_ptr(), &mut xof);
-        let mut i: i32 = 0i32;
-        while i < 2i32 {
-            let mut j: i32 = 0i32;
-            while j < 11i32 * 11i32 {
-                LPosOnes[i as usize][j as usize] = crate::consts::P as i32 as u32;
-                j += 1
+        for i in 0..2 {
+            for j in 0..(11*11) {
+                LPosOnes[i][j] = crate::consts::P as u32;
             }
-            i += 1
         }
         let mut auxPosOnes: [u32; 121] = [0; 121];
         let mut processedQOnes: [u8; 2] = [0i32 as u8, 0];

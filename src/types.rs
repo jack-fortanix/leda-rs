@@ -1,3 +1,5 @@
+use crate::consts::*;
+
 use mbedtls::Error as MbedtlsError;
 use std::result::Result as StdResult;
 
@@ -24,6 +26,18 @@ pub struct LedaPrivateKey {
     pub prng_seed: [u8; 32],
     pub rejections: u8,
     pub secondIterThreshold: u8,
+}
+
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct LedaExpandedPrivateKey {
+    pub prng_seed: [u8; 32],
+    pub rejections: u8,
+    pub secondIterThreshold: u8,
+
+    pub HPosOnes: [[u32; DV]; N0],
+    pub QPosOnes: [[u32; DV]; N0],
+    pub LPosOnes: [[u32; DV*M]; N0],
 }
 
 #[derive(Copy, Clone)]

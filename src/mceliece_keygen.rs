@@ -9,8 +9,7 @@ use crate::H_Q_matrices_generation::*;
 pub unsafe fn key_gen_mceliece(
     seed: &[u8],
     pk: &mut LedaPublicKey,
-    sk: &mut LedaPrivateKey,
-) {
+    sk: &mut LedaPrivateKey) {
     sk.prng_seed.copy_from_slice(seed);
     sk.rejections = 0;
 
