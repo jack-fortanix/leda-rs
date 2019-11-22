@@ -27,23 +27,16 @@ pub fn generateQPosOnes(QPosOnes: &mut [[u32; DV]; N0], keys_expander: &mut AES_
     }
 }
 
-pub unsafe fn transposeHPosOnes(HtrPosOnes: *mut [u32; 11], HPosOnes: *mut [u32; 11]) {
-    let mut i: i32 = 0i32;
-    while i < 2i32 {
+pub unsafe fn transposeHPosOnes(HtrPosOnes: &mut [[u32; DV]; N0], HPosOnes: &[[u32; DV]; N0]) {
+    let P32 = P as u32;
+    for i in 0..N0 {
         /* Obtain directly the sparse representation of the block of H */
-        let mut k: i32 = 0i32;
-        while k < 11i32 {
-            (*HtrPosOnes.offset(i as isize))[k as usize] = (crate::consts::P as i32 as u32)
-                .wrapping_sub((*HPosOnes.offset(i as isize))[k as usize])
-                .wrapping_rem(crate::consts::P as i32 as u32);
-            k += 1
-            /* transposes indexes */
+        for k in 0..DV {
+            HtrPosOnes[i][k] = (P32 - HPosOnes[i][k]) % P32; /* transposes indexes */
         }
-        i += 1
-        // end for k
     }
 }
-/*----------------------------------------------------------------------------*/
+
 // end transposeHPosOnes
 
 pub unsafe fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11], QPosOnes: *mut [u32; 11]) {

@@ -72,9 +72,9 @@ unsafe fn decrypt_McEliece(
             break;
         }
     }
-    let mut HtrPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
-    let mut QtrPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
-    transposeHPosOnes(HtrPosOnes.as_mut_ptr(), HPosOnes.as_mut_ptr());
+    let mut HtrPosOnes: [[u32; DV]; 2] = [[0; DV]; 2];
+    let mut QtrPosOnes: [[u32; DV]; 2] = [[0; DV]; 2];
+    transposeHPosOnes(&mut HtrPosOnes, &HPosOnes);
     transposeQPosOnes(QtrPosOnes.as_mut_ptr(), QPosOnes.as_mut_ptr());
     /* end rebuild secret key values */
     let mut codewordPoly: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT]; // privateSyndrome := yVar* Htr
@@ -115,8 +115,8 @@ unsafe fn decrypt_McEliece(
     /*perform syndrome decoding to obtain error vector */
     let ok = bf_decoding(
         decoded_err,
-        HtrPosOnes.as_mut_ptr() as *const [u32; 11],
-        QtrPosOnes.as_mut_ptr() as *const [u32; 11],
+        HtrPosOnes.as_mut_ptr() as *const [u32; DV],
+        QtrPosOnes.as_mut_ptr() as *const [u32; DV],
         &mut privateSyndrome,
         thresholds,
     );
