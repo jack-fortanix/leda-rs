@@ -57,7 +57,7 @@ pub unsafe fn key_gen_mceliece(
         }
         let mut isDFRok: i32 = 0;
         if is_L_full != 0 {
-            isDFRok = DFR_test(LPosOnes.as_mut_ptr(), &mut sk.secondIterThreshold)
+            isDFRok = DFR_test(&LPosOnes, &mut sk.secondIterThreshold)
         }
         if !(is_L_full == 0 || isDFRok == 0) {
             break;

@@ -1,28 +1,24 @@
 use crate::djbsort::int32_sort;
+use crate::consts::*;
 
 /*---------------------------------------------------------------------------*/
 /* Tests if the current code attains the desired DFR. If that is the case,
  * computes the threshold for the second iteration of the decoder and stores
  * it in the globally accessible vector*/
 
-pub unsafe fn DFR_test(LSparse: *mut [u32; 121], secondIterThreshold: *mut u8) -> i32 {
+pub unsafe fn DFR_test(LSparse: &[[u32; 121]; 2], secondIterThreshold: *mut u8) -> i32 {
     let mut LSparse_loc: [[u32; 121]; 2] = [[0; 121]; 2]; /* vector of N_0 sparse blocks */
     /* transpose blocks of L, we need its columns */
-    let mut i: usize = 0;
-    while i < 2 {
-        let mut j = 0;
-        while j < crate::consts::DV * crate::consts::M {
-            if (*LSparse.offset(i as isize))[j as usize] != 0 as u32 {
-                LSparse_loc[i as usize][j as usize] = (crate::consts::P as u32)
-                    .wrapping_sub((*LSparse.offset(i as isize))[j as usize]);
+    for i in 0..N0 {
+        for j in 0..(crate::consts::DV * crate::consts::M) {
+            if LSparse[i][j] != 0 {
+                LSparse_loc[i][j] = (crate::consts::P as u32) - LSparse[i][j];
             }
-            j += 1
         }
         int32_sort(
             LSparse_loc[i].as_mut_ptr() as *mut i32,
             (crate::consts::DV * crate::consts::M) as isize,
         );
-        i += 1
     }
     /* Gamma matrix: an N0 x N0 block circulant matrix with block size p
      * gamma[a][b][c] stores the intersection of the first column of the a-th
