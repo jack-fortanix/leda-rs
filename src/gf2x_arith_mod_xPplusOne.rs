@@ -419,7 +419,7 @@ pub unsafe fn gf2x_mod_mul_dense_to_sparse(
 // end gf2x_mod_mul
 /*----------------------------------------------------------------------------*/
 
-pub unsafe fn gf2x_mod_mul_sparse(Res: &mut [u32], A: &[u32], B: &[u32]) {
+pub fn gf2x_mod_mul_sparse(Res: &mut [u32], A: &[u32], B: &[u32]) {
     let P32 = P as u32;
 
     let sizeR = Res.len() as usize;
@@ -450,7 +450,7 @@ pub unsafe fn gf2x_mod_mul_sparse(Res: &mut [u32], A: &[u32], B: &[u32]) {
         Res[lastFilledPos] = P32;
         lastFilledPos = lastFilledPos.wrapping_add(1)
     }
-    int32_sort(Res.as_mut_ptr() as *mut i32, sizeR as isize);
+    unsafe { int32_sort(Res.as_mut_ptr() as *mut i32, sizeR as isize); }
     /* eliminate duplicates */
     let mut lastReadPos: u32 = Res[0];
     let mut duplicateCount: i32 = 0;
