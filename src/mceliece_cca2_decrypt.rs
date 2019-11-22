@@ -7,6 +7,8 @@ use crate::gf2x_arith_mod_xPplusOne::*;
 use crate::types::*;
 use crate::H_Q_matrices_generation::*;
 
+use std::convert::TryInto;
+
 extern "C" {
     #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
@@ -348,24 +350,8 @@ pub unsafe fn decrypt_Kobara_Imai(sk: &privateKeyMcEliece_t, ctext: &[u8]) -> Re
         i_2 += 1
     }
     /* retrieve message len, and set it */
-    let mut correctlySizedBytePtxLen: u64 = 0;
-    memcpy(
-        &mut correctlySizedBytePtxLen as *mut u64 as *mut libc::c_void,
-        paddedOutput.as_mut_ptr().offset(32) as *const libc::c_void,
-        ::std::mem::size_of::<u64>() as u64,
-    );
+    let ptext_len: u64 = u64::from_le_bytes(paddedOutput[32..40].try_into().expect("8 bytes"));
 
-    let mut output = vec![0u8; correctlySizedBytePtxLen as usize];
-
-    /* copy message in output buffer */
-    memcpy(
-        output.as_mut_ptr() as *mut libc::c_void,
-        paddedOutput
-            .as_mut_ptr()
-            .offset(32)
-            .offset(::std::mem::size_of::<u64>() as u64 as isize) as *const libc::c_void,
-        correctlySizedBytePtxLen,
-    );
-    return Ok(output);
+    Ok(paddedOutput[40..(ptext_len as usize+40)].to_vec())
 }
 // end decrypt_Kobara_Imai
