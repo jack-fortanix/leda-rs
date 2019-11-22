@@ -6,7 +6,7 @@ use crate::consts::*;
  * computes the threshold for the second iteration of the decoder and stores
  * it in the globally accessible vector*/
 
-pub unsafe fn DFR_test(LSparse: &[[u32; 121]; 2], secondIterThreshold: *mut u8) -> i32 {
+pub unsafe fn DFR_test(LSparse: &[[u32; 121]; 2]) -> Option<u8> {
     let mut LSparse_loc: [[u32; 121]; 2] = [[0; 121]; 2]; /* vector of N_0 sparse blocks */
     /* transpose blocks of L, we need its columns */
     for i in 0..N0 {
@@ -125,8 +125,7 @@ pub unsafe fn DFR_test(LSparse: &[[u32; 121]; 2], secondIterThreshold: *mut u8) 
         gammaBlockRowIdx_0 += 1
     }
     if 11i32 * 11i32 > allBlockMaxSumstMinusOne + allBlockMaxSumst {
-        *secondIterThreshold = (allBlockMaxSumst + 1i32) as u8;
-        return 1i32;
+        return Some((allBlockMaxSumst + 1i32) as u8);
     }
-    return 0i32;
+    return None;
 }

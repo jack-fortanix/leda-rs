@@ -55,11 +55,15 @@ pub unsafe fn key_gen_mceliece(
                 && LPosOnes[i_1 as usize][(11 * 11 - 1i32) as usize] != P32) as i32;
             i_1 += 1
         }
-        let mut isDFRok: i32 = 0;
+
+        let mut isDFRok = false;
         if is_L_full != 0 {
-            isDFRok = DFR_test(&LPosOnes, &mut sk.secondIterThreshold)
+            if let Some(threshold) = DFR_test(&LPosOnes) {
+                sk.secondIterThreshold = threshold;
+                isDFRok = true;
+            }
         }
-        if !(is_L_full == 0 || isDFRok == 0) {
+        if !(is_L_full == 0 || isDFRok == false) {
             break;
         }
         sk.rejections += 1;
