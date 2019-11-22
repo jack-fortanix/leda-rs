@@ -45,14 +45,7 @@ unsafe fn decrypt_McEliece(
                     &QPosOnes[i]
                         [processedQOnes[i]..(processedQOnes[i] + qBlockWeights[i][colQ] as usize)],
                 );
-                gf2x_mod_add_sparse(
-                    11i32 * 11i32,
-                    LPosOnes[colQ as usize].as_mut_ptr(),
-                    11i32 * 11i32,
-                    LPosOnes[colQ as usize].as_mut_ptr(),
-                    11i32 * 11i32,
-                    auxPosOnes.as_mut_ptr(),
-                );
+                gf2x_mod_add_sparse(&mut LPosOnes[colQ], &auxPosOnes);
                 processedQOnes[i] += qBlockWeights[i][colQ as usize] as usize;
             }
         }
@@ -329,8 +322,8 @@ pub unsafe fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<V
         }
     }
     /* retrieve message len, and set it */
-    let ptext_len: u64 = u64::from_le_bytes(paddedOutput[32..40].try_into().expect("8 bytes"));
+    let ptext_len = u64::from_le_bytes(paddedOutput[32..40].try_into().expect("8 bytes")) as usize;
 
-    Ok(paddedOutput[40..(ptext_len as usize + 40)].to_vec())
+    Ok(paddedOutput[40..(ptext_len + 40)].to_vec())
 }
 // end decrypt_Kobara_Imai

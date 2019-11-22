@@ -505,17 +505,20 @@ pub unsafe fn gf2x_mod_mul_sparse(Res: &mut [u32], A: &[u32], B: &[u32]) {
 /*---------------------------------------------------------------------------*/
 // end gf2x_mod_mul_sparse
 /*----------------------------------------------------------------------------*/
-/* the implementation is safe even in case A or B alias with the result */
 /* PRE: A and B should be sorted and have INVALID_POS_VALUE at the end */
 
 pub unsafe fn gf2x_mod_add_sparse(
-    mut sizeR: i32,
-    mut Res: *mut u32,
-    mut sizeA: i32,
-    mut A: *mut u32,
-    mut sizeB: i32,
-    mut B: *mut u32,
-) {
+    A: &mut [u32],
+    B: &[u32]) {
+
+    let sizeR = A.len() as i32;
+    let sizeA = A.len() as i32;
+    let sizeB = B.len() as i32;
+
+    let Res = A.as_mut_ptr();
+    let A = A.as_mut_ptr();
+    let B = B.as_ptr();
+
     let vla = sizeR as usize;
     let mut tmpRes: Vec<u32> = ::std::vec::from_elem(0, vla);
     let mut idxA: i32 = 0i32;

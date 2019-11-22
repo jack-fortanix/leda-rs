@@ -44,14 +44,7 @@ pub unsafe fn key_gen_mceliece(
                 gf2x_mod_mul_sparse(&mut auxPosOnes,
                                     &HPosOnes[i_0],
                                     &QPosOnes[i_0][processedQOnes[i_0]..(processedQOnes[i_0]+qBlockWeights[i_0][colQ] as usize)]);
-                gf2x_mod_add_sparse(
-                    11 * 11,
-                    LPosOnes[colQ as usize].as_mut_ptr(),
-                    11 * 11,
-                    LPosOnes[colQ as usize].as_mut_ptr(),
-                    11 * 11,
-                    auxPosOnes.as_mut_ptr(),
-                );
+                gf2x_mod_add_sparse(&mut LPosOnes[colQ], &auxPosOnes);
                 processedQOnes[i_0] += qBlockWeights[i_0][colQ as usize] as usize;
             }
         }
