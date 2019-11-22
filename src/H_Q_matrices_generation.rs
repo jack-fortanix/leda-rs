@@ -37,28 +37,24 @@ pub fn transposeHPosOnes(HtrPosOnes: &mut [[u32; DV]; N0], HPosOnes: &[[u32; DV]
     }
 }
 
-pub unsafe fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11], QPosOnes: *mut [u32; 11]) {
-    let mut transposed_ones_idx: [u32; 2] = [0i32 as u32, 0]; // position in the column of QtrPosOnes[][...]
-    let mut source_row_idx: u32 = 0i32 as u32;
-    while source_row_idx < 2i32 as u32 {
-        let mut currQoneIdx: i32 = 0i32;
-        let mut endQblockIdx: i32 = 0i32;
-        let mut blockIdx: i32 = 0i32;
-        while blockIdx < 2i32 {
-            endQblockIdx += qBlockWeights[source_row_idx as usize][blockIdx as usize] as i32;
+pub fn transposeQPosOnes(QtrPosOnes: &mut [[u32; DV]; 2], QPosOnes: &[[u32; DV]; 2]) {
+    let P32 = P as u32;
+    let mut transposed_ones_idx: [u32; 2] = [0u32, 0]; // position in the column of QtrPosOnes[][...]
+
+    for source_row_idx in 0..N0 {
+        let mut currQoneIdx: usize = 0;
+        let mut endQblockIdx: usize = 0;
+        for blockIdx in 0..N0 {
+            endQblockIdx += qBlockWeights[source_row_idx][blockIdx] as usize;
+
             while currQoneIdx < endQblockIdx {
-                (*QtrPosOnes.offset(blockIdx as isize))
-                    [transposed_ones_idx[blockIdx as usize] as usize] = (crate::consts::P as i32
-                    as u32)
-                    .wrapping_sub((*QPosOnes.offset(source_row_idx as isize))[currQoneIdx as usize])
-                    .wrapping_rem(crate::consts::P as i32 as u32);
-                transposed_ones_idx[blockIdx as usize] =
-                    transposed_ones_idx[blockIdx as usize].wrapping_add(1);
+                QtrPosOnes[blockIdx][transposed_ones_idx[blockIdx] as usize] =
+                    (P32 - QPosOnes[source_row_idx][currQoneIdx]) % P32;
+
+                transposed_ones_idx[blockIdx] += 1;
                 currQoneIdx += 1
             }
-            blockIdx += 1
         }
-        source_row_idx = source_row_idx.wrapping_add(1)
     }
 }
 

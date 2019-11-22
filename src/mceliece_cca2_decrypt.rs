@@ -75,7 +75,7 @@ unsafe fn decrypt_McEliece(
     let mut HtrPosOnes: [[u32; DV]; 2] = [[0; DV]; 2];
     let mut QtrPosOnes: [[u32; DV]; 2] = [[0; DV]; 2];
     transposeHPosOnes(&mut HtrPosOnes, &HPosOnes);
-    transposeQPosOnes(QtrPosOnes.as_mut_ptr(), QPosOnes.as_mut_ptr());
+    transposeQPosOnes(&mut QtrPosOnes, &QPosOnes);
     /* end rebuild secret key values */
     let mut codewordPoly: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT]; // privateSyndrome := yVar* Htr
 
