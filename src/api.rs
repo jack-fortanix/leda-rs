@@ -12,8 +12,8 @@ pub fn leda_gen_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
 
         key_gen_mceliece(
             &seed,
-            &mut *(pk.as_mut_ptr() as *mut publicKeyMcEliece_t),
-            &mut *(sk.as_mut_ptr() as *mut privateKeyMcEliece_t),
+            &mut *(pk.as_mut_ptr() as *mut LedaPublicKey),
+            &mut *(sk.as_mut_ptr() as *mut LedaPrivateKey),
         );
     }
 
@@ -21,9 +21,9 @@ pub fn leda_gen_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
 }
 
 pub fn leda_encrypt(msg: &[u8], pk: &[u8]) -> Result<Vec<u8>> {
-    unsafe { encrypt_Kobara_Imai(&*(pk.as_ptr() as *const publicKeyMcEliece_t), msg) }
+    unsafe { encrypt_Kobara_Imai(&*(pk.as_ptr() as *const LedaPublicKey), msg) }
 }
 
 pub fn leda_decrypt(ctext: &[u8], sk: &[u8]) -> Result<Vec<u8>> {
-    unsafe { decrypt_Kobara_Imai(&*(sk.as_ptr() as *const privateKeyMcEliece_t), ctext) }
+    unsafe { decrypt_Kobara_Imai(&*(sk.as_ptr() as *const LedaPrivateKey), ctext) }
 }

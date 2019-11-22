@@ -17,7 +17,7 @@ extern "C" {
 unsafe fn decrypt_McEliece(
     mut decoded_err: *mut DIGIT,
     mut correct_codeword: *mut DIGIT,
-    sk: &privateKeyMcEliece_t,
+    sk: &LedaPrivateKey,
     thresholds: &[i32],
     ctext: &[u8]) -> i32 {
 
@@ -221,7 +221,7 @@ unsafe fn poly_seq_into_bytestream(
     return 1i32;
 }
 
-pub unsafe fn decrypt_Kobara_Imai(sk: &privateKeyMcEliece_t, ctext: &[u8]) -> Result<Vec<u8>> {
+pub unsafe fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<Vec<u8>> {
     if ctext.len() < N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B {
         return Err(Error::DecryptionFailed);
     }

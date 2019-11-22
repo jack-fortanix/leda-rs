@@ -20,7 +20,7 @@ pub type DIGIT = u64;
 
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct privateKeyMcEliece_t {
+pub struct LedaPrivateKey {
     pub prng_seed: [u8; 32],
     pub rejections: u8,
     pub secondIterThreshold: u8,
@@ -28,7 +28,7 @@ pub struct privateKeyMcEliece_t {
 
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct publicKeyMcEliece_t {
+pub struct LedaPublicKey {
     pub Mtr: [DIGIT; crate::consts::NUM_DIGITS_GF2X_ELEMENT],
 }
 

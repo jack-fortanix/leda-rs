@@ -16,7 +16,7 @@ extern "C" {
 
 unsafe fn encrypt_McEliece(
     mut codeword: *mut DIGIT,
-    pk: *const publicKeyMcEliece_t,
+    pk: *const LedaPublicKey,
     mut ptx: *const DIGIT,
     mut err: *const DIGIT,
 )
@@ -162,7 +162,7 @@ unsafe fn bytestream_into_poly_seq(
 // end bytestream_into_poly_seq
 /*----------------------------------------------------------------------------*/
 
-pub unsafe fn encrypt_Kobara_Imai(pk: &publicKeyMcEliece_t, msg: &[u8]) -> Result<Vec<u8>> {
+pub unsafe fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
     /* NIST API provides a byte aligned message: all bytes are assumed full.
      * Therefore, if mlen exceeds
      * floor( (k-8*(KOBARA_IMAI_CONSTANT_LENGTH_B+sizeof(KI_LENGTH_FIELD_TYPE)))/8 )
