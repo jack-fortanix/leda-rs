@@ -494,60 +494,47 @@ pub unsafe fn gf2x_mod_mul_sparse(Res: &mut [u32], A: &[u32], B: &[u32]) {
 /*----------------------------------------------------------------------------*/
 /* PRE: A and B should be sorted and have INVALID_POS_VALUE at the end */
 
-pub unsafe fn gf2x_mod_add_sparse(A: &mut [u32], B: &[u32]) {
-
+pub fn gf2x_mod_add_sparse(A: &mut [u32], B: &[u32]) {
     let P32 = P as u32;
 
-    let sizeR = A.len() as usize;
-    let sizeA = A.len() as usize;
-    let sizeB = B.len() as usize;
-
-    let Res = A.as_mut_ptr();
-    let A = A.as_mut_ptr();
-    let B = B.as_ptr();
-
-    let mut tmpRes: Vec<u32> = vec![0u32; sizeR as usize];
+    let mut R: Vec<u32> = vec![0u32; A.len()];
     let mut idxA: usize = 0;
     let mut idxB: usize = 0;
     let mut idxR: usize = 0;
-    while idxA < sizeA
-        && idxB < sizeB
-        && *A.offset(idxA as isize) != P32
-        && *B.offset(idxB as isize) != P32
+    while idxA < A.len()
+        && idxB < B.len()
+        && A[idxA] != P32
+        && B[idxB] != P32
     {
-        if *A.offset(idxA as isize) == *B.offset(idxB as isize) {
+        if A[idxA] == B[idxB] {
             idxA += 1;
             idxB += 1
         } else {
-            if *A.offset(idxA as isize) < *B.offset(idxB as isize) {
-                *tmpRes.as_mut_ptr().offset(idxR as isize) = *A.offset(idxA as isize);
+            if A[idxA] < B[idxB] {
+                R[idxR] = A[idxA];
                 idxA += 1
             } else {
-                *tmpRes.as_mut_ptr().offset(idxR as isize) = *B.offset(idxB as isize);
+                R[idxR] = B[idxB];
                 idxB += 1
             }
             idxR += 1
         }
     }
-    while idxA < sizeA && *A.offset(idxA as isize) != crate::consts::P as i32 as u32 {
-        *tmpRes.as_mut_ptr().offset(idxR as isize) = *A.offset(idxA as isize);
+    while idxA < A.len() && A[idxA] != P32 {
+        R[idxR] = A[idxA];
         idxA += 1;
         idxR += 1
     }
-    while idxB < sizeB && *B.offset(idxB as isize) != crate::consts::P as i32 as u32 {
-        *tmpRes.as_mut_ptr().offset(idxR as isize) = *B.offset(idxB as isize);
+    while idxB < B.len() && B[idxB] != P32 {
+        R[idxR] = B[idxB];
         idxB += 1;
         idxR += 1
     }
-    while idxR < sizeR {
-        *tmpRes.as_mut_ptr().offset(idxR as isize) = crate::consts::P as i32 as u32;
+    while idxR < A.len() {
+        R[idxR] = P32;
         idxR += 1
     }
-    memcpy(
-        Res as *mut libc::c_void,
-        tmpRes.as_mut_ptr() as *const libc::c_void,
-        (::std::mem::size_of::<u32>() as u64).wrapping_mul(sizeR as u64),
-    );
+    A.copy_from_slice(&R);
 }
 // end gf2x_mod_add_sparse
 /*----------------------------------------------------------------------------*/
