@@ -6,7 +6,7 @@ use crate::consts::*;
  * computes the threshold for the second iteration of the decoder and stores
  * it in the globally accessible vector*/
 
-pub unsafe fn DFR_test(LSparse: &[[u32; 121]; 2]) -> Option<u8> {
+pub fn DFR_test(LSparse: &[[u32; 121]; 2]) -> Option<u8> {
     let mut LSparse_loc: [[u32; 121]; 2] = [[0; 121]; 2]; /* vector of N_0 sparse blocks */
     /* transpose blocks of L, we need its columns */
     for i in 0..N0 {
@@ -15,10 +15,12 @@ pub unsafe fn DFR_test(LSparse: &[[u32; 121]; 2]) -> Option<u8> {
                 LSparse_loc[i][j] = (crate::consts::P as u32) - LSparse[i][j];
             }
         }
+        unsafe {
         int32_sort(
             LSparse_loc[i].as_mut_ptr() as *mut i32,
             (crate::consts::DV * crate::consts::M) as isize,
         );
+        }
     }
     /* Gamma matrix: an N0 x N0 block circulant matrix with block size p
      * gamma[a][b][c] stores the intersection of the first column of the a-th

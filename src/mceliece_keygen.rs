@@ -50,6 +50,7 @@ pub unsafe fn key_gen_mceliece(
         }
         let mut is_L_full = 1i32;
         let mut i_1: i32 = 0i32;
+
         while i_1 < 2i32 {
             is_L_full = (is_L_full != 0
                 && LPosOnes[i_1 as usize][(11 * 11 - 1i32) as usize] != P32) as i32;
@@ -69,16 +70,11 @@ pub unsafe fn key_gen_mceliece(
         sk.rejections += 1;
     }
     let mut Ln0dense: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
-    let mut j_0: i32 = 0i32;
-    while j_0 < 11 * 11 {
-        if LPosOnes[(2i32 - 1i32) as usize][j_0 as usize] != P32 {
-            gf2x_set_coeff(
-                Ln0dense.as_mut_ptr(),
-                LPosOnes[(2i32 - 1i32) as usize][j_0 as usize],
-                1i32 as DIGIT,
-            );
+
+    for j in 0..(DV*M) {
+        if LPosOnes[1][j] != P32 {
+            gf2x_set_coeff(Ln0dense.as_mut_ptr(), LPosOnes[1][j], 1 as DIGIT);
         }
-        j_0 += 1
     }
     let mut Ln0Inv: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     gf2x_mod_inverse(&mut Ln0Inv, &Ln0dense);
