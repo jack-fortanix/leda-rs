@@ -19,8 +19,8 @@ unsafe fn decrypt_McEliece(
     mut correct_codeword: *mut DIGIT,
     sk: &LedaPrivateKey,
     thresholds: &[i32],
-    ctext: &[u8]) -> i32 {
-
+    ctext: &[u8],
+) -> i32 {
     let mut xof = seedexpander_from_trng(&sk.prng_seed).unwrap();
     /* rebuild secret key values */
     let mut HPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
@@ -31,7 +31,7 @@ unsafe fn decrypt_McEliece(
         generateHPosOnes(&mut HPosOnes, &mut xof);
         generateQPosOnes(&mut QPosOnes, &mut xof);
         for i in 0..2 {
-            for j in 0..(11*11) {
+            for j in 0..(11 * 11) {
                 LPosOnes[i][j] = crate::consts::P as u32;
             }
         }
@@ -39,9 +39,12 @@ unsafe fn decrypt_McEliece(
         let mut processedQOnes: [usize; 2] = [0, 0];
         for colQ in 0..N0 {
             for i in 0..N0 {
-                gf2x_mod_mul_sparse(&mut auxPosOnes,
-                                    &HPosOnes[i],
-                                    &QPosOnes[i][processedQOnes[i]..(processedQOnes[i]+qBlockWeights[i][colQ] as usize)]);
+                gf2x_mod_mul_sparse(
+                    &mut auxPosOnes,
+                    &HPosOnes[i],
+                    &QPosOnes[i]
+                        [processedQOnes[i]..(processedQOnes[i] + qBlockWeights[i][colQ] as usize)],
+                );
                 gf2x_mod_add_sparse(
                     11i32 * 11i32,
                     LPosOnes[colQ as usize].as_mut_ptr(),
@@ -63,10 +66,10 @@ unsafe fn decrypt_McEliece(
     transposeHPosOnes(&mut HtrPosOnes, &HPosOnes);
     transposeQPosOnes(&mut QtrPosOnes, &QPosOnes);
     /* end rebuild secret key values */
-    let mut codewordPoly: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT]; // privateSyndrome := yVar* Htr
+    let mut codewordPoly: [DIGIT; N0 * NUM_DIGITS_GF2X_ELEMENT] = [0; N0 * NUM_DIGITS_GF2X_ELEMENT]; // privateSyndrome := yVar* Htr
 
     for i in 0..codewordPoly.len() {
-        let digit : [u8; 8] = ctext[(8*i)..(8*(i+1))].try_into().expect("8 bytes");
+        let digit: [u8; 8] = ctext[(8 * i)..(8 * (i + 1))].try_into().expect("8 bytes");
         codewordPoly[i] = u64::from_le_bytes(digit);
     }
 
@@ -204,7 +207,7 @@ unsafe fn poly_seq_into_bytestream(
 }
 
 pub unsafe fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<Vec<u8>> {
-    if ctext.len() < N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B {
+    if ctext.len() < N0 * NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_B {
         return Err(Error::DecryptionFailed);
     }
 
@@ -213,17 +216,18 @@ pub unsafe fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<V
     let clen = ctext.len() as u64;
     let ctx = ctext.as_ptr();
 
-    let mut correctedCodeword: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
+    let mut correctedCodeword: [DIGIT; N0 * NUM_DIGITS_GF2X_ELEMENT] =
+        [0; N0 * NUM_DIGITS_GF2X_ELEMENT];
     /* first N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B bytes are the actual McE
      * ciphertext. Note: storage endiannes in BE hardware should flip bytes */
 
     for i in 0..correctedCodeword.len() {
-        let digit : [u8; 8] = ctext[(8*i)..(8*(i+1))].try_into().expect("8 bytes");
+        let digit: [u8; 8] = ctext[(8 * i)..(8 * (i + 1))].try_into().expect("8 bytes");
         correctedCodeword[i] = u64::from_le_bytes(digit);
     }
 
     let thresholds: [i32; 2] = [64, sk.secondIterThreshold as i32];
-    let mut err: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
+    let mut err: [DIGIT; N0 * NUM_DIGITS_GF2X_ELEMENT] = [0; N0 * NUM_DIGITS_GF2X_ELEMENT];
 
     if decrypt_McEliece(
         err.as_mut_ptr(),
@@ -315,23 +319,18 @@ pub unsafe fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<V
     let prngSequence =
         deterministic_random_byte_generator(&secretSeed, paddedSequenceLen as usize).unwrap();
     /* remove PRNG Pad from entire message */
-    let mut i_1: i32 = 0i32;
-    while (i_1 as u64) < paddedSequenceLen {
-        let ref mut fresh4 = *paddedOutput.as_mut_ptr().offset(i_1 as isize);
-        *fresh4 = (*fresh4 as i32 ^ prngSequence[i_1 as usize] as i32) as u8;
-        i_1 += 1
+    for i in 0..(paddedSequenceLen as usize) {
+        paddedOutput[i] ^= prngSequence[i];
     }
     /*test if Kobara Imai constant, default to zero, matches */
-    let mut i_2: i32 = 0i32;
-    while i_2 < 32i32 {
-        if *paddedOutput.as_mut_ptr().offset(i_2 as isize) as i32 != 0i32 {
+    for i in 0..32 {
+        if paddedOutput[i] != 0 {
             return Err(Error::DecryptionFailed);
         }
-        i_2 += 1
     }
     /* retrieve message len, and set it */
     let ptext_len: u64 = u64::from_le_bytes(paddedOutput[32..40].try_into().expect("8 bytes"));
 
-    Ok(paddedOutput[40..(ptext_len as usize+40)].to_vec())
+    Ok(paddedOutput[40..(ptext_len as usize + 40)].to_vec())
 }
 // end decrypt_Kobara_Imai
