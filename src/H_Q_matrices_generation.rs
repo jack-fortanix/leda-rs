@@ -27,7 +27,7 @@ pub fn generateQPosOnes(QPosOnes: &mut [[u32; DV]; N0], keys_expander: &mut AES_
     }
 }
 
-pub unsafe fn transposeHPosOnes(HtrPosOnes: &mut [[u32; DV]; N0], HPosOnes: &[[u32; DV]; N0]) {
+pub fn transposeHPosOnes(HtrPosOnes: &mut [[u32; DV]; N0], HPosOnes: &[[u32; DV]; N0]) {
     let P32 = P as u32;
     for i in 0..N0 {
         /* Obtain directly the sparse representation of the block of H */
@@ -36,8 +36,6 @@ pub unsafe fn transposeHPosOnes(HtrPosOnes: &mut [[u32; DV]; N0], HPosOnes: &[[u
         }
     }
 }
-
-// end transposeHPosOnes
 
 pub unsafe fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11], QPosOnes: *mut [u32; 11]) {
     let mut transposed_ones_idx: [u32; 2] = [0i32 as u32, 0]; // position in the column of QtrPosOnes[][...]
