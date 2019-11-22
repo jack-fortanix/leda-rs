@@ -28,7 +28,7 @@ pub unsafe fn key_gen_mceliece(
     /*Rejection-sample for a full L*/
     let mut LPosOnes: [[u32; 121]; 2] = [[0; 121]; 2];
     loop {
-        generateHPosOnes(HPosOnes.as_mut_ptr(), &mut keys_expander);
+        generateHPosOnes(&mut HPosOnes, &mut keys_expander);
         generateQPosOnes(QPosOnes.as_mut_ptr(), &mut keys_expander);
         for i in 0..2 {
             for j in 0..(11*11) {

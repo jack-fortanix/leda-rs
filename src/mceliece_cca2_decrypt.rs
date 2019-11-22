@@ -28,7 +28,7 @@ unsafe fn decrypt_McEliece(
     let mut rejections: i32 = sk.rejections as i32;
     let mut LPosOnes: [[u32; 121]; 2] = [[0; 121]; 2];
     loop {
-        generateHPosOnes(HPosOnes.as_mut_ptr(), &mut xof);
+        generateHPosOnes(&mut HPosOnes, &mut xof);
         generateQPosOnes(QPosOnes.as_mut_ptr(), &mut xof);
         for i in 0..2 {
             for j in 0..(11*11) {

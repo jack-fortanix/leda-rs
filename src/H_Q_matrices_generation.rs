@@ -4,19 +4,16 @@ use crate::types::*;
 
 /*----------------------------------------------------------------------------*/
 
-pub unsafe fn generateHPosOnes(HPosOnes: *mut [u32; 11], keys_expander: &mut AES_XOF_struct) {
-    let mut i: i32 = 0i32;
-    while i < 2i32 {
+pub unsafe fn generateHPosOnes(HPosOnes: &mut [[u32; DV]; N0], keys_expander: &mut AES_XOF_struct) {
+    for i in 0..N0 {
         /* Generate a random block of Htr */
         rand_circulant_sparse_block(
-            &mut *(*HPosOnes.offset(i as isize)).as_mut_ptr().offset(0),
-            11i32,
+            &mut *(HPosOnes[i]).as_mut_ptr(),
+            DV as i32,
             keys_expander,
         );
-        i += 1
     }
 }
-// end generateHtr_HtrPosOnes
 
 pub unsafe fn transposeHPosOnes(HtrPosOnes: *mut [u32; 11], HPosOnes: *mut [u32; 11]) {
     let mut i: i32 = 0i32;
@@ -61,13 +58,6 @@ pub unsafe fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11], QPosOnes: *mut [u32;
         source_row_idx = source_row_idx.wrapping_add(1)
     }
 }
-/*----------------------------------------------------------------------------*/
-/* output*/
-/*----------------------------------------------------------------------------*/
-/* output*/
-/*----------------------------------------------------------------------------*/
-// end transposeHPosOnes
-/*----------------------------------------------------------------------------*/
 
 pub unsafe fn generateQPosOnes(QPosOnes: *mut [u32; 11], keys_expander: &mut AES_XOF_struct) {
     let mut i: i32 = 0i32;
