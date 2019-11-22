@@ -222,16 +222,24 @@ unsafe fn poly_seq_into_bytestream(
 }
 
 pub unsafe fn decrypt_Kobara_Imai(sk: &privateKeyMcEliece_t, ctext: &[u8]) -> Result<Vec<u8>> {
+    if ctext.len() < N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B {
+        return Err(Error::DecryptionFailed);
+    }
 
     // constituted by codeword || leftover
 
     let clen = ctext.len() as u64;
     let ctx = ctext.as_ptr();
 
-    let mut err: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
     let mut correctedCodeword: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
     /* first N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B bytes are the actual McE
      * ciphertext. Note: storage endiannes in BE hardware should flip bytes */
+
+    /*
+    for digit in 0..(N0*NUM_DIGITS_GF2X_ELEMENT) {
+        correctedCodeword[i] = DIGIT::from_le_bytes(ctext[8*i..8*(i+1)]);
+    }
+*/
     memcpy(
         correctedCodeword.as_mut_ptr() as *mut libc::c_void,
         ctx as *const libc::c_void,
@@ -239,6 +247,7 @@ pub unsafe fn decrypt_Kobara_Imai(sk: &privateKeyMcEliece_t, ctext: &[u8]) -> Re
     );
 
     let thresholds: [i32; 2] = [64, sk.secondIterThreshold as i32];
+    let mut err: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
 
     if decrypt_McEliece(
         err.as_mut_ptr(),
