@@ -302,19 +302,14 @@ pub unsafe fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<V
     );
     /* obtain back the PRNG seed */
     let mut secretSeed: [u8; 32] = [0; 32];
-    let mut i: i32 = 0i32;
-    while i < 32i32 {
-        secretSeed[i as usize] =
-            (cwEncOutputBuffer[i as usize] as i32 ^ outputHash[i as usize] as i32) as u8;
-        i += 1
+    for i in 0..32 {
+        secretSeed[i] = cwEncOutputBuffer[i] ^ outputHash[i];
     }
     /* test that the padding bytes of the seed are actually zero */
-    let mut i_0: i32 = 32i32;
-    while i_0 < 48i32 {
-        if cwEncOutputBuffer[i_0 as usize] as i32 ^ outputHash[i_0 as usize] as i32 != 0i32 {
+    for i in 32..48 {
+        if cwEncOutputBuffer[i] ^ outputHash[i] != 0 {
             return Err(Error::DecryptionFailed);
         }
-        i_0 += 1
     }
 
     let prngSequence =
