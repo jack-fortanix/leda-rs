@@ -65,10 +65,10 @@ pub unsafe fn generateQPosOnes(QPosOnes: &mut [[u32; DV]; N0], keys_expander: &m
         for j in 0..2 {
             rand_circulant_sparse_block(
                 &mut *(QPosOnes[i].as_mut_ptr().offset(placed_ones as isize)),
-                qBlockWeights[i as usize][j as usize] as i32,
+                qBlockWeights[i][j] as i32,
                 keys_expander,
             );
-            placed_ones += qBlockWeights[i as usize][j as usize] as i32;
+            placed_ones += qBlockWeights[i][j] as i32;
         }
     }
 }
