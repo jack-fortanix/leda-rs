@@ -2,16 +2,28 @@ use crate::consts::*;
 use crate::gf2x_arith_mod_xPplusOne::rand_circulant_sparse_block;
 use crate::types::*;
 
-/*----------------------------------------------------------------------------*/
-
 pub unsafe fn generateHPosOnes(HPosOnes: &mut [[u32; DV]; N0], keys_expander: &mut AES_XOF_struct) {
     for i in 0..N0 {
         /* Generate a random block of Htr */
         rand_circulant_sparse_block(
-            &mut *(HPosOnes[i]).as_mut_ptr(),
-            DV as i32,
+            &mut HPosOnes[i],
+            DV,
             keys_expander,
         );
+    }
+}
+
+pub unsafe fn generateQPosOnes(QPosOnes: &mut [[u32; DV]; N0], keys_expander: &mut AES_XOF_struct) {
+    for i in 0..N0 {
+        let mut placed_ones: usize = 0;
+        for j in 0..2 {
+            rand_circulant_sparse_block(
+                &mut QPosOnes[i][placed_ones as usize..],
+                qBlockWeights[i][j] as usize,
+                keys_expander,
+            );
+            placed_ones += qBlockWeights[i][j] as usize;
+        }
     }
 }
 
@@ -59,16 +71,3 @@ pub unsafe fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11], QPosOnes: *mut [u32;
     }
 }
 
-pub unsafe fn generateQPosOnes(QPosOnes: &mut [[u32; DV]; N0], keys_expander: &mut AES_XOF_struct) {
-    for i in 0..N0 {
-        let mut placed_ones: i32 = 0i32;
-        for j in 0..2 {
-            rand_circulant_sparse_block(
-                &mut *(QPosOnes[i].as_mut_ptr().offset(placed_ones as isize)),
-                qBlockWeights[i][j] as i32,
-                keys_expander,
-            );
-            placed_ones += qBlockWeights[i][j] as i32;
-        }
-    }
-}

@@ -567,7 +567,7 @@ pub unsafe fn gf2x_mod_add_sparse(
  * the NIST seedexpander seeded with the proper key.
  * Assumes that the maximum value for the range n is 2^32-1
  */
-unsafe fn rand_range(n: u32, seed_expander_ctx: &mut AES_XOF_struct) -> u32 {
+fn rand_range(n: u32, seed_expander_ctx: &mut AES_XOF_struct) -> u32 {
     let required_rnd_bytes = ((32 - n.leading_zeros() + 7) / 8) as usize;
     let mask = n.next_power_of_two() - 1;
 
@@ -587,28 +587,30 @@ unsafe fn rand_range(n: u32, seed_expander_ctx: &mut AES_XOF_struct) -> u32 {
         }
     }
 }
-// end rand_range
-/*----------------------------------------------------------------------------*/
+
 /* Obtains fresh randomness and seed-expands it until all the required positions
- * for the '1's in the circulant block are obtained */
+ * for the '1's in the circulant block are obtained
+*/
 
 pub unsafe fn rand_circulant_sparse_block(
-    pos_ones: *mut u32,
-    countOnes: i32,
+    pos_ones: &mut [u32],
+    countOnes: usize,
     seed_expander_ctx: &mut AES_XOF_struct,
 ) {
-    let mut duplicated: i32 = 0;
-    let mut placedOnes: i32 = 0i32;
+    let mut placedOnes = 0;
     while placedOnes < countOnes {
         let p = rand_range(crate::consts::P as u32, seed_expander_ctx);
-        duplicated = 0i32;
+
+        let mut duplicated = false;
         for j in 0..placedOnes {
-            if *pos_ones.offset(j as isize) == p {
-                duplicated = 1i32
+            if pos_ones[j as usize] == p {
+                duplicated = true;
+                break;
             }
         }
-        if duplicated == 0i32 {
-            *pos_ones.offset(placedOnes as isize) = p;
+
+        if duplicated == false {
+            pos_ones[placedOnes] = p;
             placedOnes += 1
         }
     }
