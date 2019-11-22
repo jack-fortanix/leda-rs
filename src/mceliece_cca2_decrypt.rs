@@ -21,7 +21,7 @@ unsafe fn decrypt_McEliece(
     mut correct_codeword: *mut DIGIT,
     sk: &privateKeyMcEliece_t,
     thresholds: &[i32],
-    ctx: *const u8) -> i32 {
+    ctext: &[u8]) -> i32 {
 
     let mut xof = seedexpander_from_trng(&sk.prng_seed).unwrap();
     /* rebuild secret key values */
@@ -84,11 +84,12 @@ unsafe fn decrypt_McEliece(
     transposeQPosOnes(QtrPosOnes.as_mut_ptr(), QPosOnes.as_mut_ptr());
     /* end rebuild secret key values */
     let mut codewordPoly: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT]; // privateSyndrome := yVar* Htr
-    memcpy(
-        codewordPoly.as_mut_ptr() as *mut libc::c_void,
-        ctx as *const libc::c_void,
-        (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32) as u64,
-    ); // end for i
+
+    for i in 0..codewordPoly.len() {
+        let digit : [u8; 8] = ctext[(8*i)..(8*(i+1))].try_into().expect("8 bytes");
+        codewordPoly[i] = u64::from_le_bytes(digit);
+    }
+
     let mut i_1: u32 = 0i32 as u32;
     while i_1 < 2i32 as u32 {
         gf2x_transpose_in_place(codewordPoly.as_mut_ptr().offset(i_1.wrapping_mul(
@@ -146,7 +147,7 @@ unsafe fn decrypt_McEliece(
             correct_codeword.offset(i_4.wrapping_mul(
                 ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as u32,
             ) as isize),
-            (ctx as *mut DIGIT).offset(i_4.wrapping_mul(
+            (ctext.as_ptr() as *const DIGIT).offset(i_4.wrapping_mul(
                 ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as u32,
             ) as isize) as *const DIGIT,
             decoded_err.offset(i_4.wrapping_mul(
@@ -248,7 +249,7 @@ pub unsafe fn decrypt_Kobara_Imai(sk: &privateKeyMcEliece_t, ctext: &[u8]) -> Re
         correctedCodeword.as_mut_ptr(),
         sk,
         &thresholds,
-        ctx,
+        ctext,
     ) == 0i32
     {
         return Err(Error::DecryptionFailed);
