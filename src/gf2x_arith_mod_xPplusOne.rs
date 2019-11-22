@@ -1,9 +1,6 @@
 extern "C" {
     #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
-    #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-
 }
 
 use crate::crypto::seedexpander;
@@ -12,10 +9,6 @@ use crate::gf2x_arith::*;
 use crate::types::*;
 use crate::consts::*;
 
-pub type SIGNED_DIGIT = i64;
-
-// memcpy(...), memset(...)
-/*----------------------------------------------------------------------------*/
 /* specialized for nin == 2 * NUM_DIGITS_GF2X_ELEMENT, as it is only used
  * by gf2x_mul */
 #[inline]
@@ -374,7 +367,7 @@ unsafe fn gf2x_fmac(mut Res: *mut DIGIT, mut operand: *const DIGIT, shiftAmt: u3
     let mut tmp: DIGIT = 0;
     let mut prevLo: DIGIT = 0i32 as DIGIT;
     let mut i: i32 = 0;
-    let mut inDigitShiftMask: SIGNED_DIGIT = ((inDigitShift > 0i32 as u32) as i32 as SIGNED_DIGIT)
+    let mut inDigitShiftMask: i64 = ((inDigitShift > 0i32 as u32) as i32 as i64)
         << (8i32 << 3i32) - 1i32
         >> (8i32 << 3i32) - 1i32;
     i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
@@ -427,65 +420,60 @@ pub unsafe fn gf2x_mod_mul_dense_to_sparse(
 /*----------------------------------------------------------------------------*/
 
 pub unsafe fn gf2x_mod_mul_sparse(Res: &mut [u32], A: &[u32], B: &[u32]) {
-    let sizeR = Res.len() as i32;
-    let sizeB = B.len() as i32;
-    let sizeA = A.len() as i32;
-    let Res = Res.as_mut_ptr();
-    let A = A.as_ptr();
-    let B = B.as_ptr();
+    let P32 = P as u32;
+
+    let sizeR = Res.len() as usize;
+    let sizeB = B.len() as usize;
+    let sizeA = A.len() as usize;
 
     /* compute all the coefficients, filling invalid positions with P*/
-    let mut lastFilledPos: u32 = 0i32 as u32;
-    let mut i: i32 = 0i32;
-    while i < sizeA {
-        let mut j: i32 = 0i32;
-        while j < sizeB {
-            let mut prod: u32 = (*A.offset(i as isize)).wrapping_add(*B.offset(j as isize));
-            prod = if prod >= crate::consts::P as i32 as u32 {
-                prod.wrapping_sub(crate::consts::P as i32 as u32)
+    let mut lastFilledPos: usize = 0;
+    for i in 0..sizeA {
+        for j in 0..sizeB {
+            let mut prod: u32 = (A[i]).wrapping_add(B[j]);
+            prod = if prod >= P32 {
+                prod.wrapping_sub(P32)
             } else {
                 prod
             };
-            if *A.offset(i as isize) != crate::consts::P as i32 as u32
-                && *B.offset(j as isize) != crate::consts::P as i32 as u32
+            if A[i] != P32
+                && B[j] != P32
             {
-                *Res.offset(lastFilledPos as isize) = prod
+                Res[lastFilledPos] = prod
             } else {
-                *Res.offset(lastFilledPos as isize) = crate::consts::P as i32 as u32
+                Res[lastFilledPos] = P32
             }
             lastFilledPos = lastFilledPos.wrapping_add(1);
-            j += 1
         }
-        i += 1
     }
-    while lastFilledPos < sizeR as u32 {
-        *Res.offset(lastFilledPos as isize) = crate::consts::P as i32 as u32;
+    while lastFilledPos < sizeR {
+        Res[lastFilledPos] = P32;
         lastFilledPos = lastFilledPos.wrapping_add(1)
     }
-    int32_sort(Res as *mut i32, sizeR as isize);
+    int32_sort(Res.as_mut_ptr() as *mut i32, sizeR as isize);
     /* eliminate duplicates */
-    let mut lastReadPos: u32 = *Res.offset(0);
+    let mut lastReadPos: u32 = Res[0];
     let mut duplicateCount: i32 = 0;
-    let mut write_idx: i32 = 0i32;
-    let mut read_idx: i32 = 0i32;
-    while read_idx < sizeR && *Res.offset(read_idx as isize) != crate::consts::P as i32 as u32 {
-        lastReadPos = *Res.offset(read_idx as isize);
+    let mut write_idx: usize = 0;
+    let mut read_idx: usize = 0;
+    while read_idx < sizeR && Res[read_idx] != P32 {
+        lastReadPos = Res[read_idx];
         read_idx += 1;
         duplicateCount = 1i32;
-        while *Res.offset(read_idx as isize) == lastReadPos
-            && *Res.offset(read_idx as isize) != crate::consts::P as i32 as u32
+        while Res[read_idx] == lastReadPos
+            && Res[read_idx] != P32
         {
             read_idx += 1;
             duplicateCount += 1
         }
         if duplicateCount % 2i32 != 0 {
-            *Res.offset(write_idx as isize) = lastReadPos;
+            Res[write_idx] = lastReadPos;
             write_idx += 1
         }
     }
     /* fill remaining cells with INVALID_POS_VALUE */
     while write_idx < sizeR {
-        *Res.offset(write_idx as isize) = crate::consts::P as i32 as u32;
+        Res[write_idx] = P32;
         write_idx += 1
     }
 }
@@ -571,8 +559,7 @@ fn rand_range(n: u32, seed_expander_ctx: &mut AES_XOF_struct) -> u32 {
 pub fn rand_circulant_sparse_block(
     pos_ones: &mut [u32],
     countOnes: usize,
-    seed_expander_ctx: &mut AES_XOF_struct,
-) {
+    seed_expander_ctx: &mut AES_XOF_struct) {
     let mut placedOnes = 0;
     while placedOnes < countOnes {
         let p = rand_range(crate::consts::P as u32, seed_expander_ctx);
