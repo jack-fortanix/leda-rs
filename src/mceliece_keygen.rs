@@ -81,7 +81,7 @@ pub unsafe fn key_gen_mceliece(
     gf2x_mod_mul_dense_to_sparse(
         pk.Mtr.as_mut_ptr(),
         Ln0Inv.as_mut_ptr() as *const DIGIT,
-        LPosOnes[0 as usize].as_mut_ptr() as *const u32,
+        LPosOnes[0].as_mut_ptr() as *const u32,
         (11 * 11) as u32,
     );
     gf2x_transpose_in_place(pk.Mtr.as_mut_ptr());

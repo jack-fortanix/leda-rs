@@ -24,6 +24,9 @@ pub const DIGIT_SIZE_B: usize = 8;
 pub const DIGIT_SIZE_b: usize = DIGIT_SIZE_B * 8;
 
 pub const NUM_DIGITS_GF2X_ELEMENT: usize = ((P + DIGIT_SIZE_b - 1) / DIGIT_SIZE_b);
+pub const NUM_DIGITS_GF2X_MODULUS: usize = ((P + DIGIT_SIZE_b) / DIGIT_SIZE_b);
+
+pub const GF2_INVERSE_MASK : u64 = 0x80000000000;
 
 // Derived parameters, they are useful for QC-LDPC algorithms
 // Circulant weight structure of the Q matrix, specialized per value of N0
