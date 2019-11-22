@@ -37,9 +37,9 @@ pub fn transposeHPosOnes(HtrPosOnes: &mut [[u32; DV]; N0], HPosOnes: &[[u32; DV]
     }
 }
 
-pub fn transposeQPosOnes(QtrPosOnes: &mut [[u32; DV]; 2], QPosOnes: &[[u32; DV]; 2]) {
+pub fn transposeQPosOnes(QtrPosOnes: &mut [[u32; DV]; N0], QPosOnes: &[[u32; DV]; N0]) {
     let P32 = P as u32;
-    let mut transposed_ones_idx: [u32; 2] = [0u32, 0]; // position in the column of QtrPosOnes[][...]
+    let mut transposed_ones_idx: [u32; N0] = [0u32, 0]; // position in the column of QtrPosOnes[][...]
 
     for source_row_idx in 0..N0 {
         let mut currQoneIdx: usize = 0;
@@ -57,4 +57,3 @@ pub fn transposeQPosOnes(QtrPosOnes: &mut [[u32; DV]; 2], QPosOnes: &[[u32; DV];
         }
     }
 }
-
