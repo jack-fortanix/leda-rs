@@ -2,7 +2,7 @@ use crate::consts::*;
 use crate::gf2x_arith_mod_xPplusOne::rand_circulant_sparse_block;
 use crate::types::*;
 
-pub unsafe fn generateHPosOnes(HPosOnes: &mut [[u32; DV]; N0], keys_expander: &mut AES_XOF_struct) {
+pub fn generateHPosOnes(HPosOnes: &mut [[u32; DV]; N0], keys_expander: &mut AES_XOF_struct) {
     for i in 0..N0 {
         /* Generate a random block of Htr */
         rand_circulant_sparse_block(
@@ -13,7 +13,7 @@ pub unsafe fn generateHPosOnes(HPosOnes: &mut [[u32; DV]; N0], keys_expander: &m
     }
 }
 
-pub unsafe fn generateQPosOnes(QPosOnes: &mut [[u32; DV]; N0], keys_expander: &mut AES_XOF_struct) {
+pub fn generateQPosOnes(QPosOnes: &mut [[u32; DV]; N0], keys_expander: &mut AES_XOF_struct) {
     for i in 0..N0 {
         let mut placed_ones: usize = 0;
         for j in 0..2 {

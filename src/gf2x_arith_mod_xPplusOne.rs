@@ -592,7 +592,7 @@ fn rand_range(n: u32, seed_expander_ctx: &mut AES_XOF_struct) -> u32 {
  * for the '1's in the circulant block are obtained
 */
 
-pub unsafe fn rand_circulant_sparse_block(
+pub fn rand_circulant_sparse_block(
     pos_ones: &mut [u32],
     countOnes: usize,
     seed_expander_ctx: &mut AES_XOF_struct,
