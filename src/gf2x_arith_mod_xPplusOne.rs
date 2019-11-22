@@ -494,27 +494,26 @@ pub unsafe fn gf2x_mod_mul_sparse(Res: &mut [u32], A: &[u32], B: &[u32]) {
 /*----------------------------------------------------------------------------*/
 /* PRE: A and B should be sorted and have INVALID_POS_VALUE at the end */
 
-pub unsafe fn gf2x_mod_add_sparse(
-    A: &mut [u32],
-    B: &[u32]) {
+pub unsafe fn gf2x_mod_add_sparse(A: &mut [u32], B: &[u32]) {
 
-    let sizeR = A.len() as i32;
-    let sizeA = A.len() as i32;
-    let sizeB = B.len() as i32;
+    let P32 = P as u32;
+
+    let sizeR = A.len() as usize;
+    let sizeA = A.len() as usize;
+    let sizeB = B.len() as usize;
 
     let Res = A.as_mut_ptr();
     let A = A.as_mut_ptr();
     let B = B.as_ptr();
 
-    let vla = sizeR as usize;
-    let mut tmpRes: Vec<u32> = ::std::vec::from_elem(0, vla);
-    let mut idxA: i32 = 0i32;
-    let mut idxB: i32 = 0i32;
-    let mut idxR: i32 = 0i32;
+    let mut tmpRes: Vec<u32> = vec![0u32; sizeR as usize];
+    let mut idxA: usize = 0;
+    let mut idxB: usize = 0;
+    let mut idxR: usize = 0;
     while idxA < sizeA
         && idxB < sizeB
-        && *A.offset(idxA as isize) != crate::consts::P as i32 as u32
-        && *B.offset(idxB as isize) != crate::consts::P as i32 as u32
+        && *A.offset(idxA as isize) != P32
+        && *B.offset(idxB as isize) != P32
     {
         if *A.offset(idxA as isize) == *B.offset(idxB as isize) {
             idxA += 1;
