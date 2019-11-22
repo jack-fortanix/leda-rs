@@ -4,7 +4,7 @@ extern "C" {
 }
 
 use crate::crypto::seedexpander;
-use crate::djbsort::int32_sort;
+use crate::djbsort::uint32_sort;
 use crate::gf2x_arith::*;
 use crate::types::*;
 use crate::consts::*;
@@ -450,7 +450,7 @@ pub fn gf2x_mod_mul_sparse(Res: &mut [u32], A: &[u32], B: &[u32]) {
         Res[lastFilledPos] = P32;
         lastFilledPos = lastFilledPos.wrapping_add(1)
     }
-    unsafe { int32_sort(Res.as_mut_ptr() as *mut i32, sizeR as isize); }
+    uint32_sort(Res);
     /* eliminate duplicates */
     let mut lastReadPos: u32 = Res[0];
     let mut duplicateCount: i32 = 0;

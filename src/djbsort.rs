@@ -6,23 +6,31 @@
 *****************************************************************************/
 
 #[inline]
-fn int32_MINMAX(a: &mut i32, b: &mut i32) {
-    let ab: i32 = *b ^ *a;
-    let mut c: i32 = *b - *a;
-    c ^= ab & (c ^ *b);
+fn int32_MINMAX(mut a: i32, mut b: i32) -> (i32,i32) {
+    let ab: i32 = b ^ a;
+    let mut c: i32 = b - a;
+    c ^= ab & (c ^ b);
     c >>= 31;
     c &= ab;
-    *a ^= c;
-    *b ^= c;
+    a ^= c;
+    b ^= c;
+    return (a,b)
 }
 
-pub unsafe fn int32_sort(x: *mut i32, n: isize) {
-    let mut top: isize = 0;
-    let mut p: isize = 0;
-    let mut q: isize = 0;
-    let mut r: isize = 0;
-    let mut i: isize = 0;
-    let mut j: isize = 0;
+pub fn uint32_sort(x: &mut [u32]) {
+    let sl = unsafe { std::slice::from_raw_parts_mut(x.as_mut_ptr() as *mut i32, x.len()) };
+    int32_sort(sl);
+}
+
+pub fn int32_sort(x: &mut [i32]) {
+
+    let n = x.len();
+    let mut top: usize = 0;
+    let mut p: usize = 0;
+    let mut q: usize = 0;
+    let mut r: usize = 0;
+    let mut i: usize = 0;
+    let mut j: usize = 0;
 
     if n < 2 {
         return;
@@ -37,14 +45,18 @@ pub unsafe fn int32_sort(x: *mut i32, n: isize) {
         while i + 2 * p <= n {
             j = i;
             while j < i + p {
-                int32_MINMAX(&mut *x.offset(j), &mut *x.offset(j + p));
+                let (xj,xjp) = int32_MINMAX(x[j], x[j + p]);
+                x[j] = xj;
+                x[j+p] = xjp;
                 j += 1
             }
             i += 2 * p
         }
         j = i;
         while j < n - p {
-            int32_MINMAX(&mut *x.offset(j), &mut *x.offset(j + p));
+            let (xj, xjp) = int32_MINMAX(x[j], x[j + p]);
+            x[j] = xj;
+            x[j+p] = xjp;
             j += 1
         }
         i = 0;
@@ -58,13 +70,15 @@ pub unsafe fn int32_sort(x: *mut i32, n: isize) {
                         current_block_73 = 5722677567366458307;
                         break;
                     }
-                    let mut a: i32 = *x.offset((j + p) as isize);
+                    let mut a: i32 = x[j+p];
                     r = q;
                     while r > p {
-                        int32_MINMAX(&mut a, &mut *x.offset(j + r));
+                        let (na, xjp) = int32_MINMAX(a, x[j+p]);
+                        a = na;
+                        x[j+p] = xjp;
                         r >>= 1i32
                     }
-                    *x.offset((j + p) as isize) = a;
+                    x[j+p] = a;
                     j += 1;
                     if !(j == i + p) {
                         continue;
@@ -81,13 +95,15 @@ pub unsafe fn int32_sort(x: *mut i32, n: isize) {
                     while i + p <= n - q {
                         j = i;
                         while j < i + p {
-                            let mut a_0: i32 = *x.offset((j + p) as isize);
+                            let mut a_0: i32 = x[j+p];
                             r = q;
                             while r > p {
-                                int32_MINMAX(&mut a_0, &mut *x.offset(j + r));
+                                let (na, xjr) = int32_MINMAX(a_0, x[j + r]);
+                                a_0 = na;
+                                x[j+r] = xjr;
                                 r >>= 1i32
                             }
-                            *x.offset((j + p) as isize) = a_0;
+                            x[j+p] = a_0;
                             j += 1
                         }
                         i += 2 * p
@@ -95,13 +111,15 @@ pub unsafe fn int32_sort(x: *mut i32, n: isize) {
                     /* now i + p > n - q */
                     j = i;
                     while j < n - q {
-                        let mut a_1: i32 = *x.offset((j + p) as isize);
+                        let mut a_1: i32 = x[j+p];
                         r = q;
                         while r > p {
-                            int32_MINMAX(&mut a_1, &mut *x.offset(j + r));
+                            let (na, xjr) = int32_MINMAX(a_1, x[j + r]);
+                            a_1 = na;
+                            x[j+r] = xjr;
                             r >>= 1i32
                         }
-                        *x.offset((j + p) as isize) = a_1;
+                        x[j+p] = a_1;
                         j += 1
                     }
                 }

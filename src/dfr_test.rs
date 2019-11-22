@@ -1,4 +1,4 @@
-use crate::djbsort::int32_sort;
+use crate::djbsort::uint32_sort;
 use crate::consts::*;
 
 /*---------------------------------------------------------------------------*/
@@ -10,17 +10,12 @@ pub fn DFR_test(LSparse: &[[u32; 121]; 2]) -> Option<u8> {
     let mut LSparse_loc: [[u32; 121]; 2] = [[0; 121]; 2]; /* vector of N_0 sparse blocks */
     /* transpose blocks of L, we need its columns */
     for i in 0..N0 {
-        for j in 0..(crate::consts::DV * crate::consts::M) {
+        for j in 0..(DV * M) {
             if LSparse[i][j] != 0 {
-                LSparse_loc[i][j] = (crate::consts::P as u32) - LSparse[i][j];
+                LSparse_loc[i][j] = (P as u32) - LSparse[i][j];
             }
         }
-        unsafe {
-        int32_sort(
-            LSparse_loc[i].as_mut_ptr() as *mut i32,
-            (crate::consts::DV * crate::consts::M) as isize,
-        );
-        }
+        uint32_sort(&mut LSparse_loc[i]);
     }
     /* Gamma matrix: an N0 x N0 block circulant matrix with block size p
      * gamma[a][b][c] stores the intersection of the first column of the a-th
@@ -28,8 +23,8 @@ pub fn DFR_test(LSparse: &[[u32; 121]; 2]) -> Option<u8> {
     /* Gamma computation can be accelerated employing symmetry and QC properties */
 
     let mut gamma = vec![
-        vec![vec![0i32; crate::consts::P], vec![0i32; crate::consts::P]],
-        vec![vec![0i32; crate::consts::P], vec![0i32; crate::consts::P]],
+        vec![vec![0i32; P], vec![0i32; P]],
+        vec![vec![0i32; P], vec![0i32; P]],
     ];
 
     let mut i_0: i32 = 0i32;
@@ -40,10 +35,10 @@ pub fn DFR_test(LSparse: &[[u32; 121]; 2]) -> Option<u8> {
             while k < 11i32 * 11i32 {
                 let mut l: i32 = 0i32;
                 while l < 11i32 * 11i32 {
-                    gamma[i_0 as usize][j_0 as usize][(crate::consts::P as i32 as u32)
+                    gamma[i_0 as usize][j_0 as usize][(P as i32 as u32)
                         .wrapping_add(LSparse_loc[i_0 as usize][k as usize])
                         .wrapping_sub(LSparse_loc[j_0 as usize][l as usize])
-                        .wrapping_rem(crate::consts::P as i32 as u32)
+                        .wrapping_rem(P as i32 as u32)
                         as usize] += 1;
                     l += 1
                 }
@@ -69,7 +64,7 @@ pub fn DFR_test(LSparse: &[[u32; 121]; 2]) -> Option<u8> {
         let mut j_2: i32 = 0i32;
         while j_2 < 2i32 {
             let mut k_0: i32 = 0i32;
-            while k_0 < crate::consts::P as i32 {
+            while k_0 < P as i32 {
                 gammaHist[i_2 as usize][gamma[i_2 as usize][j_2 as usize][k_0 as usize] as usize] =
                     gammaHist[i_2 as usize]
                         [gamma[i_2 as usize][j_2 as usize][k_0 as usize] as usize]
