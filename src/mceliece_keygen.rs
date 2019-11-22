@@ -73,7 +73,7 @@ pub unsafe fn key_gen_mceliece(
 
     for j in 0..(DV*M) {
         if LPosOnes[1][j] != P32 {
-            gf2x_set_coeff(Ln0dense.as_mut_ptr(), LPosOnes[1][j], 1 as DIGIT);
+            gf2x_set_coeff(&mut Ln0dense, LPosOnes[1][j] as usize, 1 as DIGIT);
         }
     }
     let mut Ln0Inv: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];

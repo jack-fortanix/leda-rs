@@ -116,7 +116,7 @@ unsafe fn char_right_bit_shift_n(length: i32, mut input: *mut u8, amount: i32) {
 /*  shifts the input stream so that the bytewise pad is on the left before
  * conversion */
 unsafe fn bytestream_into_poly_seq(
-    mut polySeq: *mut DIGIT,
+    mut polySeq: &mut [DIGIT],
     mut numPoly: i32,
     mut S: *mut u8,
     byteLenS: u64,
@@ -138,22 +138,17 @@ unsafe fn bytestream_into_poly_seq(
         .wrapping_sub((numPoly * crate::consts::P as i32) as u64)
         as u32;
     let mut bitCursor: u32 = slack_bits;
-    let mut polyIdx: u32 = 0i32 as u32;
-    while polyIdx < numPoly as u32 {
+    for polyIdx in 0..(numPoly as usize) {
         let mut exponent: u32 = 0i32 as u32;
         while exponent < crate::consts::P as i32 as u32 {
             let buffer = bitstream_read(S, 1i32 as u32, &mut bitCursor);
-            gf2x_set_coeff(
-                &mut *polySeq.offset(
-                    (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as u32)
-                        .wrapping_mul(polyIdx) as isize,
-                ),
-                exponent,
-                buffer,
+
+            gf2x_set_coeff(&mut polySeq[NUM_DIGITS_GF2X_ELEMENT*polyIdx..],
+                           exponent as usize,
+                           buffer
             );
-            exponent = exponent.wrapping_add(1)
+            exponent += 1;
         }
-        polyIdx = polyIdx.wrapping_add(1)
     }
     return 1i32;
 }
@@ -274,8 +269,7 @@ pub unsafe fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<
     );
     /* transform into an information word poly sequence */
     let mut informationWord: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
-    bytestream_into_poly_seq(
-        informationWord.as_mut_ptr(),
+    bytestream_into_poly_seq(&mut informationWord,
         2i32 - 1i32,
         iwordBuffer.as_mut_ptr(),
         (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u64,
@@ -348,7 +342,7 @@ pub unsafe fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<
         randombytes(&mut secretSeed);
         drbg(&mut cwEncInputBuffer[48..1072], &secretSeed)?;
         binaryToConstantWeightOk = binary_to_constant_weight_approximate(
-            cwEncodedError.as_mut_ptr(),
+            &mut cwEncodedError,
             cwEncInputBuffer.as_mut_ptr(),
             48i32 + 1024i32,
         );

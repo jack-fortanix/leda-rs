@@ -149,19 +149,15 @@ pub unsafe fn gf2x_add(
 
 /*--------------------------------------------------------------------------*/
 /* sets the coefficient of the x^exponent term as the LSB of a digit */
-pub unsafe fn gf2x_set_coeff(mut poly: *mut DIGIT, exponent: u32, mut value: DIGIT) {
-    let mut straightIdx: i32 = (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
-        * (8i32 << 3i32)
-        - 1i32) as u32)
-        .wrapping_sub(exponent) as i32;
-    let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
-    let mut inDigitIdx: u32 = (straightIdx % (8i32 << 3i32)) as u32;
+pub fn gf2x_set_coeff(poly: &mut [DIGIT], exponent: usize, value: DIGIT) {
+    let straightIdx = (NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_b - 1) - exponent;
+    let digitIdx = straightIdx / DIGIT_SIZE_b;
+    let inDigitIdx = straightIdx % DIGIT_SIZE_b;
+
     /* clear given coefficient */
-    let mut mask: DIGIT =
-        !((1i32 as DIGIT) << (((8i32 << 3i32) - 1i32) as u32).wrapping_sub(inDigitIdx));
-    *poly.offset(digitIdx as isize) = *poly.offset(digitIdx as isize) & mask;
-    *poly.offset(digitIdx as isize) = *poly.offset(digitIdx as isize)
-        | (value & 1i32 as DIGIT) << (((8i32 << 3i32) - 1i32) as u32).wrapping_sub(inDigitIdx);
+    let mask = !(((1 as DIGIT)) << (DIGIT_SIZE_b-1-inDigitIdx));
+    poly[digitIdx] = poly[digitIdx] & mask;
+    poly[digitIdx] = poly[digitIdx] | (( value & (1 as DIGIT)) << (DIGIT_SIZE_b-1-inDigitIdx));
 }
 
 pub unsafe fn gf2x_mul_comb(

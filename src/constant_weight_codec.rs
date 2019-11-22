@@ -239,7 +239,7 @@ pub unsafe fn constant_weight_to_binary_approximate(
 }
 
 pub unsafe fn binary_to_constant_weight_approximate(
-    constantWeightOut: *mut DIGIT,
+    constantWeightOut: &mut [DIGIT],
     bitstreamIn: *const u8,
     bitLength: i32,
 ) -> i32 {
@@ -334,15 +334,11 @@ pub unsafe fn binary_to_constant_weight_approximate(
         if current_one_position >= 2i32 * crate::consts::P as i32 {
             return 0i32;
         }
-        let polyIndex: u32 = (current_one_position / crate::consts::P as i32) as u32;
-        let exponent: u32 = (current_one_position % crate::consts::P as i32) as u32;
-        gf2x_set_coeff(
-            constantWeightOut.offset(
-                (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as u32)
-                    .wrapping_mul(polyIndex) as isize,
-            ),
-            exponent,
-            1i32 as DIGIT,
+        let polyIndex = (current_one_position / crate::consts::P as i32) as usize;
+        let exponent = (current_one_position % crate::consts::P as i32) as usize;
+        gf2x_set_coeff(&mut constantWeightOut[NUM_DIGITS_GF2X_ELEMENT*polyIndex..],
+                       exponent,
+                       1i32 as DIGIT,
         );
         i += 1
     }
