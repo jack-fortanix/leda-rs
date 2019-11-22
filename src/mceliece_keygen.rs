@@ -13,6 +13,8 @@ pub unsafe fn key_gen_mceliece(
     sk.prng_seed.copy_from_slice(seed);
     sk.rejections = 0;
 
+    let P32 = P as u32;
+
     let mut keys_expander = seedexpander_from_trng(&sk.prng_seed).unwrap();
     // sequence of N0 circ block matrices (p x p): Hi
     let mut HPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
@@ -32,7 +34,7 @@ pub unsafe fn key_gen_mceliece(
         generateQPosOnes(&mut QPosOnes, &mut keys_expander);
         for i in 0..2 {
             for j in 0..(11*11) {
-                LPosOnes[i][j] = crate::consts::P as u32;
+                LPosOnes[i][j] = P32;
             }
         }
         let mut auxPosOnes: [u32; 121] = [0; 121];
@@ -71,8 +73,7 @@ pub unsafe fn key_gen_mceliece(
         let mut i_1: i32 = 0i32;
         while i_1 < 2i32 {
             is_L_full = (is_L_full != 0
-                && LPosOnes[i_1 as usize][(11 * 11 - 1i32) as usize]
-                    != crate::consts::P as i32 as u32) as i32;
+                && LPosOnes[i_1 as usize][(11 * 11 - 1i32) as usize] != P32) as i32;
             i_1 += 1
         }
         let mut isDFRok: i32 = 0;
@@ -87,7 +88,7 @@ pub unsafe fn key_gen_mceliece(
     let mut Ln0dense: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     let mut j_0: i32 = 0i32;
     while j_0 < 11 * 11 {
-        if LPosOnes[(2i32 - 1i32) as usize][j_0 as usize] != crate::consts::P as i32 as u32 {
+        if LPosOnes[(2i32 - 1i32) as usize][j_0 as usize] != P32 {
             gf2x_set_coeff(
                 Ln0dense.as_mut_ptr(),
                 LPosOnes[(2i32 - 1i32) as usize][j_0 as usize],
