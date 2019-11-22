@@ -36,22 +36,12 @@ unsafe fn decrypt_McEliece(
             }
         }
         let mut auxPosOnes: [u32; 121] = [0; 121];
-        let mut processedQOnes: [u8; 2] = [0i32 as u8, 0];
-        let mut colQ: i32 = 0i32;
-        while colQ < 2i32 {
-            let mut i_0: i32 = 0i32;
-            while i_0 < 2i32 {
-                gf2x_mod_mul_sparse(
-                    11i32 * 11i32,
-                    auxPosOnes.as_mut_ptr(),
-                    11i32,
-                    HPosOnes[i_0 as usize].as_mut_ptr() as *const u32,
-                    qBlockWeights[i_0 as usize][colQ as usize] as i32,
-                    QPosOnes[i_0 as usize]
-                        .as_mut_ptr()
-                        .offset(processedQOnes[i_0 as usize] as i32 as isize)
-                        as *const u32,
-                );
+        let mut processedQOnes: [usize; 2] = [0, 0];
+        for colQ in 0..N0 {
+            for i in 0..N0 {
+                gf2x_mod_mul_sparse(&mut auxPosOnes,
+                                    &HPosOnes[i],
+                                    &QPosOnes[i][processedQOnes[i]..(processedQOnes[i]+qBlockWeights[i][colQ] as usize)]);
                 gf2x_mod_add_sparse(
                     11i32 * 11i32,
                     LPosOnes[colQ as usize].as_mut_ptr(),
@@ -60,12 +50,8 @@ unsafe fn decrypt_McEliece(
                     11i32 * 11i32,
                     auxPosOnes.as_mut_ptr(),
                 );
-                processedQOnes[i_0 as usize] = (processedQOnes[i_0 as usize] as i32
-                    + qBlockWeights[i_0 as usize][colQ as usize] as i32)
-                    as u8;
-                i_0 += 1
+                processedQOnes[i] += qBlockWeights[i][colQ as usize] as usize;
             }
-            colQ += 1
         }
         rejections -= 1;
         if !(rejections >= 0i32) {
@@ -326,7 +312,7 @@ pub unsafe fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<V
     let mut i_0: i32 = 32i32;
     while i_0 < 48i32 {
         if cwEncOutputBuffer[i_0 as usize] as i32 ^ outputHash[i_0 as usize] as i32 != 0i32 {
-            panic!("nonzero trng pad");
+            return Err(Error::DecryptionFailed);
         }
         i_0 += 1
     }
@@ -344,7 +330,7 @@ pub unsafe fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<V
     let mut i_2: i32 = 0i32;
     while i_2 < 32i32 {
         if *paddedOutput.as_mut_ptr().offset(i_2 as isize) as i32 != 0i32 {
-            panic!("KI const mismatch");
+            return Err(Error::DecryptionFailed);
         }
         i_2 += 1
     }

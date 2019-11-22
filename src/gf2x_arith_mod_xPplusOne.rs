@@ -439,14 +439,14 @@ pub unsafe fn gf2x_mod_mul_dense_to_sparse(
 // end gf2x_mod_mul
 /*----------------------------------------------------------------------------*/
 
-pub unsafe fn gf2x_mod_mul_sparse(
-    mut sizeR: i32,
-    mut Res: *mut u32,
-    mut sizeA: i32,
-    mut A: *const u32,
-    mut sizeB: i32,
-    mut B: *const u32,
-) {
+pub unsafe fn gf2x_mod_mul_sparse(Res: &mut [u32], A: &[u32], B: &[u32]) {
+    let sizeR = Res.len() as i32;
+    let sizeB = B.len() as i32;
+    let sizeA = A.len() as i32;
+    let Res = Res.as_mut_ptr();
+    let A = A.as_ptr();
+    let B = B.as_ptr();
+
     /* compute all the coefficients, filling invalid positions with P*/
     let mut lastFilledPos: u32 = 0i32 as u32;
     let mut i: i32 = 0i32;
