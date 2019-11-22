@@ -59,26 +59,16 @@ pub unsafe fn transposeQPosOnes(QtrPosOnes: *mut [u32; 11], QPosOnes: *mut [u32;
     }
 }
 
-pub unsafe fn generateQPosOnes(QPosOnes: *mut [u32; 11], keys_expander: &mut AES_XOF_struct) {
-    let mut i: i32 = 0i32;
-    while i < 2i32 {
+pub unsafe fn generateQPosOnes(QPosOnes: &mut [[u32; DV]; N0], keys_expander: &mut AES_XOF_struct) {
+    for i in 0..N0 {
         let mut placed_ones: i32 = 0i32;
-        let mut j: i32 = 0i32;
-        while j < 2i32 {
+        for j in 0..2 {
             rand_circulant_sparse_block(
-                &mut *(*QPosOnes.offset(i as isize))
-                    .as_mut_ptr()
-                    .offset(placed_ones as isize),
+                &mut *(QPosOnes[i].as_mut_ptr().offset(placed_ones as isize)),
                 qBlockWeights[i as usize][j as usize] as i32,
                 keys_expander,
             );
             placed_ones += qBlockWeights[i as usize][j as usize] as i32;
-            j += 1
         }
-        i += 1
-        // end for j
     }
-    // end for i
 }
-/*----------------------------------------------------------------------------*/
-// end generateQPosOnes
