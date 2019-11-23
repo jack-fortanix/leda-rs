@@ -37,14 +37,9 @@ unsafe fn encrypt_McEliece(
         0i32,
         ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as u64,
     );
-    let mut saux: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     let mut i: i32 = 0i32;
     while i < 2i32 - 1i32 {
-        memset(
-            saux.as_mut_ptr() as *mut libc::c_void,
-            0i32,
-            ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as u64,
-        );
+        let mut saux: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
         gf2x_mod_mul(
             saux.as_mut_ptr(),
             (*pk).Mtr.as_ptr().offset(
@@ -332,12 +327,7 @@ pub unsafe fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<
     let mut binaryToConstantWeightOk: i32 = 0i32;
     loop {
         /* blank cwenc destination buffer */
-        memset(
-            cwEncodedError.as_mut_ptr() as *mut libc::c_void,
-            0i32,
-            (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32)
-                as u64,
-        );
+        cwEncodedError.copy_from_slice(&[0; N0*NUM_DIGITS_GF2X_ELEMENT]);
         /* draw filler randomness for cwenc input from an independent random*/
         randombytes(&mut secretSeed);
         drbg(&mut cwEncInputBuffer[48..1072], &secretSeed)?;
