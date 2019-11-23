@@ -75,23 +75,17 @@ unsafe fn decrypt_McEliece(
     }
     let mut privateSyndrome: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     let mut aux: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
-    let mut i_2: i32 = 0i32;
-    while i_2 < 2i32 {
+    for i in 0..N0 {
         gf2x_mod_mul_dense_to_sparse(
-            aux.as_mut_ptr(),
-            codewordPoly.as_mut_ptr().offset(
-                (i_2 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
-                    as isize,
-            ) as *const DIGIT,
-            LPosOnes[i_2 as usize].as_mut_ptr() as *const u32,
-            (11i32 * 11i32) as u32,
+            &mut aux,
+            &codewordPoly[i*NUM_DIGITS_GF2X_ELEMENT..],
+            &LPosOnes[i],
         );
         gf2x_mod_add(
             privateSyndrome.as_mut_ptr(),
             privateSyndrome.as_mut_ptr() as *const DIGIT,
             aux.as_mut_ptr() as *const DIGIT,
         );
-        i_2 += 1
     }
     gf2x_transpose_in_place(privateSyndrome.as_mut_ptr());
     /*perform syndrome decoding to obtain error vector */

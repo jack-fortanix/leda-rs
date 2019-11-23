@@ -7,7 +7,9 @@ use crate::types::*;
 use crate::H_Q_matrices_generation::*;
 
 pub fn key_gen_mceliece(seed: &[u8]) -> Result<(LedaPublicKey,LedaPrivateKey)> {
-    let mut pk = LedaPublicKey { Mtr: [0; NUM_DIGITS_GF2X_ELEMENT ] };
+    let mut pk = LedaPublicKey {
+        Mtr: [0; NUM_DIGITS_GF2X_ELEMENT ]
+    };
 
     let mut sk = LedaPrivateKey {
         prng_seed: [0u8; 32],
@@ -81,14 +83,9 @@ pub fn key_gen_mceliece(seed: &[u8]) -> Result<(LedaPublicKey,LedaPrivateKey)> {
         }
     }
     let mut Ln0Inv: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
-    unsafe {
     gf2x_mod_inverse(&mut Ln0Inv, &Ln0dense);
-    gf2x_mod_mul_dense_to_sparse(
-        pk.Mtr.as_mut_ptr(),
-        Ln0Inv.as_mut_ptr() as *const DIGIT,
-        LPosOnes[0].as_mut_ptr() as *const u32,
-        (11 * 11) as u32,
-    );
+    gf2x_mod_mul_dense_to_sparse(&mut pk.Mtr, &Ln0Inv, &LPosOnes[0]);
+    unsafe {
         gf2x_transpose_in_place(pk.Mtr.as_mut_ptr());
     }
 

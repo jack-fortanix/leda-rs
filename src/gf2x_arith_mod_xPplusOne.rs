@@ -243,9 +243,9 @@ unsafe fn gf2x_swap(length: i32, mut f: *mut DIGIT, mut s: *mut DIGIT) {
  *
  */
 
-pub unsafe fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
+pub fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
 /* in^{-1} mod x^P-1 */ {
-
+unsafe {
     let out = out.as_mut_ptr();
     let input = input.as_ptr();
 
@@ -337,7 +337,7 @@ pub unsafe fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
         i -= 1
     }
     return (delta == 0i32) as i32;
-}
+    }}
 // end gf2x_mod_inverse
 
 pub unsafe fn gf2x_mod_mul(mut Res: *mut DIGIT, mut A: *const DIGIT, mut B: *const DIGIT) {
@@ -396,25 +396,22 @@ unsafe fn gf2x_fmac(mut Res: *mut DIGIT, mut operand: *const DIGIT, shiftAmt: u3
 /*PRE: the representation of the sparse coefficients is sorted in increasing
 order of the coefficients themselves */
 
-pub unsafe fn gf2x_mod_mul_dense_to_sparse(
-    mut Res: *mut DIGIT,
-    mut dense: *const DIGIT,
-    mut sparse: *const u32,
-    mut nPos: u32,
-) {
+pub fn gf2x_mod_mul_dense_to_sparse(Res: &mut [DIGIT], dense: &[DIGIT], sparse: &[u32]) {
+
+    let P32 = P as u32;
+
     let mut resDouble: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
-    let mut i: u32 = 0i32 as u32;
-    while i < nPos {
-        if *sparse.offset(i as isize) != crate::consts::P as i32 as u32 {
-            gf2x_fmac(resDouble.as_mut_ptr(), dense, *sparse.offset(i as isize));
+
+    for i in 0..sparse.len() {
+        if sparse[i] != P32 {
+            unsafe { gf2x_fmac(resDouble.as_mut_ptr(), dense.as_ptr(), sparse[i]); }
         }
-        i = i.wrapping_add(1)
     }
-    gf2x_mod(
-        Res,
-        2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)),
-        resDouble.as_mut_ptr() as *const DIGIT,
-    );
+    unsafe {
+        gf2x_mod(Res.as_mut_ptr(),
+                 (2*NUM_DIGITS_GF2X_ELEMENT) as i32,
+                 resDouble.as_ptr() as *const DIGIT);
+    }
 }
 // end gf2x_mod_mul
 /*----------------------------------------------------------------------------*/
