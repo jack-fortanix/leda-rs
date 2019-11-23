@@ -6,12 +6,16 @@ use crate::gf2x_arith_mod_xPplusOne::*;
 use crate::types::*;
 use crate::H_Q_matrices_generation::*;
 
-pub fn key_gen_mceliece(
-    seed: &[u8],
-    pk: &mut LedaPublicKey,
-    sk: &mut LedaPrivateKey) {
+pub fn key_gen_mceliece(seed: &[u8]) -> Result<(LedaPublicKey,LedaPrivateKey)> {
+    let mut pk = LedaPublicKey { Mtr: [0; NUM_DIGITS_GF2X_ELEMENT ] };
+
+    let mut sk = LedaPrivateKey {
+        prng_seed: [0u8; 32],
+        rejections: 0,
+        secondIterThreshold: 0
+    };
+
     sk.prng_seed.copy_from_slice(seed);
-    sk.rejections = 0;
 
     let P32 = P as u32;
 
@@ -87,4 +91,6 @@ pub fn key_gen_mceliece(
     );
         gf2x_transpose_in_place(pk.Mtr.as_mut_ptr());
     }
+
+    Ok((pk,sk))
 }

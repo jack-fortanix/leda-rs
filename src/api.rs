@@ -5,7 +5,7 @@ use crate::types::*;
 use crate::consts::*;
 use std::convert::TryInto;
 
-fn load_leda_pk(pk: &[u8]) -> Result<LedaPublicKey> {
+fn leda_decode_pk(pk: &[u8]) -> Result<LedaPublicKey> {
     if pk.len() != 8 * NUM_DIGITS_GF2X_ELEMENT {
         return Err(Error::InvalidKey);
     }
@@ -20,7 +20,28 @@ fn load_leda_pk(pk: &[u8]) -> Result<LedaPublicKey> {
     Ok(key)
 }
 
-fn load_leda_sk(sk: &[u8]) -> Result<LedaPrivateKey> {
+fn leda_encode_pk(pk: &LedaPublicKey) -> Result<Vec<u8>> {
+    let mut buf = vec![0u8; 8*NUM_DIGITS_GF2X_ELEMENT];
+
+    for i in 0..NUM_DIGITS_GF2X_ELEMENT {
+        let word : [u8; 8] = pk.Mtr[i].to_le_bytes();
+        buf[(8*i)..(8*i+8)].copy_from_slice(&word);
+    }
+
+    Ok(buf)
+}
+
+fn leda_encode_sk(sk: &LedaPrivateKey) -> Result<Vec<u8>> {
+    let mut buf = vec![0u8; 34];
+
+    buf[0..32].copy_from_slice(&sk.prng_seed);
+    buf[32] = sk.rejections;
+    buf[33] = sk.secondIterThreshold;
+
+    Ok(buf)
+}
+
+fn leda_decode_sk(sk: &[u8]) -> Result<LedaPrivateKey> {
     if sk.len() != 34 {
         return Err(Error::InvalidKey);
     }
@@ -39,29 +60,20 @@ fn load_leda_sk(sk: &[u8]) -> Result<LedaPrivateKey> {
 }
 
 pub fn leda_gen_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
-    let mut pk = vec![0u8; 7240];
-    let mut sk = vec![0u8; 34];
-
     let mut seed = vec![0u8; 32];
     crate::crypto::randombytes(&mut seed);
 
-    unsafe {
-    key_gen_mceliece(
-        &seed,
-        &mut *(pk.as_mut_ptr() as *mut LedaPublicKey),
-        &mut *(sk.as_mut_ptr() as *mut LedaPrivateKey),
-    );
-    }
+    let (pk,sk) = key_gen_mceliece(&seed)?;
 
-    Ok((sk, pk))
+    Ok((leda_encode_sk(&sk)?, leda_encode_pk(&pk)?))
 }
 
 pub fn leda_encrypt(msg: &[u8], pk: &[u8]) -> Result<Vec<u8>> {
-    let pk = load_leda_pk(pk)?;
+    let pk = leda_decode_pk(pk)?;
     unsafe { encrypt_Kobara_Imai(&pk, msg) }
 }
 
 pub fn leda_decrypt(ctext: &[u8], sk: &[u8]) -> Result<Vec<u8>> {
-    let sk = load_leda_sk(sk)?;
+    let sk = leda_decode_sk(sk)?;
     unsafe { decrypt_Kobara_Imai(&sk, ctext) }
 }
