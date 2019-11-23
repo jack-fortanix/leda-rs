@@ -22,7 +22,6 @@ pub type Result<T> = StdResult<T, Error>;
 pub type DIGIT = u64;
 
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct LedaPrivateKey {
     pub prng_seed: [u8; 32],
     pub rejections: u8,
@@ -30,7 +29,6 @@ pub struct LedaPrivateKey {
 }
 
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct LedaExpandedPrivateKey {
     pub prng_seed: [u8; 32],
     pub rejections: u8,
