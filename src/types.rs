@@ -6,6 +6,7 @@ use std::result::Result as StdResult;
 #[derive(Debug)]
 pub enum Error {
     DecryptionFailed,
+    InvalidKey,
     Custom(String),
     Mbedtls(mbedtls::Error),
 }
