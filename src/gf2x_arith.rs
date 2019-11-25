@@ -4,8 +4,6 @@ use crate::types::*;
 extern "C" {
     #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
 }
 
 pub fn gf2x_copy(mut dest: &mut [DIGIT], input: &[DIGIT]) {
@@ -39,29 +37,37 @@ pub fn gf2x_mod_add_3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     assert_eq!(A.len(), NUM_DIGITS_GF2X_ELEMENT);
     assert_eq!(B.len(), NUM_DIGITS_GF2X_ELEMENT);
 
-    unsafe {
-        gf2x_add(
-            NUM_DIGITS_GF2X_ELEMENT as i32,
-            Res.as_mut_ptr(),
-            NUM_DIGITS_GF2X_ELEMENT as i32,
-            A.as_ptr(),
-            NUM_DIGITS_GF2X_ELEMENT as i32,
-            B.as_ptr(),
-        );
-    }
+    gf2x_add_3(Res, A, B);
 }
 
 pub fn gf2x_mod_add_2(Res: &mut [DIGIT], A: &[DIGIT]) {
     assert_eq!(Res.len(), NUM_DIGITS_GF2X_ELEMENT);
     assert_eq!(A.len(), NUM_DIGITS_GF2X_ELEMENT);
 
+    gf2x_add_2(Res, A);
+}
+
+pub fn gf2x_add_3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     unsafe {
         gf2x_add(
-            NUM_DIGITS_GF2X_ELEMENT as i32,
+            Res.len() as i32,
             Res.as_mut_ptr(),
-            NUM_DIGITS_GF2X_ELEMENT as i32,
+            A.len() as i32,
+            A.as_ptr(),
+            B.len() as i32,
+            B.as_ptr(),
+        );
+    }
+}
+
+pub fn gf2x_add_2(Res: &mut [DIGIT], A: &[DIGIT]) {
+    unsafe {
+        gf2x_add(
+            Res.len() as i32,
+            Res.as_mut_ptr(),
+            Res.len() as i32,
             Res.as_ptr(),
-            NUM_DIGITS_GF2X_ELEMENT as i32,
+            A.len() as i32,
             A.as_ptr(),
         );
     }
@@ -191,11 +197,10 @@ unsafe fn gf2x_mul_comb(
     let mut k: i32 = 0;
     let mut u: DIGIT = 0;
     let mut h: DIGIT = 0;
-    memset(
-        Res as *mut libc::c_void,
-        0i32,
-        (nr as u64).wrapping_mul(::std::mem::size_of::<DIGIT>() as u64),
-    );
+
+    for i in 0..nr {
+        *Res.offset(i as isize) = 0;
+    }
     k = (8i32 << 3i32) - 1i32;
     while k > 0i32 {
         i = na - 1i32;
@@ -322,8 +327,6 @@ unsafe fn gf2x_exact_div_x_plus_one(na: i32, mut A: *mut DIGIT) {
         i -= 1
     }
 }
-// end gf2x_exact_div_x_plus_one
-/*---------------------------------------------------------------------------*/
 
 unsafe fn gf2x_mul_Kar(
     nr: i32,
@@ -766,7 +769,7 @@ pub unsafe fn gf2x_mul_TC3(
     gf2x_add(
         w2.len() as i32,
         w2.as_mut_ptr(),
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w2.len() as i32,
         w2.as_ptr(),
         w3.len() as i32,
         w3.as_ptr(),
@@ -774,31 +777,31 @@ pub unsafe fn gf2x_mul_TC3(
     // w2 + (w4 * x^3+1) = w2 + w4 + w4 << 3
     let vla_16 = (2i32 as u32).wrapping_mul(bih).wrapping_add(1i32 as u32) as usize;
     let mut w4_x3_plus_1: Vec<DIGIT> = ::std::vec::from_elem(0, vla_16);
-    *w4_x3_plus_1.as_mut_ptr().offset(0) = 0i32 as DIGIT;
+
     memcpy(
         w4_x3_plus_1.as_mut_ptr().offset(1) as *mut libc::c_void,
         w4.as_mut_ptr() as *const libc::c_void,
         (2i32 as u32).wrapping_mul(bih).wrapping_mul(8i32 as u32) as u64,
     );
     left_bit_shift_n(
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(1i32 as u32) as i32,
+        w4_x3_plus_1.len() as i32,
         w4_x3_plus_1.as_mut_ptr(),
         3i32,
     );
     gf2x_add_asymm(
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w2.len() as i32,
         w2.as_mut_ptr(),
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w2.len() as i32,
         w2.as_ptr(),
-        (2i32 as u32).wrapping_mul(bih) as i32,
+        w4.len() as i32,
         w4.as_ptr(),
     );
     gf2x_add_asymm(
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w2.len() as i32,
         w2.as_mut_ptr(),
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w2.len() as i32,
         w2.as_ptr(),
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(1i32 as u32) as i32,
+        w4_x3_plus_1.len() as i32,
         w4_x3_plus_1.as_ptr(),
     );
     gf2x_exact_div_x_plus_one(
@@ -806,11 +809,11 @@ pub unsafe fn gf2x_mul_TC3(
         w2.as_mut_ptr(),
     );
     gf2x_add(
-        (2i32 as u32).wrapping_mul(bih) as i32,
+        w1.len() as i32,
         w1.as_mut_ptr(),
-        (2i32 as u32).wrapping_mul(bih) as i32,
+        w1.len() as i32,
         w1.as_ptr(),
-        (2i32 as u32).wrapping_mul(bih) as i32,
+        w0.len() as i32,
         w0.as_ptr(),
     );
     gf2x_add_asymm(
@@ -818,7 +821,7 @@ pub unsafe fn gf2x_mul_TC3(
         w3.as_mut_ptr(),
         w3.len() as i32,
         w3.as_ptr(),
-        (2i32 as u32).wrapping_mul(bih) as i32,
+        w1.len() as i32,
         w1.as_ptr(),
     );
     right_bit_shift_n(
@@ -831,21 +834,21 @@ pub unsafe fn gf2x_mul_TC3(
         w3.as_mut_ptr(),
     );
     gf2x_add(
-        (2i32 as u32).wrapping_mul(bih) as i32,
+        w1.len() as i32,
         w1.as_mut_ptr(),
-        (2i32 as u32).wrapping_mul(bih) as i32,
+        w1.len() as i32,
         w1.as_ptr(),
-        (2i32 as u32).wrapping_mul(bih) as i32,
+        w4.len() as i32,
         w4.as_ptr(),
     );
     let vla_17 = (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as usize;
     let mut w1_final: Vec<DIGIT> = ::std::vec::from_elem(0, vla_17);
     gf2x_add_asymm(
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w1_final.len() as i32,
         w1_final.as_mut_ptr(),
         w2.len() as i32,
         w2.as_ptr(),
-        (2i32 as u32).wrapping_mul(bih) as i32,
+        w1.len() as i32,
         w1.as_ptr(),
     );
     gf2x_add(
@@ -857,7 +860,10 @@ pub unsafe fn gf2x_mul_TC3(
         w3.as_ptr(),
     );
     // Result recombination starts here
-    memset(Res as *mut libc::c_void, 0i32, (nr * 8i32) as u64);
+
+    for i in 0..nr {
+        *Res.offset(i as isize) = 0;
+    }
     /* optimization: topmost slack digits should be computed, and not addedd,
      * zeroization can be avoided altogether with a proper merge of the
      * results */
