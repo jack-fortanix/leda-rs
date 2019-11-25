@@ -76,68 +76,43 @@ fn reverse_digit(b: DIGIT) -> DIGIT {
     b.reverse_bits()
 }
 
-pub unsafe fn gf2x_transpose_in_place(A: &mut [DIGIT]) {
+pub fn gf2x_transpose_in_place(A: &mut [DIGIT]) {
     /* it keeps the lsb in the same position and
      * inverts the sequence of the remaining bits
      */
-    let mut A = A.as_mut_ptr();
-    let mut mask: DIGIT = 0x1i32 as DIGIT;
-    let mut rev1: DIGIT = 0;
-    let mut rev2: DIGIT = 0;
-    let mut a00: DIGIT = 0;
-    let mut i: i32 = 0;
-    let mut slack_bits_amount: i32 =
-        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * (8i32 << 3i32)
-            - crate::consts::P as i32;
-    if (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) == 1i32 {
-        a00 = *A.offset(0) & mask;
-        right_bit_shift(1i32, A);
-        rev1 = reverse_digit(*A.offset(0));
-        rev1 >>= (8i32 << 3i32) - crate::consts::P as i32 % (8i32 << 3i32);
-        *A.offset(0) = rev1 & !mask | a00;
-        return;
-    }
-    a00 = *A.offset(
-        ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32) as isize,
-    ) & mask;
-    right_bit_shift(
-        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-        A,
-    );
-    i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
-    while i >= ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + 1i32) / 2i32 {
-        rev1 = reverse_digit(*A.offset(i as isize));
-        rev2 = reverse_digit(*A.offset(
-            ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32 - i)
-                as isize,
-        ));
-        *A.offset(i as isize) = rev2;
-        *A.offset(
-            ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32 - i)
-                as isize,
-        ) = rev1;
-        i -= 1
-    }
-    if (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) % 2i32 == 1i32 {
-        *A.offset(
-            ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) / 2i32) as isize,
-        ) = reverse_digit(*A.offset(
-            ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) / 2i32) as isize,
-        ))
-    }
-    if slack_bits_amount != 0 {
-        right_bit_shift_n(
-            (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-            A,
-            slack_bits_amount,
+    let mask: DIGIT = 0x1 as DIGIT;
+
+    let slack_bits_amount = NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_b - P;
+
+    let a00 = A[NUM_DIGITS_GF2X_ELEMENT-1] & mask;
+    unsafe {
+        right_bit_shift(
+            NUM_DIGITS_GF2X_ELEMENT as i32,
+            A.as_mut_ptr(),
         );
     }
-    *A.offset(
-        ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32) as isize,
-    ) = *A.offset(
-        ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32) as isize,
-    ) & !mask
-        | a00;
+
+    let mut i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+    while i >= ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + 1i32) / 2i32 {
+        let rev1 = reverse_digit(A[i as usize]);
+        let rev2 = reverse_digit(A[NUM_DIGITS_GF2X_ELEMENT-(i as usize)-1]);
+        A[i as usize] = rev2;
+        A[NUM_DIGITS_GF2X_ELEMENT-(i as usize)-1] = rev1;
+        i -= 1
+    }
+
+   if NUM_DIGITS_GF2X_ELEMENT % 2 == 1 {
+      A[NUM_DIGITS_GF2X_ELEMENT/2] = reverse_digit(A[NUM_DIGITS_GF2X_ELEMENT/2]);
+   }
+    if slack_bits_amount != 0 {
+        unsafe {right_bit_shift_n(
+            NUM_DIGITS_GF2X_ELEMENT as i32,
+            A.as_mut_ptr(),
+            slack_bits_amount as i32,
+        ); }
+    }
+
+   A[NUM_DIGITS_GF2X_ELEMENT-1] = (A[NUM_DIGITS_GF2X_ELEMENT-1] & (!mask)) | a00;
 }
 // end transpose_in_place
 /*----------------------------------------------------------------------------*/

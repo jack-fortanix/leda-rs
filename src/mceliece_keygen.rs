@@ -85,9 +85,7 @@ pub fn key_gen_mceliece(seed: &[u8]) -> Result<(LedaPublicKey,LedaPrivateKey)> {
     let mut Ln0Inv: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     gf2x_mod_inverse(&mut Ln0Inv, &Ln0dense);
     gf2x_mod_mul_dense_to_sparse(&mut pk.Mtr, &Ln0Inv, &LPosOnes[0]);
-    unsafe {
-        gf2x_transpose_in_place(&mut pk.Mtr);
-    }
+    gf2x_transpose_in_place(&mut pk.Mtr);
 
     Ok((pk,sk))
 }
