@@ -36,14 +36,12 @@ pub fn gf2x_mod_add_3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     assert_eq!(Res.len(), NUM_DIGITS_GF2X_ELEMENT);
     assert_eq!(A.len(), NUM_DIGITS_GF2X_ELEMENT);
     assert_eq!(B.len(), NUM_DIGITS_GF2X_ELEMENT);
-
     gf2x_add_3(Res, A, B);
 }
 
 pub fn gf2x_mod_add_2(Res: &mut [DIGIT], A: &[DIGIT]) {
     assert_eq!(Res.len(), NUM_DIGITS_GF2X_ELEMENT);
     assert_eq!(A.len(), NUM_DIGITS_GF2X_ELEMENT);
-
     gf2x_add_2(Res, A);
 }
 
@@ -343,14 +341,11 @@ unsafe fn gf2x_mul_Kar(
     }
     if na % 2i32 == 0i32 {
         let mut bih: u32 = (na / 2i32) as u32;
-        let vla = (2i32 as u32).wrapping_mul(bih) as usize;
-        let mut middle: Vec<DIGIT> = ::std::vec::from_elem(0, vla);
-        let vla_0 = bih as usize;
-        let mut sumA: Vec<DIGIT> = ::std::vec::from_elem(0, vla_0);
-        let vla_1 = bih as usize;
-        let mut sumB: Vec<DIGIT> = ::std::vec::from_elem(0, vla_1);
+        let mut middle: Vec<DIGIT> = vec![0; 2*bih as usize];
+        let mut sumA: Vec<DIGIT> = vec![0; bih as usize];
+        let mut sumB: Vec<DIGIT> = vec![0; bih as usize];
         gf2x_add(
-            bih as i32,
+            sumA.len() as i32,
             sumA.as_mut_ptr(),
             bih as i32,
             A,
@@ -358,7 +353,7 @@ unsafe fn gf2x_mul_Kar(
             A.offset(bih as isize),
         );
         gf2x_add(
-            bih as i32,
+            sumB.len() as i32,
             sumB.as_mut_ptr(),
             bih as i32,
             B,
@@ -366,7 +361,7 @@ unsafe fn gf2x_mul_Kar(
             B.offset(bih as isize),
         );
         gf2x_mul_Kar(
-            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.len() as i32,
             middle.as_mut_ptr(),
             bih as i32,
             sumA.as_ptr(),
@@ -382,9 +377,9 @@ unsafe fn gf2x_mul_Kar(
             B.offset(bih as isize),
         );
         gf2x_add(
-            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.len() as i32,
             middle.as_mut_ptr(),
-            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.len() as i32,
             middle.as_ptr(),
             (2i32 as u32).wrapping_mul(bih) as i32,
             Res.offset((2i32 as u32).wrapping_mul(bih) as isize) as *const DIGIT,
@@ -398,9 +393,9 @@ unsafe fn gf2x_mul_Kar(
             B,
         );
         gf2x_add(
-            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.len() as i32,
             middle.as_mut_ptr(),
-            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.len() as i32,
             middle.as_ptr(),
             (2i32 as u32).wrapping_mul(bih) as i32,
             Res as *const DIGIT,
@@ -410,81 +405,81 @@ unsafe fn gf2x_mul_Kar(
             Res.offset(bih as isize),
             (2i32 as u32).wrapping_mul(bih) as i32,
             Res.offset(bih as isize) as *const DIGIT,
-            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.len() as i32,
             middle.as_ptr(),
         );
     } else {
-        let mut bih_0: u32 = (na / 2i32 + 1i32) as u32;
-        let vla_2 = (2i32 as u32).wrapping_mul(bih_0) as usize;
-        let mut middle_0: Vec<DIGIT> = ::std::vec::from_elem(0, vla_2);
-        let vla_3 = bih_0 as usize;
-        let mut sumA_0: Vec<DIGIT> = ::std::vec::from_elem(0, vla_3);
-        let vla_4 = bih_0 as usize;
-        let mut sumB_0: Vec<DIGIT> = ::std::vec::from_elem(0, vla_4);
+        let mut bih: u32 = (na / 2i32 + 1i32) as u32;
+        let vla_2 = (2i32 as u32).wrapping_mul(bih) as usize;
+        let mut middle: Vec<DIGIT> = ::std::vec::from_elem(0, vla_2);
+        let vla_3 = bih as usize;
+        let mut sumA: Vec<DIGIT> = ::std::vec::from_elem(0, vla_3);
+        let vla_4 = bih as usize;
+        let mut sumB: Vec<DIGIT> = ::std::vec::from_elem(0, vla_4);
         gf2x_add_asymm(
-            bih_0 as i32,
-            sumA_0.as_mut_ptr(),
-            bih_0 as i32,
-            A.offset(bih_0 as isize).offset(-1),
-            bih_0.wrapping_sub(1i32 as u32) as i32,
+            bih as i32,
+            sumA.as_mut_ptr(),
+            bih as i32,
+            A.offset(bih as isize).offset(-1),
+            bih.wrapping_sub(1i32 as u32) as i32,
             A,
         );
         gf2x_add_asymm(
-            bih_0 as i32,
-            sumB_0.as_mut_ptr(),
-            bih_0 as i32,
-            B.offset(bih_0 as isize).offset(-1),
-            bih_0.wrapping_sub(1i32 as u32) as i32,
+            bih as i32,
+            sumB.as_mut_ptr(),
+            bih as i32,
+            B.offset(bih as isize).offset(-1),
+            bih.wrapping_sub(1i32 as u32) as i32,
             B,
         );
         gf2x_mul_Kar(
-            (2i32 as u32).wrapping_mul(bih_0) as i32,
-            middle_0.as_mut_ptr(),
-            bih_0 as i32,
-            sumA_0.as_ptr(),
-            bih_0 as i32,
-            sumB_0.as_ptr(),
+            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.as_mut_ptr(),
+            bih as i32,
+            sumA.as_ptr(),
+            bih as i32,
+            sumB.as_ptr(),
         );
         gf2x_mul_Kar(
-            (2i32 as u32).wrapping_mul(bih_0) as i32,
-            Res.offset((2i32 as u32).wrapping_mul(bih_0.wrapping_sub(1i32 as u32)) as isize),
-            bih_0 as i32,
-            A.offset(bih_0 as isize).offset(-1),
-            bih_0 as i32,
-            B.offset(bih_0 as isize).offset(-1),
+            (2i32 as u32).wrapping_mul(bih) as i32,
+            Res.offset((2i32 as u32).wrapping_mul(bih.wrapping_sub(1i32 as u32)) as isize),
+            bih as i32,
+            A.offset(bih as isize).offset(-1),
+            bih as i32,
+            B.offset(bih as isize).offset(-1),
         );
         gf2x_add(
-            (2i32 as u32).wrapping_mul(bih_0) as i32,
-            middle_0.as_mut_ptr(),
-            (2i32 as u32).wrapping_mul(bih_0) as i32,
-            middle_0.as_ptr(),
-            (2i32 as u32).wrapping_mul(bih_0) as i32,
-            Res.offset((2i32 as u32).wrapping_mul(bih_0.wrapping_sub(1i32 as u32)) as isize)
+            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.as_mut_ptr(),
+            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.as_ptr(),
+            (2i32 as u32).wrapping_mul(bih) as i32,
+            Res.offset((2i32 as u32).wrapping_mul(bih.wrapping_sub(1i32 as u32)) as isize)
                 as *const DIGIT,
         );
         gf2x_mul_Kar(
-            (2i32 as u32).wrapping_mul(bih_0.wrapping_sub(1i32 as u32)) as i32,
+            (2i32 as u32).wrapping_mul(bih.wrapping_sub(1i32 as u32)) as i32,
             Res,
-            bih_0.wrapping_sub(1i32 as u32) as i32,
+            bih.wrapping_sub(1i32 as u32) as i32,
             A,
-            bih_0.wrapping_sub(1i32 as u32) as i32,
+            bih.wrapping_sub(1i32 as u32) as i32,
             B,
         );
         gf2x_add_asymm(
-            (2i32 as u32).wrapping_mul(bih_0) as i32,
-            middle_0.as_mut_ptr(),
-            (2i32 as u32).wrapping_mul(bih_0) as i32,
-            middle_0.as_ptr(),
-            (2i32 as u32).wrapping_mul(bih_0.wrapping_sub(1i32 as u32)) as i32,
+            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.as_mut_ptr(),
+            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.as_ptr(),
+            (2i32 as u32).wrapping_mul(bih.wrapping_sub(1i32 as u32)) as i32,
             Res as *const DIGIT,
         );
         gf2x_add(
-            (2i32 as u32).wrapping_mul(bih_0) as i32,
-            Res.offset(bih_0 as isize).offset(-2),
-            (2i32 as u32).wrapping_mul(bih_0) as i32,
-            Res.offset(bih_0 as isize).offset(-2) as *const DIGIT,
-            (2i32 as u32).wrapping_mul(bih_0) as i32,
-            middle_0.as_ptr(),
+            (2i32 as u32).wrapping_mul(bih) as i32,
+            Res.offset(bih as isize).offset(-2),
+            (2i32 as u32).wrapping_mul(bih) as i32,
+            Res.offset(bih as isize).offset(-2) as *const DIGIT,
+            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.as_ptr(),
         );
     };
 }
