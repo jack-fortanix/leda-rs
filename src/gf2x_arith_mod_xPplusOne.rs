@@ -18,16 +18,8 @@ fn gf2x_mod(out: &mut [DIGIT], input: &[DIGIT]) {
             aux.as_mut_ptr(),
             MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS as i32,
         );
-        gf2x_add(
-            NUM_DIGITS_GF2X_ELEMENT as i32,
-            out.as_mut_ptr(),
-            NUM_DIGITS_GF2X_ELEMENT as i32,
-            aux.as_ptr().offset(1),
-            NUM_DIGITS_GF2X_ELEMENT as i32,
-            input.as_ptr().offset(
-                ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as isize,
-            ),
-        );
+        gf2x_mod_add_3(out, &aux[1..NUM_DIGITS_GF2X_ELEMENT+1],
+                       &input[NUM_DIGITS_GF2X_ELEMENT..2*NUM_DIGITS_GF2X_ELEMENT]);
 
         out[0] &= ((1 as DIGIT) << MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS) - 1;
     }
@@ -210,14 +202,7 @@ pub fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
                 delta += 1i32
             } else {
                 if s[0] & GF2_INVERSE_MASK != 0i32 as u64 {
-                    gf2x_add(
-                        (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-                        s.as_mut_ptr(),
-                        (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-                        s.as_ptr(),
-                        (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-                        f.as_ptr(),
-                    );
+                    gf2x_mod_add_2(&mut s, &f);
                     gf2x_mod_add_2(&mut v, &u);
                 }
                 left_bit_shift(

@@ -150,7 +150,7 @@ pub unsafe fn gf2x_toggle_coeff(mut poly: *mut DIGIT, exponent: u32) {
  *           position[A_{0}]  ==  n-1
  */
 /*----------------------------------------------------------------------------*/
-pub unsafe fn gf2x_add(
+unsafe fn gf2x_add(
     nr: i32,
     mut Res: *mut DIGIT,
     _na: i32,
