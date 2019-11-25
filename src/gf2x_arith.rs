@@ -410,14 +410,11 @@ unsafe fn gf2x_mul_Kar(
         );
     } else {
         let mut bih: u32 = (na / 2i32 + 1i32) as u32;
-        let vla_2 = (2i32 as u32).wrapping_mul(bih) as usize;
-        let mut middle: Vec<DIGIT> = ::std::vec::from_elem(0, vla_2);
-        let vla_3 = bih as usize;
-        let mut sumA: Vec<DIGIT> = ::std::vec::from_elem(0, vla_3);
-        let vla_4 = bih as usize;
-        let mut sumB: Vec<DIGIT> = ::std::vec::from_elem(0, vla_4);
+        let mut middle: Vec<DIGIT> = vec![0; bih as usize * 2];
+        let mut sumA: Vec<DIGIT> = vec![0; bih as usize];
+        let mut sumB: Vec<DIGIT> = vec![0; bih as usize];
         gf2x_add_asymm(
-            bih as i32,
+            sumA.len() as i32,
             sumA.as_mut_ptr(),
             bih as i32,
             A.offset(bih as isize).offset(-1),
@@ -433,11 +430,11 @@ unsafe fn gf2x_mul_Kar(
             B,
         );
         gf2x_mul_Kar(
-            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.len() as i32,
             middle.as_mut_ptr(),
-            bih as i32,
+            sumA.len() as i32,
             sumA.as_ptr(),
-            bih as i32,
+            sumB.len() as i32,
             sumB.as_ptr(),
         );
         gf2x_mul_Kar(
@@ -708,14 +705,7 @@ pub unsafe fn gf2x_mul_TC3(
         v0,
     );
     // Interpolation starts
-    gf2x_add(
-        w3.len() as i32,
-        w3.as_mut_ptr(),
-        w2.len() as i32,
-        w2.as_ptr(),
-        w3.len() as i32,
-        w3.as_ptr(),
-    );
+    gf2x_add_2(&mut w3, &w2);
     gf2x_add_asymm(
         w2.len() as i32,
         w2.as_mut_ptr(),
@@ -729,14 +719,7 @@ pub unsafe fn gf2x_mul_TC3(
         w2.as_mut_ptr(),
         1i32,
     );
-    gf2x_add(
-        w2.len() as i32,
-        w2.as_mut_ptr(),
-        w2.len() as i32,
-        w2.as_ptr(),
-        w3.len() as i32,
-        w3.as_ptr(),
-    );
+    gf2x_add_2(&mut w2, &w3);
     // w2 + (w4 * x^3+1) = w2 + w4 + w4 << 3
     let vla_16 = (2i32 as u32).wrapping_mul(bih).wrapping_add(1i32 as u32) as usize;
     let mut w4_x3_plus_1: Vec<DIGIT> = ::std::vec::from_elem(0, vla_16);
