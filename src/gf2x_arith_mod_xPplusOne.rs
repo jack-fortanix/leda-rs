@@ -243,14 +243,14 @@ pub fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
                         (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
                         s.as_mut_ptr(),
                         (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-                        s.as_mut_ptr() as *const DIGIT,
+                        s.as_ptr(),
                         (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-                        f.as_mut_ptr() as *const DIGIT,
+                        f.as_ptr(),
                     );
                     gf2x_mod_add(
                         v.as_mut_ptr(),
-                        v.as_mut_ptr() as *const DIGIT,
-                        u.as_mut_ptr() as *const DIGIT,
+                        v.as_ptr(),
+                        u.as_ptr(),
                     );
                 }
                 left_bit_shift(

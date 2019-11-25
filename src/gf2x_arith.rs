@@ -348,9 +348,9 @@ unsafe fn gf2x_mul_Kar(
             (2i32 as u32).wrapping_mul(bih) as i32,
             middle.as_mut_ptr(),
             bih as i32,
-            sumA.as_mut_ptr() as *const DIGIT,
+            sumA.as_ptr(),
             bih as i32,
-            sumB.as_mut_ptr() as *const DIGIT,
+            sumB.as_ptr(),
         );
         gf2x_mul_Kar(
             (2i32 as u32).wrapping_mul(bih) as i32,
@@ -364,7 +364,7 @@ unsafe fn gf2x_mul_Kar(
             (2i32 as u32).wrapping_mul(bih) as i32,
             middle.as_mut_ptr(),
             (2i32 as u32).wrapping_mul(bih) as i32,
-            middle.as_mut_ptr() as *const DIGIT,
+            middle.as_ptr(),
             (2i32 as u32).wrapping_mul(bih) as i32,
             Res.offset((2i32 as u32).wrapping_mul(bih) as isize) as *const DIGIT,
         );
@@ -380,7 +380,7 @@ unsafe fn gf2x_mul_Kar(
             (2i32 as u32).wrapping_mul(bih) as i32,
             middle.as_mut_ptr(),
             (2i32 as u32).wrapping_mul(bih) as i32,
-            middle.as_mut_ptr() as *const DIGIT,
+            middle.as_ptr(),
             (2i32 as u32).wrapping_mul(bih) as i32,
             Res as *const DIGIT,
         );
@@ -390,7 +390,7 @@ unsafe fn gf2x_mul_Kar(
             (2i32 as u32).wrapping_mul(bih) as i32,
             Res.offset(bih as isize) as *const DIGIT,
             (2i32 as u32).wrapping_mul(bih) as i32,
-            middle.as_mut_ptr() as *const DIGIT,
+            middle.as_ptr(),
         );
     } else {
         let mut bih_0: u32 = (na / 2i32 + 1i32) as u32;
@@ -420,9 +420,9 @@ unsafe fn gf2x_mul_Kar(
             (2i32 as u32).wrapping_mul(bih_0) as i32,
             middle_0.as_mut_ptr(),
             bih_0 as i32,
-            sumA_0.as_mut_ptr() as *const DIGIT,
+            sumA_0.as_ptr(),
             bih_0 as i32,
-            sumB_0.as_mut_ptr() as *const DIGIT,
+            sumB_0.as_ptr(),
         );
         gf2x_mul_Kar(
             (2i32 as u32).wrapping_mul(bih_0) as i32,
@@ -436,7 +436,7 @@ unsafe fn gf2x_mul_Kar(
             (2i32 as u32).wrapping_mul(bih_0) as i32,
             middle_0.as_mut_ptr(),
             (2i32 as u32).wrapping_mul(bih_0) as i32,
-            middle_0.as_mut_ptr() as *const DIGIT,
+            middle_0.as_ptr(),
             (2i32 as u32).wrapping_mul(bih_0) as i32,
             Res.offset((2i32 as u32).wrapping_mul(bih_0.wrapping_sub(1i32 as u32)) as isize)
                 as *const DIGIT,
@@ -453,7 +453,7 @@ unsafe fn gf2x_mul_Kar(
             (2i32 as u32).wrapping_mul(bih_0) as i32,
             middle_0.as_mut_ptr(),
             (2i32 as u32).wrapping_mul(bih_0) as i32,
-            middle_0.as_mut_ptr() as *const DIGIT,
+            middle_0.as_ptr(),
             (2i32 as u32).wrapping_mul(bih_0.wrapping_sub(1i32 as u32)) as i32,
             Res as *const DIGIT,
         );
@@ -463,7 +463,7 @@ unsafe fn gf2x_mul_Kar(
             (2i32 as u32).wrapping_mul(bih_0) as i32,
             Res.offset(bih_0 as isize).offset(-2) as *const DIGIT,
             (2i32 as u32).wrapping_mul(bih_0) as i32,
-            middle_0.as_mut_ptr() as *const DIGIT,
+            middle_0.as_ptr(),
         );
     };
 }
@@ -544,9 +544,9 @@ pub unsafe fn gf2x_mul_TC3(
         bih as i32,
         sum_u.as_mut_ptr(),
         bih as i32,
-        sum_u.as_mut_ptr() as *const DIGIT,
+        sum_u.as_ptr(),
         bih as i32,
-        u2.as_mut_ptr() as *const DIGIT,
+        u2.as_ptr(),
     );
     let vla_2 = bih as usize;
     let mut sum_v: Vec<DIGIT> = ::std::vec::from_elem(0, vla_2);
@@ -562,9 +562,9 @@ pub unsafe fn gf2x_mul_TC3(
         bih as i32,
         sum_v.as_mut_ptr(),
         bih as i32,
-        sum_v.as_mut_ptr() as *const DIGIT,
+        sum_v.as_ptr(),
         bih as i32,
-        v2.as_mut_ptr() as *const DIGIT,
+        v2.as_ptr(),
     );
     let vla_3 = (2i32 as u32).wrapping_mul(bih) as usize;
     let mut w1: Vec<DIGIT> = ::std::vec::from_elem(0, vla_3);
@@ -572,9 +572,9 @@ pub unsafe fn gf2x_mul_TC3(
         (2i32 as u32).wrapping_mul(bih) as i32,
         w1.as_mut_ptr(),
         bih as i32,
-        sum_u.as_mut_ptr() as *const DIGIT,
+        sum_u.as_ptr(),
         bih as i32,
-        sum_v.as_mut_ptr() as *const DIGIT,
+        sum_v.as_ptr(),
     );
     let vla_4 = bih.wrapping_add(1i32 as u32) as usize;
     let mut u2_x2: Vec<DIGIT> = ::std::vec::from_elem(0, vla_4);
@@ -608,9 +608,9 @@ pub unsafe fn gf2x_mul_TC3(
         bih.wrapping_add(1i32 as u32) as i32,
         u1_x1_u2_x2.as_mut_ptr(),
         bih.wrapping_add(1i32 as u32) as i32,
-        u1_x.as_mut_ptr() as *const DIGIT,
+        u1_x.as_ptr(),
         bih.wrapping_add(1i32 as u32) as i32,
-        u2_x2.as_mut_ptr() as *const DIGIT,
+        u2_x2.as_ptr(),
     );
     let vla_7 = bih.wrapping_add(1i32 as u32) as usize;
     let mut temp_u_components: Vec<DIGIT> = ::std::vec::from_elem(0, vla_7);
@@ -618,9 +618,9 @@ pub unsafe fn gf2x_mul_TC3(
         bih.wrapping_add(1i32 as u32) as i32,
         temp_u_components.as_mut_ptr(),
         bih.wrapping_add(1i32 as u32) as i32,
-        u1_x1_u2_x2.as_mut_ptr() as *const DIGIT,
+        u1_x1_u2_x2.as_ptr(),
         bih as i32,
-        sum_u.as_mut_ptr() as *const DIGIT,
+        sum_u.as_ptr(),
     );
     let vla_8 = bih.wrapping_add(1i32 as u32) as usize;
     let mut v2_x2: Vec<DIGIT> = ::std::vec::from_elem(0, vla_8);
@@ -654,9 +654,9 @@ pub unsafe fn gf2x_mul_TC3(
         bih.wrapping_add(1i32 as u32) as i32,
         v1_x1_v2_x2.as_mut_ptr(),
         bih.wrapping_add(1i32 as u32) as i32,
-        v1_x.as_mut_ptr() as *const DIGIT,
+        v1_x.as_ptr(),
         bih.wrapping_add(1i32 as u32) as i32,
-        v2_x2.as_mut_ptr() as *const DIGIT,
+        v2_x2.as_ptr(),
     );
     let vla_11 = bih.wrapping_add(1i32 as u32) as usize;
     let mut temp_v_components: Vec<DIGIT> = ::std::vec::from_elem(0, vla_11);
@@ -664,9 +664,9 @@ pub unsafe fn gf2x_mul_TC3(
         bih.wrapping_add(1i32 as u32) as i32,
         temp_v_components.as_mut_ptr(),
         bih.wrapping_add(1i32 as u32) as i32,
-        v1_x1_v2_x2.as_mut_ptr() as *const DIGIT,
+        v1_x1_v2_x2.as_ptr(),
         bih as i32,
-        sum_v.as_mut_ptr() as *const DIGIT,
+        sum_v.as_ptr(),
     );
 
     let mut w3: Vec<DIGIT> = vec![0; 2*(bih as usize)+2];
@@ -674,15 +674,15 @@ pub unsafe fn gf2x_mul_TC3(
         w3.len() as i32,
         w3.as_mut_ptr(),
         bih.wrapping_add(1i32 as u32) as i32,
-        temp_u_components.as_mut_ptr() as *const DIGIT,
+        temp_u_components.as_ptr(),
         bih.wrapping_add(1i32 as u32) as i32,
-        temp_v_components.as_mut_ptr() as *const DIGIT,
+        temp_v_components.as_ptr(),
     );
     gf2x_add_asymm(
         bih.wrapping_add(1i32 as u32) as i32,
         u1_x1_u2_x2.as_mut_ptr(),
         bih.wrapping_add(1i32 as u32) as i32,
-        u1_x1_u2_x2.as_mut_ptr() as *const DIGIT,
+        u1_x1_u2_x2.as_ptr(),
         bih as i32,
         u0 as *const DIGIT,
     );
@@ -690,7 +690,7 @@ pub unsafe fn gf2x_mul_TC3(
         bih.wrapping_add(1i32 as u32) as i32,
         v1_x1_v2_x2.as_mut_ptr(),
         bih.wrapping_add(1i32 as u32) as i32,
-        v1_x1_v2_x2.as_mut_ptr() as *const DIGIT,
+        v1_x1_v2_x2.as_ptr(),
         bih as i32,
         v0 as *const DIGIT,
     );
@@ -699,9 +699,9 @@ pub unsafe fn gf2x_mul_TC3(
         w3.len() as i32,
         w2.as_mut_ptr(),
         bih.wrapping_add(1i32 as u32) as i32,
-        u1_x1_u2_x2.as_mut_ptr() as *const DIGIT,
+        u1_x1_u2_x2.as_ptr(),
         bih.wrapping_add(1i32 as u32) as i32,
-        v1_x1_v2_x2.as_mut_ptr() as *const DIGIT,
+        v1_x1_v2_x2.as_ptr(),
     );
     let vla_14 = (2i32 as u32).wrapping_mul(bih) as usize;
     let mut w4: Vec<DIGIT> = ::std::vec::from_elem(0, vla_14);
@@ -709,9 +709,9 @@ pub unsafe fn gf2x_mul_TC3(
         (2i32 as u32).wrapping_mul(bih) as i32,
         w4.as_mut_ptr(),
         bih as i32,
-        u2.as_mut_ptr() as *const DIGIT,
+        u2.as_ptr(),
         bih as i32,
-        v2.as_mut_ptr() as *const DIGIT,
+        v2.as_ptr(),
     );
     let vla_15 = (2i32 as u32).wrapping_mul(bih) as usize;
     let mut w0: Vec<DIGIT> = ::std::vec::from_elem(0, vla_15);
@@ -728,17 +728,17 @@ pub unsafe fn gf2x_mul_TC3(
         w3.len() as i32,
         w3.as_mut_ptr(),
         w2.len() as i32,
-        w2.as_mut_ptr() as *const DIGIT,
+        w2.as_ptr(),
         w3.len() as i32,
-        w3.as_mut_ptr() as *const DIGIT,
+        w3.as_ptr(),
     );
     gf2x_add_asymm(
         w2.len() as i32,
         w2.as_mut_ptr(),
         w2.len() as i32,
-        w2.as_mut_ptr() as *const DIGIT,
+        w2.as_ptr(),
         (2i32 as u32).wrapping_mul(bih) as i32,
-        w0.as_mut_ptr() as *const DIGIT,
+        w0.as_ptr(),
     );
     right_bit_shift_n(
         (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
@@ -749,9 +749,9 @@ pub unsafe fn gf2x_mul_TC3(
         w2.len() as i32,
         w2.as_mut_ptr(),
         (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
-        w2.as_mut_ptr() as *const DIGIT,
+        w2.as_ptr(),
         w3.len() as i32,
-        w3.as_mut_ptr() as *const DIGIT,
+        w3.as_ptr(),
     );
     // w2 + (w4 * x^3+1) = w2 + w4 + w4 << 3
     let vla_16 = (2i32 as u32).wrapping_mul(bih).wrapping_add(1i32 as u32) as usize;
@@ -771,17 +771,17 @@ pub unsafe fn gf2x_mul_TC3(
         (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
         w2.as_mut_ptr(),
         (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
-        w2.as_mut_ptr() as *const DIGIT,
+        w2.as_ptr(),
         (2i32 as u32).wrapping_mul(bih) as i32,
-        w4.as_mut_ptr() as *const DIGIT,
+        w4.as_ptr(),
     );
     gf2x_add_asymm(
         (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
         w2.as_mut_ptr(),
         (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
-        w2.as_mut_ptr() as *const DIGIT,
+        w2.as_ptr(),
         (2i32 as u32).wrapping_mul(bih).wrapping_add(1i32 as u32) as i32,
-        w4_x3_plus_1.as_mut_ptr() as *const DIGIT,
+        w4_x3_plus_1.as_ptr(),
     );
     gf2x_exact_div_x_plus_one(
         (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
@@ -791,17 +791,17 @@ pub unsafe fn gf2x_mul_TC3(
         (2i32 as u32).wrapping_mul(bih) as i32,
         w1.as_mut_ptr(),
         (2i32 as u32).wrapping_mul(bih) as i32,
-        w1.as_mut_ptr() as *const DIGIT,
+        w1.as_ptr(),
         (2i32 as u32).wrapping_mul(bih) as i32,
-        w0.as_mut_ptr() as *const DIGIT,
+        w0.as_ptr(),
     );
     gf2x_add_asymm(
         w3.len() as i32,
         w3.as_mut_ptr(),
         w3.len() as i32,
-        w3.as_mut_ptr() as *const DIGIT,
+        w3.as_ptr(),
         (2i32 as u32).wrapping_mul(bih) as i32,
-        w1.as_mut_ptr() as *const DIGIT,
+        w1.as_ptr(),
     );
     right_bit_shift_n(
         w3.len() as i32,
@@ -816,9 +816,9 @@ pub unsafe fn gf2x_mul_TC3(
         (2i32 as u32).wrapping_mul(bih) as i32,
         w1.as_mut_ptr(),
         (2i32 as u32).wrapping_mul(bih) as i32,
-        w1.as_mut_ptr() as *const DIGIT,
+        w1.as_ptr(),
         (2i32 as u32).wrapping_mul(bih) as i32,
-        w4.as_mut_ptr() as *const DIGIT,
+        w4.as_ptr(),
     );
     let vla_17 = (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as usize;
     let mut w1_final: Vec<DIGIT> = ::std::vec::from_elem(0, vla_17);
@@ -826,17 +826,17 @@ pub unsafe fn gf2x_mul_TC3(
         (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
         w1_final.as_mut_ptr(),
         w2.len() as i32,
-        w2.as_mut_ptr() as *const DIGIT,
+        w2.as_ptr(),
         (2i32 as u32).wrapping_mul(bih) as i32,
-        w1.as_mut_ptr() as *const DIGIT,
+        w1.as_ptr(),
     );
     gf2x_add(
         w2.len() as i32,
         w2.as_mut_ptr(),
         w2.len() as i32,
-        w2.as_mut_ptr() as *const DIGIT,
+        w2.as_ptr(),
         w3.len() as i32,
-        w3.as_mut_ptr() as *const DIGIT,
+        w3.as_ptr(),
     );
     // Result recombination starts here
     memset(Res as *mut libc::c_void, 0i32, (nr * 8i32) as u64);
