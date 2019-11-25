@@ -94,15 +94,8 @@ unsafe fn decrypt_McEliece(
     if ok == 0i32 {
         return 0i32;
     }
-    let mut err_weight: i32 = 0i32;
-    let mut i_3: i32 = 0i32;
-    while i_3 < 2i32 {
-        err_weight += population_count(decoded_err.as_ptr().offset(
-            ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * i_3) as isize,
-        ));
-        i_3 += 1
-    }
-    if err_weight != NUM_ERRORS as i32 {
+    let err_weight = population_count(&decoded_err);
+    if err_weight != NUM_ERRORS {
         return 0i32;
     }
     /* correct input codeword */

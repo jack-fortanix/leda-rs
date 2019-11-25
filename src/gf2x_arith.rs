@@ -14,16 +14,12 @@ pub fn gf2x_copy(mut dest: &mut [DIGIT], input: &[DIGIT]) {
     }
 }
 
-pub fn safe_population_count(upc: &[DIGIT]) -> i32 {
-    let mut sum = 0;
+pub fn population_count(upc: &[DIGIT]) -> usize {
+    let mut sum : usize = 0;
     for x in upc {
-        sum += x.count_ones();
+        sum += x.count_ones() as usize;
     }
-    return sum as i32;
-}
-
-pub unsafe fn population_count(upc: *const DIGIT) -> i32 {
-    safe_population_count(std::slice::from_raw_parts(upc, NUM_DIGITS_GF2X_ELEMENT))
+    return sum;
 }
 
 pub unsafe fn gf2x_get_coeff(mut poly: *const DIGIT, exponent: u32) -> DIGIT {
