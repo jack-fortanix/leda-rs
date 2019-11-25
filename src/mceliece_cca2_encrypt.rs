@@ -30,33 +30,16 @@ unsafe fn encrypt_McEliece(
             &ptx[i*NUM_DIGITS_GF2X_ELEMENT..(i+1)*NUM_DIGITS_GF2X_ELEMENT]);
 
         gf2x_mod_add(
-            codeword.as_mut_ptr().offset(
-                ((2i32 - 1i32)
-                    * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
-                    as isize,
-            ),
-            codeword.as_mut_ptr().offset(
-                ((2i32 - 1i32)
-                    * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
-                    as isize,
-            ) as *const DIGIT,
+            codeword.as_mut_ptr().offset(((N0-1)*NUM_DIGITS_GF2X_ELEMENT) as isize),
+            codeword.as_ptr().offset(((N0-1)*NUM_DIGITS_GF2X_ELEMENT) as isize),
             saux.as_ptr()
         );
     }
-    for i in 0..(N0 as i32) {
+    for i in 0..N0 {
         gf2x_mod_add(
-            codeword.as_mut_ptr().offset(
-                (i * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
-                    as isize,
-            ),
-            codeword.as_mut_ptr().offset(
-                (i * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
-                    as isize,
-            ) as *const DIGIT,
-            err.as_ptr().offset(
-                (i * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
-                    as isize,
-            ),
+            codeword.as_mut_ptr().offset((i * NUM_DIGITS_GF2X_ELEMENT) as isize),
+            codeword.as_ptr().offset((i * NUM_DIGITS_GF2X_ELEMENT) as isize),
+            err.as_ptr().offset((i * NUM_DIGITS_GF2X_ELEMENT) as isize)
         );
             }
                  codeword
