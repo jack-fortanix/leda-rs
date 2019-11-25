@@ -79,8 +79,8 @@ unsafe fn decrypt_McEliece(
         );
         gf2x_mod_add(
             privateSyndrome.as_mut_ptr(),
-            privateSyndrome.as_mut_ptr() as *const DIGIT,
-            aux.as_mut_ptr() as *const DIGIT,
+            privateSyndrome.as_ptr(),
+            aux.as_ptr(),
         );
     }
     gf2x_transpose_in_place(&mut privateSyndrome);
@@ -284,7 +284,7 @@ pub unsafe fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<V
     let mut cwEncOutputBuffer = vec![0u8; 1072];
     constant_weight_to_binary_approximate(
         cwEncOutputBuffer.as_mut_ptr(),
-        err.as_mut_ptr() as *const DIGIT,
+        err.as_ptr(),
     );
     /* obtain back the PRNG seed */
     let mut secretSeed: [u8; 32] = [0; 32];
