@@ -668,10 +668,10 @@ pub unsafe fn gf2x_mul_TC3(
         bih as i32,
         sum_v.as_mut_ptr() as *const DIGIT,
     );
-    let vla_12 = (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as usize;
-    let mut w3: Vec<DIGIT> = ::std::vec::from_elem(0, vla_12);
+
+    let mut w3: Vec<DIGIT> = vec![0; 2*(bih as usize)+2];
     gf2x_mul_TC3(
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w3.len() as i32,
         w3.as_mut_ptr(),
         bih.wrapping_add(1i32 as u32) as i32,
         temp_u_components.as_mut_ptr() as *const DIGIT,
@@ -694,10 +694,9 @@ pub unsafe fn gf2x_mul_TC3(
         bih as i32,
         v0 as *const DIGIT,
     );
-    let vla_13 = (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as usize;
-    let mut w2: Vec<DIGIT> = ::std::vec::from_elem(0, vla_13);
+    let mut w2: Vec<DIGIT> = vec![0; 2*(bih as usize)+2];
     gf2x_mul_TC3(
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w3.len() as i32,
         w2.as_mut_ptr(),
         bih.wrapping_add(1i32 as u32) as i32,
         u1_x1_u2_x2.as_mut_ptr() as *const DIGIT,
@@ -726,17 +725,17 @@ pub unsafe fn gf2x_mul_TC3(
     );
     // Interpolation starts
     gf2x_add(
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w3.len() as i32,
         w3.as_mut_ptr(),
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w2.len() as i32,
         w2.as_mut_ptr() as *const DIGIT,
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w3.len() as i32,
         w3.as_mut_ptr() as *const DIGIT,
     );
     gf2x_add_asymm(
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w2.len() as i32,
         w2.as_mut_ptr(),
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w2.len() as i32,
         w2.as_mut_ptr() as *const DIGIT,
         (2i32 as u32).wrapping_mul(bih) as i32,
         w0.as_mut_ptr() as *const DIGIT,
@@ -747,11 +746,11 @@ pub unsafe fn gf2x_mul_TC3(
         1i32,
     );
     gf2x_add(
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w2.len() as i32,
         w2.as_mut_ptr(),
         (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
         w2.as_mut_ptr() as *const DIGIT,
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w3.len() as i32,
         w3.as_mut_ptr() as *const DIGIT,
     );
     // w2 + (w4 * x^3+1) = w2 + w4 + w4 << 3
@@ -797,20 +796,20 @@ pub unsafe fn gf2x_mul_TC3(
         w0.as_mut_ptr() as *const DIGIT,
     );
     gf2x_add_asymm(
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w3.len() as i32,
         w3.as_mut_ptr(),
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w3.len() as i32,
         w3.as_mut_ptr() as *const DIGIT,
         (2i32 as u32).wrapping_mul(bih) as i32,
         w1.as_mut_ptr() as *const DIGIT,
     );
     right_bit_shift_n(
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w3.len() as i32,
         w3.as_mut_ptr(),
         1i32,
     );
     gf2x_exact_div_x_plus_one(
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w3.len() as i32,
         w3.as_mut_ptr(),
     );
     gf2x_add(
@@ -826,17 +825,17 @@ pub unsafe fn gf2x_mul_TC3(
     gf2x_add_asymm(
         (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
         w1_final.as_mut_ptr(),
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w2.len() as i32,
         w2.as_mut_ptr() as *const DIGIT,
         (2i32 as u32).wrapping_mul(bih) as i32,
         w1.as_mut_ptr() as *const DIGIT,
     );
     gf2x_add(
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w2.len() as i32,
         w2.as_mut_ptr(),
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w2.len() as i32,
         w2.as_mut_ptr() as *const DIGIT,
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w3.len() as i32,
         w3.as_mut_ptr() as *const DIGIT,
     );
     // Result recombination starts here

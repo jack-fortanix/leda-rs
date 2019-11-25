@@ -147,7 +147,6 @@ unsafe fn char_left_bit_shift_n(length: i32, mut input: *mut u8, amount: i32) {
     let ref mut fresh2 = *input.offset(j as isize);
     *fresh2 = ((*fresh2 as i32) << amount) as u8;
 }
-// end right_bit_shift_n
 /*----------------------------------------------------------------------------*/
 unsafe fn poly_seq_into_bytestream(
     mut output: *mut u8,
