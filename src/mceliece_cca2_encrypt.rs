@@ -14,11 +14,7 @@ extern "C" {
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
 }
 
-unsafe fn encrypt_McEliece(
-    pk: &LedaPublicKey,
-    ptx: &[DIGIT],
-    err: &[DIGIT]) -> Vec<DIGIT> {
-
+fn encrypt_McEliece(pk: &LedaPublicKey, ptx: &[DIGIT], err: &[DIGIT]) -> Vec<DIGIT> {
     let mut codeword = vec![0 as DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT];
     codeword[0..(N0-1)*NUM_DIGITS_GF2X_ELEMENT].copy_from_slice(ptx);
 
@@ -29,20 +25,14 @@ unsafe fn encrypt_McEliece(
             &pk.Mtr[i*NUM_DIGITS_GF2X_ELEMENT..(i+1)*NUM_DIGITS_GF2X_ELEMENT],
             &ptx[i*NUM_DIGITS_GF2X_ELEMENT..(i+1)*NUM_DIGITS_GF2X_ELEMENT]);
 
-        gf2x_mod_add(
-            codeword.as_mut_ptr().offset(((N0-1)*NUM_DIGITS_GF2X_ELEMENT) as isize),
-            codeword.as_ptr().offset(((N0-1)*NUM_DIGITS_GF2X_ELEMENT) as isize),
-            saux.as_ptr()
-        );
+        gf2x_mod_add_2(&mut codeword[(N0-1)*NUM_DIGITS_GF2X_ELEMENT..N0*NUM_DIGITS_GF2X_ELEMENT],
+                       &saux);
     }
     for i in 0..N0 {
-        gf2x_mod_add(
-            codeword.as_mut_ptr().offset((i * NUM_DIGITS_GF2X_ELEMENT) as isize),
-            codeword.as_ptr().offset((i * NUM_DIGITS_GF2X_ELEMENT) as isize),
-            err.as_ptr().offset((i * NUM_DIGITS_GF2X_ELEMENT) as isize)
-        );
-            }
-                 codeword
+        gf2x_mod_add_2(&mut codeword[i*NUM_DIGITS_GF2X_ELEMENT..(i+1)*NUM_DIGITS_GF2X_ELEMENT],
+                       &err[i*NUM_DIGITS_GF2X_ELEMENT..(i+1)*NUM_DIGITS_GF2X_ELEMENT]);
+    }
+    codeword
 }
 // end encrypt_McEliece
 /*----------------------------------------------------------------------------*/

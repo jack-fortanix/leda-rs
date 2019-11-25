@@ -44,6 +44,39 @@ pub unsafe fn gf2x_mod_add(mut Res: *mut DIGIT, A: *const DIGIT, B: *const DIGIT
         B,
     );
 }
+/*
+pub fn gf2x_mod_add_3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
+    assert_eq!(Res.len(), NUM_DIGITS_GF2X_ELEMENT);
+    assert_eq!(A.len(), NUM_DIGITS_GF2X_ELEMENT);
+    assert_eq!(B.len(), NUM_DIGITS_GF2X_ELEMENT);
+
+    unsafe {
+        gf2x_add(
+            NUM_DIGITS_GF2X_ELEMENT as i32,
+            Res.as_mut_ptr(),
+            NUM_DIGITS_GF2X_ELEMENT as i32,
+            A.as_ptr(),
+            NUM_DIGITS_GF2X_ELEMENT as i32,
+            B.as_ptr(),
+        );
+    }
+}
+*/
+pub fn gf2x_mod_add_2(Res: &mut [DIGIT], A: &[DIGIT]) {
+    assert_eq!(Res.len(), NUM_DIGITS_GF2X_ELEMENT);
+    assert_eq!(A.len(), NUM_DIGITS_GF2X_ELEMENT);
+
+    unsafe {
+        gf2x_add(
+            NUM_DIGITS_GF2X_ELEMENT as i32,
+            Res.as_mut_ptr(),
+            NUM_DIGITS_GF2X_ELEMENT as i32,
+            Res.as_ptr(),
+            NUM_DIGITS_GF2X_ELEMENT as i32,
+            A.as_ptr(),
+        );
+    }
+}
 
 pub unsafe fn gf2x_toggle_coeff(mut poly: *mut DIGIT, exponent: u32) {
     let mut straightIdx: i32 = (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)

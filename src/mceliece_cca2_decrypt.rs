@@ -76,11 +76,7 @@ unsafe fn decrypt_McEliece(
             &codewordPoly[i*NUM_DIGITS_GF2X_ELEMENT..],
             &LPosOnes[i],
         );
-        gf2x_mod_add(
-            privateSyndrome.as_mut_ptr(),
-            privateSyndrome.as_ptr(),
-            aux.as_ptr(),
-        );
+        gf2x_mod_add_2(&mut privateSyndrome, &aux);
     }
     gf2x_transpose_in_place(&mut privateSyndrome);
     /*perform syndrome decoding to obtain error vector */
