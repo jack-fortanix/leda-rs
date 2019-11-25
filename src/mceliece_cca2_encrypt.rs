@@ -15,13 +15,12 @@ extern "C" {
 }
 
 unsafe fn encrypt_McEliece(
-    codeword: &mut [DIGIT],
     pk: *const LedaPublicKey,
     ptx: &[DIGIT],
-    err: &[DIGIT],
-)
+    err: &[DIGIT]) -> Vec<DIGIT> {
 // N0   polynomials
-{
+
+    let mut codeword = vec![0 as DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT];
     memcpy(
         codeword.as_mut_ptr() as *mut libc::c_void,
         ptx.as_ptr() as *const libc::c_void,
@@ -29,14 +28,7 @@ unsafe fn encrypt_McEliece(
             * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32))
             * 8i32) as u64,
     );
-    memset(
-        codeword.as_mut_ptr().offset(
-            ((2i32 - 1i32) * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
-                as isize,
-        ) as *mut libc::c_void,
-        0i32,
-        ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as u64,
-    );
+
     for i in 0..(N0-1) {
         let mut saux: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
         gf2x_mod_mul(
@@ -75,7 +67,8 @@ unsafe fn encrypt_McEliece(
             ),
         );
         i_0 += 1
-    }
+            }
+                 codeword
 }
 // end encrypt_McEliece
 /*----------------------------------------------------------------------------*/
@@ -334,13 +327,8 @@ pub unsafe fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<
             break;
         }
     }
-    let mut codeword: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
-    encrypt_McEliece(
-        &mut codeword,
-        pk,
-        &informationWord,
-        &cwEncodedError
-    );
+    let mut codeword = encrypt_McEliece(pk, &informationWord, &cwEncodedError);
+
     /* output composition looks like codeword || left bytepad leftover
      * and is thus long as ROUND_UP(leftover_bits,8)+
      * N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B */
@@ -348,7 +336,7 @@ pub unsafe fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<
     memcpy(
         output as *mut libc::c_void,
         codeword.as_mut_ptr() as *const libc::c_void,
-        (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32) as u64,
+        (codeword.len() * 8) as u64
     );
     Ok(ctext)
 }
