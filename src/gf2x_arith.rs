@@ -514,12 +514,8 @@ pub unsafe fn gf2x_mul_TC3(
     } else {
         bih = (na / 3i32 + 1i32) as u32
     }
-    let vla = bih as usize;
-    let mut u2: Vec<DIGIT> = ::std::vec::from_elem(0, vla);
-    let mut u1: *mut DIGIT = 0 as *mut DIGIT;
-    let mut u0: *mut DIGIT = 0 as *mut DIGIT;
+    let mut u2: Vec<DIGIT> = vec![0; bih as usize];
     let mut leading_slack: i32 = (3i32 - na % 3i32) % 3i32;
-    //     printf("leading slack %d",leading_slack);
     let mut i: i32 = 0; /* partitioned inputs */
     i = 0i32; /*bih digit wide*/
     while i < leading_slack {
@@ -530,14 +526,11 @@ pub unsafe fn gf2x_mul_TC3(
         *u2.as_mut_ptr().offset(i as isize) = *A.offset((i - leading_slack) as isize);
         i += 1
     }
-    u1 = A.offset(bih as isize).offset(-(leading_slack as isize)) as *mut DIGIT;
-    u0 = A
+    let u1 = A.offset(bih as isize).offset(-(leading_slack as isize));
+    let u0 = A
         .offset((2i32 as u32).wrapping_mul(bih) as isize)
-        .offset(-(leading_slack as isize)) as *mut DIGIT;
-    let vla_0 = bih as usize;
-    let mut v2: Vec<DIGIT> = ::std::vec::from_elem(0, vla_0);
-    let mut v1: *mut DIGIT = 0 as *mut DIGIT;
-    let mut v0: *mut DIGIT = 0 as *mut DIGIT;
+        .offset(-(leading_slack as isize));
+    let mut v2: Vec<DIGIT> = vec![0; bih as usize];
     i = 0i32;
     while i < leading_slack {
         *v2.as_mut_ptr().offset(i as isize) = 0i32 as DIGIT;
@@ -547,19 +540,19 @@ pub unsafe fn gf2x_mul_TC3(
         *v2.as_mut_ptr().offset(i as isize) = *B.offset((i - leading_slack) as isize);
         i += 1
     }
-    v1 = B.offset(bih as isize).offset(-(leading_slack as isize)) as *mut DIGIT;
-    v0 = B
+    let v1 = B.offset(bih as isize).offset(-(leading_slack as isize));
+    let v0 = B
         .offset((2i32 as u32).wrapping_mul(bih) as isize)
-        .offset(-(leading_slack as isize)) as *mut DIGIT;
+        .offset(-(leading_slack as isize));
 
     let mut sum_u: Vec<DIGIT> = vec![0; bih as usize];
     gf2x_add(
         bih as i32,
         sum_u.as_mut_ptr(),
         bih as i32,
-        u0 as *const DIGIT,
+        u0,
         bih as i32,
-        u1 as *const DIGIT,
+        u1,
     );
     gf2x_add(
         sum_u.len() as i32,
@@ -575,30 +568,28 @@ pub unsafe fn gf2x_mul_TC3(
         sum_v.len() as i32,
         sum_v.as_mut_ptr(),
         bih as i32,
-        v0 as *const DIGIT,
+        v0,
         bih as i32,
-        v1 as *const DIGIT,
+        v1,
     );
     gf2x_add(
-        bih as i32,
+        sum_v.len() as i32,
         sum_v.as_mut_ptr(),
-        bih as i32,
+        sum_v.len() as i32,
         sum_v.as_ptr(),
-        bih as i32,
+        v2.len() as i32,
         v2.as_ptr(),
     );
-    let vla_3 = (2i32 as u32).wrapping_mul(bih) as usize;
-    let mut w1: Vec<DIGIT> = ::std::vec::from_elem(0, vla_3);
+    let mut w1: Vec<DIGIT> = vec![0; 2*bih as usize];
     gf2x_mul_TC3(
-        (2i32 as u32).wrapping_mul(bih) as i32,
+        w1.len() as i32,
         w1.as_mut_ptr(),
         bih as i32,
         sum_u.as_ptr(),
         bih as i32,
         sum_v.as_ptr(),
     );
-    let vla_4 = bih.wrapping_add(1i32 as u32) as usize;
-    let mut u2_x2: Vec<DIGIT> = ::std::vec::from_elem(0, vla_4);
+    let mut u2_x2: Vec<DIGIT> = vec![0; 1 + bih as usize];
     *u2_x2.as_mut_ptr().offset(0) = 0i32 as DIGIT;
     memcpy(
         u2_x2.as_mut_ptr().offset(1) as *mut libc::c_void,
@@ -705,7 +696,7 @@ pub unsafe fn gf2x_mul_TC3(
         bih.wrapping_add(1i32 as u32) as i32,
         u1_x1_u2_x2.as_ptr(),
         bih as i32,
-        u0 as *const DIGIT,
+        u0,
     );
     gf2x_add_asymm(
         bih.wrapping_add(1i32 as u32) as i32,
@@ -713,7 +704,7 @@ pub unsafe fn gf2x_mul_TC3(
         bih.wrapping_add(1i32 as u32) as i32,
         v1_x1_v2_x2.as_ptr(),
         bih as i32,
-        v0 as *const DIGIT,
+        v0,
     );
     let mut w2: Vec<DIGIT> = vec![0; 2*(bih as usize)+2];
     gf2x_mul_TC3(
@@ -740,9 +731,9 @@ pub unsafe fn gf2x_mul_TC3(
         (2i32 as u32).wrapping_mul(bih) as i32,
         w0.as_mut_ptr(),
         bih as i32,
-        u0 as *const DIGIT,
+        u0,
         bih as i32,
-        v0 as *const DIGIT,
+        v0,
     );
     // Interpolation starts
     gf2x_add(
