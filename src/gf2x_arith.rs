@@ -160,7 +160,7 @@ pub fn gf2x_set_coeff(poly: &mut [DIGIT], exponent: usize, value: DIGIT) {
     poly[digitIdx] = poly[digitIdx] | (( value & (1 as DIGIT)) << (DIGIT_SIZE_b-1-inDigitIdx));
 }
 
-pub unsafe fn gf2x_mul_comb(
+unsafe fn gf2x_mul_comb(
     nr: i32,
     mut Res: *mut DIGIT,
     na: i32,
