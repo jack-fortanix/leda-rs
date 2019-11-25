@@ -34,17 +34,6 @@ pub unsafe fn gf2x_get_coeff(mut poly: *const DIGIT, exponent: u32) -> DIGIT {
         & 1i32 as DIGIT;
 }
 
-pub unsafe fn gf2x_mod_add(mut Res: *mut DIGIT, A: *const DIGIT, B: *const DIGIT) {
-    gf2x_add(
-        NUM_DIGITS_GF2X_ELEMENT as i32,
-        Res,
-        NUM_DIGITS_GF2X_ELEMENT as i32,
-        A,
-        NUM_DIGITS_GF2X_ELEMENT as i32,
-        B,
-    );
-}
-/*
 pub fn gf2x_mod_add_3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     assert_eq!(Res.len(), NUM_DIGITS_GF2X_ELEMENT);
     assert_eq!(A.len(), NUM_DIGITS_GF2X_ELEMENT);
@@ -61,7 +50,7 @@ pub fn gf2x_mod_add_3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
         );
     }
 }
-*/
+
 pub fn gf2x_mod_add_2(Res: &mut [DIGIT], A: &[DIGIT]) {
     assert_eq!(Res.len(), NUM_DIGITS_GF2X_ELEMENT);
     assert_eq!(A.len(), NUM_DIGITS_GF2X_ELEMENT);

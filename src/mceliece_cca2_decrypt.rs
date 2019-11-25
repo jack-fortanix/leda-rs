@@ -96,21 +96,16 @@ unsafe fn decrypt_McEliece(
     }
     /* correct input codeword */
 
-    let mut i_4: u32 = 0i32 as u32;
-    while i_4 < 2i32 as u32 {
-        gf2x_mod_add(
-            correct_codeword.as_mut_ptr().offset(i_4.wrapping_mul(
-                ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as u32,
-            ) as isize),
-            (ctext.as_ptr() as *const DIGIT).offset(i_4.wrapping_mul(
-                ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as u32,
-            ) as isize) as *const DIGIT,
-            decoded_err.as_ptr().offset(i_4.wrapping_mul(
-                ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as u32,
-            ) as isize) as *const DIGIT,
-        );
-        i_4 = i_4.wrapping_add(1)
+    let mut ctext_digits = vec![0 as DIGIT; ctext.len() / 8];
+    for i in 0..ctext_digits.len() {
+        ctext_digits[i] = u64::from_le_bytes(ctext[8*i..8*(i+1)].try_into().expect("8 bytes"));
     }
+
+    for i in 0..N0 {
+        gf2x_mod_add_3(&mut correct_codeword[i*NUM_DIGITS_GF2X_ELEMENT..(i+1)*NUM_DIGITS_GF2X_ELEMENT],
+                       &ctext_digits[i*NUM_DIGITS_GF2X_ELEMENT..(i+1)*NUM_DIGITS_GF2X_ELEMENT],
+                       &decoded_err[i*NUM_DIGITS_GF2X_ELEMENT..(i+1)*NUM_DIGITS_GF2X_ELEMENT]);
+   }
     return 1i32;
 }
 /*----------------------------------------------------------------------------*/
