@@ -139,7 +139,7 @@ unsafe fn bytestream_into_poly_seq(
 // end bytestream_into_poly_seq
 /*----------------------------------------------------------------------------*/
 
-pub unsafe fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
+pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
     /* NIST API provides a byte aligned message: all bytes are assumed full.
      * Therefore, if mlen exceeds
      * floor( (k-8*(KOBARA_IMAI_CONSTANT_LENGTH_B+sizeof(KI_LENGTH_FIELD_TYPE)))/8 )
@@ -190,7 +190,7 @@ pub unsafe fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<
     }
     let prngSequence =
         deterministic_random_byte_generator(&secretSeed, paddedSequenceLen as usize)?;
-
+unsafe {
     /*to avoid the use of additional memory, exploit the memory allocated for
      * the ciphertext to host the prng-padded ptx+const+len. */
     memset(
@@ -338,6 +338,7 @@ pub unsafe fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<
         codeword.as_mut_ptr() as *const libc::c_void,
         (codeword.len() * 8) as u64
     );
+        }
     Ok(ctext)
 }
 /*----------------------------------------------------------------------------*/

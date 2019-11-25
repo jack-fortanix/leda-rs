@@ -188,7 +188,7 @@ unsafe fn poly_seq_into_bytestream(
     return 1i32;
 }
 
-pub unsafe fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<Vec<u8>> {
+pub fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<Vec<u8>> {
     if ctext.len() < N0 * NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_B {
         return Err(Error::DecryptionFailed);
     }
@@ -211,15 +211,17 @@ pub unsafe fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<V
     let thresholds: [i32; 2] = [64, sk.secondIterThreshold as i32];
     let mut err: [DIGIT; N0 * NUM_DIGITS_GF2X_ELEMENT] = [0; N0 * NUM_DIGITS_GF2X_ELEMENT];
 
-    if decrypt_McEliece(
-        err.as_mut_ptr(),
-        correctedCodeword.as_mut_ptr(),
-        sk,
-        &thresholds,
-        ctext,
-    ) == 0i32
-    {
-        return Err(Error::DecryptionFailed);
+    unsafe {
+        if decrypt_McEliece(
+            err.as_mut_ptr(),
+            correctedCodeword.as_mut_ptr(),
+            sk,
+            &thresholds,
+            ctext,
+        ) == 0i32
+        {
+            return Err(Error::DecryptionFailed);
+        }
     }
     /* correctedCodeword now contains the correct codeword, iword is the first
      * portion, followed by syndrome turn back iword into a bytesequence */
@@ -240,17 +242,18 @@ pub unsafe fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<V
             as u64
     }
     let mut paddedOutput: Vec<u8> = vec![0u8; paddedSequenceLen as usize];
-    poly_seq_into_bytestream(
+    unsafe {poly_seq_into_bytestream(
         paddedOutput.as_mut_ptr(),
         (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u32,
         correctedCodeword.as_mut_ptr(),
         (2i32 - 1i32) as u32,
-    );
+    ); }
     /* move back leftover padded string (if present) onto its position*/
     if clen
         > (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32)
             as u64
-    {
+                   {
+                       unsafe {
         /* meld back byte split across iword and leftover. Recall that leftover is
          * built with leading zeroes, and output from iword has trailing zeroes
          * so no masking away is needed */
@@ -276,16 +279,17 @@ pub unsafe fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<V
             )
             .offset(1) as *const libc::c_void,
             remainingToCopy as u64,
-        );
+                );
+            }
     }
 
     let outputHash = sha3_384(&paddedOutput);
     /* rebuild message hash ^ seed from error vector */
     let mut cwEncOutputBuffer = vec![0u8; 1072];
-    constant_weight_to_binary_approximate(
+    unsafe {constant_weight_to_binary_approximate(
         cwEncOutputBuffer.as_mut_ptr(),
         err.as_ptr(),
-    );
+    ); }
     /* obtain back the PRNG seed */
     let mut secretSeed: [u8; 32] = [0; 32];
     for i in 0..32 {

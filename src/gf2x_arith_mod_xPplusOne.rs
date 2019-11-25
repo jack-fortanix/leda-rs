@@ -106,7 +106,7 @@ fn rotate_bit_left(input: &mut [DIGIT]) {
     let rotated_bit = (input[0] & mask != 0) as i32 as DIGIT;
     input[0] &= !mask;
 
-    unsafe { left_bit_shift(NUM_DIGITS_GF2X_ELEMENT, input.as_mut_ptr()) }
+    unsafe { left_bit_shift(NUM_DIGITS_GF2X_ELEMENT as i32, input.as_mut_ptr()) }
     input[NUM_DIGITS_GF2X_ELEMENT-1] |= rotated_bit;
 }
 

@@ -70,10 +70,10 @@ pub fn leda_gen_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
 
 pub fn leda_encrypt(msg: &[u8], pk: &[u8]) -> Result<Vec<u8>> {
     let pk = leda_decode_pk(pk)?;
-    unsafe { encrypt_Kobara_Imai(&pk, msg) }
+    encrypt_Kobara_Imai(&pk, msg)
 }
 
 pub fn leda_decrypt(ctext: &[u8], sk: &[u8]) -> Result<Vec<u8>> {
     let sk = leda_decode_sk(sk)?;
-    unsafe { decrypt_Kobara_Imai(&sk, ctext) }
+    decrypt_Kobara_Imai(&sk, ctext)
 }
