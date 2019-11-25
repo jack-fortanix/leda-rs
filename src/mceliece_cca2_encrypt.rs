@@ -208,11 +208,7 @@ unsafe {
         ));
     }
     let mut iwordBuffer: [u8; 7238] = [0; 7238];
-    memcpy(
-        iwordBuffer.as_mut_ptr() as *mut libc::c_void,
-        output as *const libc::c_void,
-        7238 as u64,
-    );
+    iwordBuffer.copy_from_slice(&ctext[0..7238]);
     /* transform into an information word poly sequence */
     let mut informationWord: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     bytestream_into_poly_seq(&mut informationWord,
@@ -261,11 +257,7 @@ unsafe {
     }
     /*prepare CWEnc input as zero extended seed ^ hash of */
     let mut cwEncInputBuffer: [u8; 1072] = [0; 1072];
-    memcpy(
-        cwEncInputBuffer.as_mut_ptr() as *mut libc::c_void,
-        hashDigest.as_ptr() as *const libc::c_void,
-        48i32 as u64,
-    );
+    cwEncInputBuffer[0..48].copy_from_slice(&hashDigest);
     let mut i_0: u32 = 0i32 as u32;
     while i_0 < 32i32 as u32 {
         cwEncInputBuffer[i_0 as usize] =
