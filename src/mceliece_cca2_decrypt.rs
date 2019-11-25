@@ -15,12 +15,11 @@ extern "C" {
 }
 
 unsafe fn decrypt_McEliece(
-    mut decoded_err: *mut DIGIT,
-    mut correct_codeword: *mut DIGIT,
+    decoded_err: &mut [DIGIT],
+    correct_codeword: &mut [DIGIT],
     sk: &LedaPrivateKey,
     thresholds: &[i32],
-    ctext: &[u8],
-) -> i32 {
+    ctext: &[u8]) -> i32 {
     let mut xof = seedexpander_from_trng(&sk.prng_seed).unwrap();
     /* rebuild secret key values */
     let mut HPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
@@ -86,7 +85,7 @@ unsafe fn decrypt_McEliece(
     gf2x_transpose_in_place(&mut privateSyndrome);
     /*perform syndrome decoding to obtain error vector */
     let ok = bf_decoding(
-        decoded_err,
+        decoded_err.as_mut_ptr(),
         HtrPosOnes.as_mut_ptr() as *const [u32; DV],
         QtrPosOnes.as_mut_ptr() as *const [u32; DV],
         &mut privateSyndrome,
@@ -98,7 +97,7 @@ unsafe fn decrypt_McEliece(
     let mut err_weight: i32 = 0i32;
     let mut i_3: i32 = 0i32;
     while i_3 < 2i32 {
-        err_weight += population_count(decoded_err.offset(
+        err_weight += population_count(decoded_err.as_ptr().offset(
             ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * i_3) as isize,
         ));
         i_3 += 1
@@ -111,13 +110,13 @@ unsafe fn decrypt_McEliece(
     let mut i_4: u32 = 0i32 as u32;
     while i_4 < 2i32 as u32 {
         gf2x_mod_add(
-            correct_codeword.offset(i_4.wrapping_mul(
+            correct_codeword.as_mut_ptr().offset(i_4.wrapping_mul(
                 ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as u32,
             ) as isize),
             (ctext.as_ptr() as *const DIGIT).offset(i_4.wrapping_mul(
                 ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as u32,
             ) as isize) as *const DIGIT,
-            decoded_err.offset(i_4.wrapping_mul(
+            decoded_err.as_ptr().offset(i_4.wrapping_mul(
                 ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as u32,
             ) as isize) as *const DIGIT,
         );
@@ -212,14 +211,8 @@ pub fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<Vec<u8>>
     let mut err: [DIGIT; N0 * NUM_DIGITS_GF2X_ELEMENT] = [0; N0 * NUM_DIGITS_GF2X_ELEMENT];
 
     unsafe {
-        if decrypt_McEliece(
-            err.as_mut_ptr(),
-            correctedCodeword.as_mut_ptr(),
-            sk,
-            &thresholds,
-            ctext,
-        ) == 0i32
-        {
+        let r = decrypt_McEliece(&mut err, &mut correctedCodeword, sk, &thresholds, ctext);
+        if r == 0 {
             return Err(Error::DecryptionFailed);
         }
     }
