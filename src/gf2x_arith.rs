@@ -567,14 +567,7 @@ pub unsafe fn gf2x_mul_TC3(
         bih as i32,
         v1,
     );
-    gf2x_add(
-        sum_v.len() as i32,
-        sum_v.as_mut_ptr(),
-        sum_v.len() as i32,
-        sum_v.as_ptr(),
-        v2.len() as i32,
-        v2.as_ptr(),
-    );
+    gf2x_add_2(&mut sum_v, &v2);
     let mut w1: Vec<DIGIT> = vec![0; 2*bih as usize];
     gf2x_mul_TC3(
         w1.len() as i32,
@@ -609,16 +602,8 @@ pub unsafe fn gf2x_mul_TC3(
         u1_x.as_mut_ptr(),
         1i32,
     );
-    let vla_6 = bih.wrapping_add(1i32 as u32) as usize;
-    let mut u1_x1_u2_x2: Vec<DIGIT> = ::std::vec::from_elem(0, vla_6);
-    gf2x_add(
-        bih.wrapping_add(1i32 as u32) as i32,
-        u1_x1_u2_x2.as_mut_ptr(),
-        bih.wrapping_add(1i32 as u32) as i32,
-        u1_x.as_ptr(),
-        bih.wrapping_add(1i32 as u32) as i32,
-        u2_x2.as_ptr(),
-    );
+    let mut u1_x1_u2_x2: Vec<DIGIT> = vec![0; bih as usize + 1];
+    gf2x_add_3(&mut u1_x1_u2_x2, &u1_x, &u2_x2);
     let vla_7 = bih.wrapping_add(1i32 as u32) as usize;
     let mut temp_u_components: Vec<DIGIT> = ::std::vec::from_elem(0, vla_7);
     gf2x_add_asymm(
@@ -655,22 +640,14 @@ pub unsafe fn gf2x_mul_TC3(
         v1_x.as_mut_ptr(),
         1i32,
     );
-    let vla_10 = bih.wrapping_add(1i32 as u32) as usize;
-    let mut v1_x1_v2_x2: Vec<DIGIT> = ::std::vec::from_elem(0, vla_10);
-    gf2x_add(
-        v1_x1_v2_x2.len() as i32,
-        v1_x1_v2_x2.as_mut_ptr(),
-        v1_x.len() as i32,
-        v1_x.as_ptr(),
-        v2_x2.len() as i32,
-        v2_x2.as_ptr(),
-    );
-    let vla_11 = bih.wrapping_add(1i32 as u32) as usize;
-    let mut temp_v_components: Vec<DIGIT> = ::std::vec::from_elem(0, vla_11);
+    let mut v1_x1_v2_x2: Vec<DIGIT> = vec![0; bih as usize + 1];
+    gf2x_add_3(&mut v1_x1_v2_x2, &v1_x, &v2_x2);
+
+    let mut temp_v_components: Vec<DIGIT> = vec![0; bih as usize + 1];
     gf2x_add_asymm(
-        bih.wrapping_add(1i32 as u32) as i32,
+        temp_v_components.len() as i32,
         temp_v_components.as_mut_ptr(),
-        bih.wrapping_add(1i32 as u32) as i32,
+        v1_x1_v2_x2.len() as i32,
         v1_x1_v2_x2.as_ptr(),
         bih as i32,
         sum_v.as_ptr(),
