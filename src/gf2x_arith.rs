@@ -449,9 +449,9 @@ unsafe fn gf2x_mul_Kar(
             B.offset(bih as isize).offset(-1),
         );
         gf2x_add(
-            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.len() as i32,
             middle.as_mut_ptr(),
-            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.len() as i32,
             middle.as_ptr(),
             (2i32 as u32).wrapping_mul(bih) as i32,
             Res.offset((2i32 as u32).wrapping_mul(bih.wrapping_sub(1i32 as u32)) as isize)
@@ -466,9 +466,9 @@ unsafe fn gf2x_mul_Kar(
             B,
         );
         gf2x_add_asymm(
-            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.len() as i32,
             middle.as_mut_ptr(),
-            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.len() as i32,
             middle.as_ptr(),
             (2i32 as u32).wrapping_mul(bih.wrapping_sub(1i32 as u32)) as i32,
             Res as *const DIGIT,
@@ -478,7 +478,7 @@ unsafe fn gf2x_mul_Kar(
             Res.offset(bih as isize).offset(-2),
             (2i32 as u32).wrapping_mul(bih) as i32,
             Res.offset(bih as isize).offset(-2) as *const DIGIT,
-            (2i32 as u32).wrapping_mul(bih) as i32,
+            middle.len() as i32,
             middle.as_ptr(),
         );
     };
@@ -794,14 +794,7 @@ pub unsafe fn gf2x_mul_TC3(
         (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
         w2.as_mut_ptr(),
     );
-    gf2x_add(
-        w1.len() as i32,
-        w1.as_mut_ptr(),
-        w1.len() as i32,
-        w1.as_ptr(),
-        w0.len() as i32,
-        w0.as_ptr(),
-    );
+    gf2x_add_2(&mut w1, &w0);
     gf2x_add_asymm(
         w3.len() as i32,
         w3.as_mut_ptr(),
@@ -819,14 +812,7 @@ pub unsafe fn gf2x_mul_TC3(
         w3.len() as i32,
         w3.as_mut_ptr(),
     );
-    gf2x_add(
-        w1.len() as i32,
-        w1.as_mut_ptr(),
-        w1.len() as i32,
-        w1.as_ptr(),
-        w4.len() as i32,
-        w4.as_ptr(),
-    );
+    gf2x_add_2(&mut w1, &w4);
     let vla_17 = (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as usize;
     let mut w1_final: Vec<DIGIT> = ::std::vec::from_elem(0, vla_17);
     gf2x_add_asymm(
@@ -837,14 +823,7 @@ pub unsafe fn gf2x_mul_TC3(
         w1.len() as i32,
         w1.as_ptr(),
     );
-    gf2x_add(
-        w2.len() as i32,
-        w2.as_mut_ptr(),
-        w2.len() as i32,
-        w2.as_ptr(),
-        w3.len() as i32,
-        w3.as_ptr(),
-    );
+    gf2x_add_2(&mut w2, &w3);
     // Result recombination starts here
 
     for i in 0..nr {
