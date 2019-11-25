@@ -57,27 +57,14 @@ unsafe fn left_bit_shift(length: i32, mut input: *mut DIGIT) {
     *input.offset(j as isize) <<= 1i32;
 }
 // end left_bit_shift
-/*----------------------------------------------------------------------------*/
+
 fn right_bit_shift(input: &mut [DIGIT]) {
-/*
-    let mut carry = 0 as DIGIT;
-    for i in 0..input.len() {
-        let new_carry = input[i] >> 1;
-        input[i] = (input[i] << (DIGIT_SIZE_b-1)) | carry;
-        carry = new_carry;
-    }*/
-       
-    let mut j = input.len() as isize - 1;
-    while j > 0 {
-        input[j as usize] >>= 1;
-        input[j as usize] |= (input[(j-1) as usize] & (1 as DIGIT)) << (DIGIT_SIZE_b - 1);
-        j -= 1
+    for j in (1..input.len()).rev() {
+        input[j] >>= 1;
+        input[j] |= (input[(j-1)] & (1 as DIGIT)) << (DIGIT_SIZE_b - 1);
     }
     input[0] >>= 1;
-
 }
-// end right_bit_shift
-/*----------------------------------------------------------------------------*/
 
 fn reverse_digit(b: DIGIT) -> DIGIT {
     b.reverse_bits()
