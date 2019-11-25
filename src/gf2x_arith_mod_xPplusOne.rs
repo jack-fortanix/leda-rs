@@ -58,18 +58,23 @@ unsafe fn left_bit_shift(length: i32, mut input: *mut DIGIT) {
 }
 // end left_bit_shift
 /*----------------------------------------------------------------------------*/
-                     unsafe fn right_bit_shift(input: &mut [DIGIT]) {
-                         let length = input.len() as i32;
-                         let input = input.as_mut_ptr();
-    let mut j: i32 = 0;
-    j = length - 1i32;
-    while j > 0i32 {
-        *input.offset(j as isize) >>= 1i32;
-        let ref mut fresh2 = *input.offset(j as isize);
-        *fresh2 |= (*input.offset((j - 1i32) as isize) & 0x1i32 as DIGIT) << (8i32 << 3i32) - 1i32;
+fn right_bit_shift(input: &mut [DIGIT]) {
+/*
+    let mut carry = 0 as DIGIT;
+    for i in 0..input.len() {
+        let new_carry = input[i] >> 1;
+        input[i] = (input[i] << (DIGIT_SIZE_b-1)) | carry;
+        carry = new_carry;
+    }*/
+       
+    let mut j = input.len() as isize - 1;
+    while j > 0 {
+        input[j as usize] >>= 1;
+        input[j as usize] |= (input[(j-1) as usize] & (1 as DIGIT)) << (DIGIT_SIZE_b - 1);
         j -= 1
     }
-    *input.offset(j as isize) >>= 1i32;
+    input[0] >>= 1;
+
 }
 // end right_bit_shift
 /*----------------------------------------------------------------------------*/
@@ -87,9 +92,7 @@ pub fn gf2x_transpose_in_place(mut A: &mut [DIGIT]) {
     let slack_bits_amount = NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_b - P;
 
     let a00 = A[NUM_DIGITS_GF2X_ELEMENT-1] & mask;
-    unsafe {
-        right_bit_shift(&mut A);
-    }
+    right_bit_shift(&mut A);
 
     let mut i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
     while i >= ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + 1i32) / 2i32 {
@@ -163,7 +166,7 @@ fn rotate_bit_right(input: &mut [DIGIT]) {
     assert_eq!(input.len(), NUM_DIGITS_GF2X_ELEMENT);
 
     let mut rotated_bit: DIGIT = input[NUM_DIGITS_GF2X_ELEMENT-1] & (1 as DIGIT);
-    unsafe { right_bit_shift(input); }
+    right_bit_shift(input);
 
     if NUM_DIGITS_GF2X_MODULUS == NUM_DIGITS_GF2X_ELEMENT {
         let msb_offset_in_digit = MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS - 1;
