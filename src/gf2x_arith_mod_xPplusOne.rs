@@ -117,7 +117,7 @@ pub fn gf2x_transpose_in_place(A: &mut [DIGIT]) {
 // end transpose_in_place
 /*----------------------------------------------------------------------------*/
 
-pub unsafe fn rotate_bit_left(mut input: *mut DIGIT)
+unsafe fn rotate_bit_left(mut input: *mut DIGIT)
 /*  equivalent to x * in(x) mod x^P+1 */
 {
     let mut mask: DIGIT = 0; /* clear shifted bit */
@@ -159,7 +159,7 @@ pub unsafe fn rotate_bit_left(mut input: *mut DIGIT)
 // end rotate_bit_left
 /*----------------------------------------------------------------------------*/
 
-pub unsafe fn rotate_bit_right(mut input: *mut DIGIT)
+unsafe fn rotate_bit_right(mut input: *mut DIGIT)
 /*  x^{-1} * in(x) mod x^P+1 */
 {
     let mut rotated_bit: DIGIT = *input.offset(
@@ -229,8 +229,8 @@ unsafe {
     let mut delta: i32 = 0;
     let mut u: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     let mut v: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
-    let mut s: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
-    let mut f: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
+    let mut s: [DIGIT; NUM_DIGITS_GF2X_MODULUS] = [0; NUM_DIGITS_GF2X_MODULUS];
+    let mut f: [DIGIT; NUM_DIGITS_GF2X_MODULUS] = [0; NUM_DIGITS_GF2X_MODULUS];
     u[NUM_DIGITS_GF2X_ELEMENT-1] = 0x1;
     s[NUM_DIGITS_GF2X_MODULUS-1] = 0x1;
 
@@ -386,8 +386,6 @@ pub fn gf2x_mod_mul_dense_to_sparse(Res: &mut [DIGIT], dense: &[DIGIT], sparse: 
                  resDouble.as_ptr() as *const DIGIT);
     }
 }
-// end gf2x_mod_mul
-/*----------------------------------------------------------------------------*/
 
 pub fn gf2x_mod_mul_sparse(Res: &mut [u32], A: &[u32], B: &[u32]) {
     let sizeR = Res.len() as usize;
