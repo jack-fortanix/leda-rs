@@ -159,33 +159,23 @@ unsafe fn rotate_bit_left(mut input: *mut DIGIT)
 // end rotate_bit_left
 /*----------------------------------------------------------------------------*/
 
-unsafe fn rotate_bit_right(mut input: *mut DIGIT)
-/*  x^{-1} * in(x) mod x^P+1 */
-{
-    let mut rotated_bit: DIGIT = *input.offset(
-        ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32) as isize,
-    ) & 0x1i32 as DIGIT;
-    right_bit_shift(
-        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-        input,
-    );
-    if (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
-        == (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
-    {
-        let mut msb_offset_in_digit: i32 = crate::consts::P as i32
-            - (8i32 << 3i32)
-                * ((crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
-                    - 1i32)
-            - 1i32;
+/* x^{-1} * in(x) mod x^P+1 */
+fn rotate_bit_right(input: &mut [DIGIT]) {
+    assert_eq!(input.len(), NUM_DIGITS_GF2X_ELEMENT);
+
+    let mut rotated_bit: DIGIT = input[NUM_DIGITS_GF2X_ELEMENT-1] & (1 as DIGIT);
+    unsafe { right_bit_shift(input.len() as i32, input.as_mut_ptr()); }
+
+    if NUM_DIGITS_GF2X_MODULUS == NUM_DIGITS_GF2X_ELEMENT {
+        let msb_offset_in_digit = MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS - 1;
         rotated_bit = rotated_bit << msb_offset_in_digit
     } else {
         /* NUM_DIGITS_GF2X_MODULUS == 1 + NUM_DIGITS_GF2X_ELEMENT and
          * MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS == 0
          */
-        rotated_bit = rotated_bit << (8i32 << 3i32) - 1i32
+        rotated_bit = rotated_bit << (DIGIT_SIZE_b-1);
     }
-    let ref mut fresh6 = *input.offset(0);
-    *fresh6 |= rotated_bit;
+    input[0] |= rotated_bit;
 }
 
 unsafe fn gf2x_swap(length: i32, mut f: *mut DIGIT, mut s: *mut DIGIT) {
@@ -301,7 +291,7 @@ unsafe {
                 rotate_bit_left(u.as_mut_ptr());
                 delta = 1i32
             } else {
-                rotate_bit_right(u.as_mut_ptr());
+                rotate_bit_right(&mut u);
                 delta = delta - 1i32
             }
         }
