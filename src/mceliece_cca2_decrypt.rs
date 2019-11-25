@@ -66,12 +66,8 @@ unsafe fn decrypt_McEliece(
         codewordPoly[i] = u64::from_le_bytes(digit);
     }
 
-    let mut i_1: u32 = 0i32 as u32;
-    while i_1 < 2i32 as u32 {
-        gf2x_transpose_in_place(codewordPoly.as_mut_ptr().offset(i_1.wrapping_mul(
-            ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as u32,
-        ) as isize));
-        i_1 = i_1.wrapping_add(1)
+    for i in 0..N0 {
+        gf2x_transpose_in_place(&mut codewordPoly[i*NUM_DIGITS_GF2X_ELEMENT..(i+1)*NUM_DIGITS_GF2X_ELEMENT]);
     }
     let mut privateSyndrome: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     let mut aux: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
@@ -87,7 +83,7 @@ unsafe fn decrypt_McEliece(
             aux.as_mut_ptr() as *const DIGIT,
         );
     }
-    gf2x_transpose_in_place(privateSyndrome.as_mut_ptr());
+    gf2x_transpose_in_place(&mut privateSyndrome);
     /*perform syndrome decoding to obtain error vector */
     let ok = bf_decoding(
         decoded_err,

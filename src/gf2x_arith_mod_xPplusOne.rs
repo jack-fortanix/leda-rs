@@ -76,10 +76,11 @@ fn reverse_digit(b: DIGIT) -> DIGIT {
     b.reverse_bits()
 }
 
-pub unsafe fn gf2x_transpose_in_place(mut A: *mut DIGIT) {
+pub unsafe fn gf2x_transpose_in_place(A: &mut [DIGIT]) {
     /* it keeps the lsb in the same position and
      * inverts the sequence of the remaining bits
      */
+    let mut A = A.as_mut_ptr();
     let mut mask: DIGIT = 0x1i32 as DIGIT;
     let mut rev1: DIGIT = 0;
     let mut rev2: DIGIT = 0;
