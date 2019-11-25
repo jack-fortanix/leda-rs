@@ -548,8 +548,8 @@ pub unsafe fn gf2x_mul_TC3(
     v0 = B
         .offset((2i32 as u32).wrapping_mul(bih) as isize)
         .offset(-(leading_slack as isize)) as *mut DIGIT;
-    let vla_1 = bih as usize;
-    let mut sum_u: Vec<DIGIT> = ::std::vec::from_elem(0, vla_1);
+
+    let mut sum_u: Vec<DIGIT> = vec![0; bih as usize];
     gf2x_add(
         bih as i32,
         sum_u.as_mut_ptr(),
@@ -559,17 +559,17 @@ pub unsafe fn gf2x_mul_TC3(
         u1 as *const DIGIT,
     );
     gf2x_add(
-        bih as i32,
+        sum_u.len() as i32,
         sum_u.as_mut_ptr(),
         bih as i32,
         sum_u.as_ptr(),
         bih as i32,
         u2.as_ptr(),
     );
-    let vla_2 = bih as usize;
-    let mut sum_v: Vec<DIGIT> = ::std::vec::from_elem(0, vla_2);
+
+    let mut sum_v: Vec<DIGIT> = vec![0; bih as usize];
     gf2x_add(
-        bih as i32,
+        sum_v.len() as i32,
         sum_v.as_mut_ptr(),
         bih as i32,
         v0 as *const DIGIT,
@@ -669,11 +669,11 @@ pub unsafe fn gf2x_mul_TC3(
     let vla_10 = bih.wrapping_add(1i32 as u32) as usize;
     let mut v1_x1_v2_x2: Vec<DIGIT> = ::std::vec::from_elem(0, vla_10);
     gf2x_add(
-        bih.wrapping_add(1i32 as u32) as i32,
+        v1_x1_v2_x2.len() as i32,
         v1_x1_v2_x2.as_mut_ptr(),
-        bih.wrapping_add(1i32 as u32) as i32,
+        v1_x.len() as i32,
         v1_x.as_ptr(),
-        bih.wrapping_add(1i32 as u32) as i32,
+        v2_x2.len() as i32,
         v2_x2.as_ptr(),
     );
     let vla_11 = bih.wrapping_add(1i32 as u32) as usize;
@@ -755,7 +755,7 @@ pub unsafe fn gf2x_mul_TC3(
         w2.as_mut_ptr(),
         w2.len() as i32,
         w2.as_ptr(),
-        (2i32 as u32).wrapping_mul(bih) as i32,
+        w0.len() as i32,
         w0.as_ptr(),
     );
     right_bit_shift_n(
