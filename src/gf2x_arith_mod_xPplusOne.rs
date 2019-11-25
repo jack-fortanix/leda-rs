@@ -9,39 +9,38 @@ use crate::gf2x_arith::*;
 use crate::types::*;
 use crate::consts::*;
 
-/* specialized for nin == 2 * NUM_DIGITS_GF2X_ELEMENT, as it is only used
- * by gf2x_mul */
-#[inline]
-unsafe fn gf2x_mod(mut out: *mut DIGIT, _nin: i32, mut input: *const DIGIT) {
-    let mut aux: [DIGIT; 906] = [0; 906];
-    memcpy(
-        aux.as_mut_ptr() as *mut libc::c_void,
-        input as *const libc::c_void,
-        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + 1i32) * 8i32) as u64,
-    );
-    right_bit_shift_n(
-        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + 1i32,
-        aux.as_mut_ptr(),
-        crate::consts::P as i32
-            - (8i32 << 3i32)
-                * ((crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
-                    - 1i32),
-    );
-    gf2x_add(
-        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-        out,
-        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-        aux.as_mut_ptr().offset(1) as *const DIGIT,
-        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-        input.offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as isize),
-    );
-    let ref mut fresh0 = *out.offset(0);
+fn gf2x_mod(out: &mut [DIGIT], input: &[DIGIT]) {
+    // specialized for input.len() == 2 * NUM_DIGITS_GF2X_ELEMENT, as it is only used by gf2x_mul
+    assert_eq!(input.len(), 2*NUM_DIGITS_GF2X_ELEMENT);
+
+    let mut aux: [DIGIT; NUM_DIGITS_GF2X_ELEMENT+1] = [0; NUM_DIGITS_GF2X_ELEMENT+1];
+
+    aux.copy_from_slice(&input[0..(NUM_DIGITS_GF2X_ELEMENT+1)]);
+
+    unsafe {
+         right_bit_shift_n(
+             NUM_DIGITS_GF2X_ELEMENT as i32 + 1,
+             aux.as_mut_ptr(),
+             MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS as i32);
+         gf2x_add(
+             NUM_DIGITS_GF2X_ELEMENT as i32,
+             out.as_mut_ptr(),
+             NUM_DIGITS_GF2X_ELEMENT as i32,
+             aux.as_ptr().offset(1),
+             NUM_DIGITS_GF2X_ELEMENT as i32,
+             input.as_ptr().offset(((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as isize),
+             );
+             
+//  out[0] &= ((1 as DIGIT) << MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS) - 1;
+    let ref mut fresh0 = *out.as_mut_ptr().offset(0);
     *fresh0 &= ((1i32 as DIGIT)
         << crate::consts::P as i32
             - (8i32 << 3i32)
                 * ((crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
                     - 1i32))
-        .wrapping_sub(1i32 as u64);
+                   .wrapping_sub(1i32 as u64);
+                }
+
 }
 // end gf2x_mod
 /*----------------------------------------------------------------------------*/
@@ -309,11 +308,8 @@ pub fn gf2x_mod_mul(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
             NUM_DIGITS_GF2X_ELEMENT as i32,
             B.as_ptr()
         );
-        gf2x_mod(
-            Res.as_mut_ptr(),
-            aux.len() as i32,
-            aux.as_mut_ptr());
     }
+    gf2x_mod(Res, &aux);
 }
 // end gf2x_mod_mul
 /*----------------------------------------------------------------------------*/
@@ -363,11 +359,7 @@ pub fn gf2x_mod_mul_dense_to_sparse(Res: &mut [DIGIT], dense: &[DIGIT], sparse: 
             unsafe { gf2x_fmac(resDouble.as_mut_ptr(), dense.as_ptr(), sparse[i]); }
         }
     }
-    unsafe {
-        gf2x_mod(Res.as_mut_ptr(),
-                 (2*NUM_DIGITS_GF2X_ELEMENT) as i32,
-                 resDouble.as_ptr() as *const DIGIT);
-    }
+    gf2x_mod(Res, &resDouble);
 }
 
 pub fn gf2x_mod_mul_sparse(Res: &mut [u32], A: &[u32], B: &[u32]) {
