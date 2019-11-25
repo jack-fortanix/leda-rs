@@ -15,67 +15,61 @@ extern "C" {
 }
 
 unsafe fn encrypt_McEliece(
-    mut codeword: *mut DIGIT,
+    codeword: &mut [DIGIT],
     pk: *const LedaPublicKey,
-    mut ptx: *const DIGIT,
-    mut err: *const DIGIT,
+    ptx: &[DIGIT],
+    err: &[DIGIT],
 )
 // N0   polynomials
 {
     memcpy(
-        codeword as *mut libc::c_void,
-        ptx as *const libc::c_void,
+        codeword.as_mut_ptr() as *mut libc::c_void,
+        ptx.as_ptr() as *const libc::c_void,
         ((2i32 - 1i32)
             * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32))
             * 8i32) as u64,
     );
     memset(
-        codeword.offset(
+        codeword.as_mut_ptr().offset(
             ((2i32 - 1i32) * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
                 as isize,
         ) as *mut libc::c_void,
         0i32,
         ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) * 8i32) as u64,
     );
-    let mut i: i32 = 0i32;
-    while i < 2i32 - 1i32 {
+    for i in 0..(N0-1) {
         let mut saux: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
         gf2x_mod_mul(
-            saux.as_mut_ptr(),
-            (*pk).Mtr.as_ptr().offset(
-                (i * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32))) as isize,
-            ),
-            ptx.offset(
-                (i * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32))) as isize,
-            ),
-        );
+            &mut saux,
+            &(*pk).Mtr[i*NUM_DIGITS_GF2X_ELEMENT..(i+1)*NUM_DIGITS_GF2X_ELEMENT],
+            &ptx[i*NUM_DIGITS_GF2X_ELEMENT..(i+1)*NUM_DIGITS_GF2X_ELEMENT]);
+
         gf2x_mod_add(
-            codeword.offset(
+            codeword.as_mut_ptr().offset(
                 ((2i32 - 1i32)
                     * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
                     as isize,
             ),
-            codeword.offset(
+            codeword.as_mut_ptr().offset(
                 ((2i32 - 1i32)
                     * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
                     as isize,
             ) as *const DIGIT,
             saux.as_mut_ptr() as *const DIGIT,
         );
-        i += 1
     }
     let mut i_0: i32 = 0i32;
     while i_0 < 2i32 {
         gf2x_mod_add(
-            codeword.offset(
+            codeword.as_mut_ptr().offset(
                 (i_0 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
                     as isize,
             ),
-            codeword.offset(
+            codeword.as_mut_ptr().offset(
                 (i_0 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
                     as isize,
             ) as *const DIGIT,
-            err.offset(
+            err.as_ptr().offset(
                 (i_0 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
                     as isize,
             ),
@@ -342,10 +336,10 @@ pub unsafe fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<
     }
     let mut codeword: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
     encrypt_McEliece(
-        codeword.as_mut_ptr(),
+        &mut codeword,
         pk,
-        informationWord.as_mut_ptr() as *const DIGIT,
-        cwEncodedError.as_mut_ptr() as *const DIGIT,
+        &informationWord,
+        &cwEncodedError
     );
     /* output composition looks like codeword || left bytepad leftover
      * and is thus long as ROUND_UP(leftover_bits,8)+

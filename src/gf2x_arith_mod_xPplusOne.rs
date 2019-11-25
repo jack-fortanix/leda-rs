@@ -295,21 +295,25 @@ unsafe {
     }}
 // end gf2x_mod_inverse
 
-pub unsafe fn gf2x_mod_mul(mut Res: *mut DIGIT, mut A: *const DIGIT, mut B: *const DIGIT) {
-    let mut aux: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
-    gf2x_mul_TC3(
-        2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)),
-        aux.as_mut_ptr(),
-        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-        A,
-        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-        B,
-    );
-    gf2x_mod(
-        Res,
-        2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)),
-        aux.as_mut_ptr() as *const DIGIT,
-    );
+pub fn gf2x_mod_mul(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
+    assert_eq!(A.len(), NUM_DIGITS_GF2X_MODULUS);
+    assert_eq!(B.len(), NUM_DIGITS_GF2X_MODULUS);
+
+    let mut aux: [DIGIT; 2*NUM_DIGITS_GF2X_ELEMENT] = [0; 2*NUM_DIGITS_GF2X_ELEMENT];
+    unsafe {
+        gf2x_mul_TC3(
+            (2*NUM_DIGITS_GF2X_ELEMENT) as i32,
+            aux.as_mut_ptr(),
+            NUM_DIGITS_GF2X_ELEMENT as i32,
+            A.as_ptr(),
+            NUM_DIGITS_GF2X_ELEMENT as i32,
+            B.as_ptr()
+        );
+        gf2x_mod(
+            Res.as_mut_ptr(),
+            aux.len() as i32,
+            aux.as_mut_ptr());
+    }
 }
 // end gf2x_mod_mul
 /*----------------------------------------------------------------------------*/
