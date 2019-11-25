@@ -373,9 +373,6 @@ unsafe fn gf2x_fmac(mut Res: *mut DIGIT, mut operand: *const DIGIT, shiftAmt: u3
 order of the coefficients themselves */
 
 pub fn gf2x_mod_mul_dense_to_sparse(Res: &mut [DIGIT], dense: &[DIGIT], sparse: &[u32]) {
-
-    let P32 = P as u32;
-
     let mut resDouble: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
 
     for i in 0..sparse.len() {
@@ -393,8 +390,6 @@ pub fn gf2x_mod_mul_dense_to_sparse(Res: &mut [DIGIT], dense: &[DIGIT], sparse: 
 /*----------------------------------------------------------------------------*/
 
 pub fn gf2x_mod_mul_sparse(Res: &mut [u32], A: &[u32], B: &[u32]) {
-    let P32 = P as u32;
-
     let sizeR = Res.len() as usize;
     let sizeB = B.len() as usize;
     let sizeA = A.len() as usize;
@@ -456,8 +451,6 @@ pub fn gf2x_mod_mul_sparse(Res: &mut [u32], A: &[u32], B: &[u32]) {
 /* PRE: A and B should be sorted and have INVALID_POS_VALUE at the end */
 
 pub fn gf2x_mod_add_sparse(A: &mut [u32], B: &[u32]) {
-    let P32 = P as u32;
-
     let mut R: Vec<u32> = vec![0u32; A.len()];
     let mut idxA: usize = 0;
     let mut idxB: usize = 0;

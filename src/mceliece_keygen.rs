@@ -19,8 +19,6 @@ pub fn key_gen_mceliece(seed: &[u8]) -> Result<(LedaPublicKey,LedaPrivateKey)> {
 
     sk.prng_seed.copy_from_slice(seed);
 
-    let P32 = P as u32;
-
     let mut keys_expander = seedexpander_from_trng(&sk.prng_seed).unwrap();
     // sequence of N0 circ block matrices (p x p): Hi
     let mut HPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];

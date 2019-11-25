@@ -8,7 +8,7 @@ pub const M: usize = 11;
 //pub const M1: usize = 5;
 pub const NUM_ERRORS: usize = 199;
 
-//pub const P32 : u32 = P as u32;
+pub const P32 : u32 = P as u32;
 
 //pub const HASH_BYTE_LENGTH: usize = 48;
 pub const TRNG_BYTE_LENGTH: usize = 32;
