@@ -138,7 +138,7 @@ fn estimate_d_u(n: u32, t: u32) -> (u32, u32) {
 }
 
 /* Encodes a bit string into a constant weight N0 polynomials vector*/
-pub unsafe fn constant_weight_to_binary_approximate(
+pub fn constant_weight_to_binary_approximate(
     bitstreamOut: &mut [u8],
     constantWeightIn: &[DIGIT],
 ) {

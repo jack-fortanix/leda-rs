@@ -20,7 +20,7 @@ pub fn population_count(upc: &[DIGIT]) -> usize {
     return sum;
 }
 
-pub unsafe fn gf2x_get_coeff(poly: &[DIGIT], exponent: u32) -> DIGIT {
+pub fn gf2x_get_coeff(poly: &[DIGIT], exponent: u32) -> DIGIT {
     let mut straightIdx: u32 = (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
         * (8i32 << 3i32)
         - 1i32) as u32)
