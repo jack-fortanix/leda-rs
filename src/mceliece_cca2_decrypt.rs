@@ -109,35 +109,34 @@ fn decrypt_McEliece(
     }
     return 1i32;
 }
-/*----------------------------------------------------------------------------*/
-unsafe fn char_left_bit_shift_n(length: i32, mut input: *mut u8, amount: i32) {
-    if amount > 8i32 {
-        panic!("assertion");
-    }
-    if amount == 0i32 {
+
+unsafe fn char_left_bit_shift_n(input: &mut [u8], amount: i32) {
+    assert!(amount < 8);
+    if amount == 0 {
         return;
     }
     let mut j: i32 = 0;
     let mask: u8 = !(((0x1i32 as u8 as i32) << 8i32 - amount) - 1i32) as u8;
-    while j < length - 1i32 {
-        let ref mut fresh0 = *input.offset(j as isize);
+    while j < input.len() as i32 - 1i32 {
+        let ref mut fresh0 = *input.as_mut_ptr().offset(j as isize);
         *fresh0 = ((*fresh0 as i32) << amount) as u8;
-        let ref mut fresh1 = *input.offset(j as isize);
+        let ref mut fresh1 = *input.as_mut_ptr().offset(j as isize);
         *fresh1 = (*fresh1 as i32
-            | (*input.offset((j + 1i32) as isize) as i32 & mask as i32) >> 8i32 - amount)
+            | (*input.as_mut_ptr().offset((j + 1i32) as isize) as i32 & mask as i32) >> 8i32 - amount)
             as u8;
         j += 1
     }
-    let ref mut fresh2 = *input.offset(j as isize);
+    let ref mut fresh2 = *input.as_mut_ptr().offset(j as isize);
     *fresh2 = ((*fresh2 as i32) << amount) as u8;
 }
-/*----------------------------------------------------------------------------*/
+
 fn poly_seq_into_bytestream(
     output: &mut [u8],
     byteOutputLength: u32,
     zPoly: &[DIGIT],
     numPoly: u32,
 ) -> i32 {
+    assert_eq!(byteOutputLength as usize, output.len());
     let mut output_bit_cursor: u32 = byteOutputLength
         .wrapping_mul(8i32 as u32)
         .wrapping_sub(numPoly.wrapping_mul(crate::consts::P as i32 as u32));
@@ -163,12 +162,9 @@ fn poly_seq_into_bytestream(
         i += 1
         // end for exponent
     }
-    let mut padsize: i32 = if (2i32 - 1i32) * crate::consts::P as i32 % 8i32 != 0 {
-        (8i32) - (2i32 - 1i32) * crate::consts::P as i32 % 8i32
-    } else {
-        0i32
-    };
-            unsafe { char_left_bit_shift_n(byteOutputLength as i32, output.as_mut_ptr(), padsize); }
+
+    let padsize = if K % 8 != 0 { 8 - (K % 8) } else { 0 };
+    unsafe { char_left_bit_shift_n(output, padsize as i32); }
     return 1i32;
 }
 
