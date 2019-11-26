@@ -145,43 +145,16 @@ unsafe {
         &mut correctlySizedBytePtxLen as *mut u64 as *const libc::c_void,
         ::std::mem::size_of::<u64>() as u64,
     );
-    //ctext[32..32 + bytePtxLen as usize].copy_from_slice(&ms
-    memcpy(
-        ctext.as_mut_ptr()
-            .offset(32)
-            .offset(::std::mem::size_of::<u64>() as u64 as isize) as *mut libc::c_void,
-        msg.as_ptr() as *const libc::c_void,
-        bytePtxLen as u64,
-    );
-    let mut i: i32 = 0i32;
-    while (i as u64) < paddedSequenceLen {
-        let ref mut fresh3 = *ctext.as_mut_ptr().offset(i as isize);
-        *fresh3 = (*fresh3 as i32 ^ *prngSequence.as_ptr().offset(i as isize) as i32) as u8;
-        i += 1
+    ctext[40..40 + bytePtxLen as usize].copy_from_slice(&msg);
+
+    for i in 0..paddedSequenceLen as usize {
+        ctext[i] ^= prngSequence[i];
     }
     if isPaddedSequenceOnlyKBits == 1 {
         ctext[paddedSequenceLen as usize-1] &= !(0xFF >> (K % 8));
     }
     /* prepare buffer which will be translated in the information word */
-    if (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u64
-        == (32i32 as u64)
-            .wrapping_add(::std::mem::size_of::<u64>() as u64)
-            .wrapping_add(
-                (((2i32 - 1i32) * crate::consts::P as i32) as u64)
-                    .wrapping_sub((8i32 as u64).wrapping_mul(
-                        (32i32 as u64).wrapping_add(::std::mem::size_of::<u64>() as u64),
-                    ))
-                    .wrapping_div(8i32 as u64),
-            )
-            .wrapping_add(1i32 as u64)
-    {
-        // no-op
-    } else {
-        return Err(Error::Custom(
-            "(K+7)/8 !=  KOBARA_IMAI_CONSTANT_LENGTH_B+KI_LENGTH_FIELD_SIZE+MAX_BYTES_IN_IWORD+1"
-                .to_owned(),
-        ));
-    }
+
     let mut iwordBuffer: [u8; (K+7)/8] = [0; (K+7)/8];
     iwordBuffer.copy_from_slice(&ctext[0..(K+7)/8]);
     /* transform into an information word poly sequence */
