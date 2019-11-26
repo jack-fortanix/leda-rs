@@ -116,7 +116,6 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
     let mut paddedSequenceLen: u64 = 0;
     let mut isPaddedSequenceOnlyKBits: i32 = 0i32;
     let bytePtxLen: u32 = msg.len() as u32;
-    let ptx: *const u8 = msg.as_ptr();
     if bytePtxLen as u64
         <= (((2i32 - 1i32) * crate::consts::P as i32) as u64)
             .wrapping_sub(
@@ -140,16 +139,18 @@ unsafe {
      * the ciphertext to host the prng-padded ptx+const+len. */
     let mut ctext = vec![0u8; clen];
     let mut correctlySizedBytePtxLen: u64 = bytePtxLen as u64;
+
     memcpy(
         ctext.as_mut_ptr().offset(32) as *mut libc::c_void,
         &mut correctlySizedBytePtxLen as *mut u64 as *const libc::c_void,
         ::std::mem::size_of::<u64>() as u64,
     );
+    //ctext[32..32 + bytePtxLen as usize].copy_from_slice(&ms
     memcpy(
         ctext.as_mut_ptr()
             .offset(32)
             .offset(::std::mem::size_of::<u64>() as u64 as isize) as *mut libc::c_void,
-        ptx as *const libc::c_void,
+        msg.as_ptr() as *const libc::c_void,
         bytePtxLen as u64,
     );
     let mut i: i32 = 0i32;
@@ -159,10 +160,7 @@ unsafe {
         i += 1
     }
     if isPaddedSequenceOnlyKBits == 1 {
-        let ref mut fresh4 = *ctext.as_mut_ptr().offset(paddedSequenceLen.wrapping_sub(1i32 as u64) as isize);
-        *fresh4 = (*fresh4 as i32
-            & !(0xffi32 as u8 as i32 >> (2i32 - 1i32) * crate::consts::P as i32 % 8i32))
-            as u8
+        ctext[paddedSequenceLen as usize-1] &= !(0xFF >> (K % 8));
     }
     /* prepare buffer which will be translated in the information word */
     if (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u64
