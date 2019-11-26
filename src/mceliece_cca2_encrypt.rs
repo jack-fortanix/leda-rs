@@ -5,11 +5,6 @@ use crate::gf2x_arith_mod_xPplusOne::*;
 use crate::types::*;
 use crate::consts::*;
 
-extern "C" {
-    #[no_mangle]
-    fn memmove(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-}
-
 fn encrypt_McEliece(pk: &LedaPublicKey, ptx: &[DIGIT], err: &[DIGIT]) -> Vec<DIGIT> {
     let mut codeword = vec![0 as DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT];
     codeword[0..(N0-1)*NUM_DIGITS_GF2X_ELEMENT].copy_from_slice(ptx);
@@ -30,8 +25,6 @@ fn encrypt_McEliece(pk: &LedaPublicKey, ptx: &[DIGIT], err: &[DIGIT]) -> Vec<DIG
     }
     codeword
 }
-// end encrypt_McEliece
-/*----------------------------------------------------------------------------*/
 
 fn char_right_bit_shift_n(data: &mut [u8], amount: usize) {
     assert!(amount < 8);
@@ -44,9 +37,8 @@ fn char_right_bit_shift_n(data: &mut [u8], amount: usize) {
     }
     data[0] >>= amount;
 }
-/*----------------------------------------------------------------------------*/
-/*  shifts the input stream so that the bytewise pad is on the left before
- * conversion */
+
+// shifts the input stream so that the bytewise pad is on the left before conversion
 fn bytestream_into_poly_seq(
     mut polySeq: &mut [DIGIT],
     mut numPoly: usize,
@@ -68,10 +60,6 @@ fn bytestream_into_poly_seq(
     Ok(())
 }
 
-// return 0 i.e., insuccess, if bitLenPtx > (N0-1)*P + be - bc - bh or bitLenPtx <= 0
-// end bytestream_into_poly_seq
-/*----------------------------------------------------------------------------*/
-
 pub fn digits_to_bytes(d: &[DIGIT]) -> Vec<u8> {
     let mut out = vec![0u8; d.len() * 8];
 
@@ -84,21 +72,9 @@ pub fn digits_to_bytes(d: &[DIGIT]) -> Vec<u8> {
 }
 
 pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
-    /* NIST API provides a byte aligned message: all bytes are assumed full.
-     * Therefore, if mlen exceeds
-     * floor( (k-8*(KOBARA_IMAI_CONSTANT_LENGTH_B+sizeof(KI_LENGTH_FIELD_TYPE)))/8 )
-     * defined as MAX_BYTES_IN_IWORD the message will not fit , together with
-     * the constant and its length, in the information word
-     *
-     * The minimum ciphertext overhead is
-     * NUM_DIGITS_GF2X_ELEMENT +
-     * KOBARA_IMAI_CONSTANT_LENGTH_B +
-     * sizeof(KI_LENGTH_FIELD_TYPE)  */
-
-    // Longer is supported by LEDA spec using a different encoding,
-    // but with our parameters, this supports up to 7K which seems plenty
-
     if msg.len() > MAX_BYTES_IN_IWORD {
+        // Longer plaintext is supported by LEDA spec using a different encoding,
+        // but with our parameters, this supports up to 7K which seems plenty
         return Err(Error::Custom("Plaintext is too long for Leda-PKC".into()));
     }
 
@@ -111,8 +87,6 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
     let mut secretSeed: [u8; 32] = [0; 32];
     randombytes(&mut secretSeed);
 
-    let bytePtxLen: u32 = msg.len() as u32;
-
     let paddedSequenceLen = (K+7)/8;
 
     let prngSequence =
@@ -120,8 +94,8 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
 
     let mut ctext = vec![0u8; clen];
 
-    ctext[32..40].copy_from_slice(&(bytePtxLen as u64).to_le_bytes());
-    ctext[40..40 + bytePtxLen as usize].copy_from_slice(&msg);
+    ctext[32..40].copy_from_slice(&(msg.len() as u64).to_le_bytes());
+    ctext[40..40 + msg.len()].copy_from_slice(&msg);
 
     for i in 0..paddedSequenceLen {
         ctext[i] ^= prngSequence[i];
@@ -140,7 +114,6 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
     /* prepare hash of padded sequence, before leftover is moved to its final place */
     let hashDigest = sha3_384(&ctext[0..paddedSequenceLen]);
     /* move leftover padded string (if present) onto its final position*/
-unsafe {
     /*prepare CWEnc input as zero extended seed ^ hash of */
     let mut cwEncInputBuffer: [u8; 1072] = [0; 1072];
     cwEncInputBuffer[0..48].copy_from_slice(&hashDigest);
@@ -150,18 +123,20 @@ unsafe {
     let mut cwEncodedError: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
     /* continue drawing fresh randomness in case the constant weight encoding
      * fails */
-    let mut binaryToConstantWeightOk: i32 = 0i32;
     loop {
         /* blank cwenc destination buffer */
         cwEncodedError.copy_from_slice(&[0; N0*NUM_DIGITS_GF2X_ELEMENT]);
         /* draw filler randomness for cwenc input from an independent random*/
         randombytes(&mut secretSeed);
         drbg(&mut cwEncInputBuffer[48..1072], &secretSeed)?;
-        binaryToConstantWeightOk = binary_to_constant_weight_approximate(
-            &mut cwEncodedError,
-            cwEncInputBuffer.as_mut_ptr(),
-            48i32 + 1024i32,
-        );
+        let binaryToConstantWeightOk = unsafe {
+            binary_to_constant_weight_approximate(
+                &mut cwEncodedError,
+                cwEncInputBuffer.as_mut_ptr(),
+                48i32 + 1024i32,
+            )
+        };
+
         if !(binaryToConstantWeightOk == 0i32) {
             break;
         }
@@ -174,7 +149,4 @@ unsafe {
      * N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B */
     // the output byte stream is made of N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B bytes
     Ok(digits_to_bytes(&codeword))
-        }
 }
-/*----------------------------------------------------------------------------*/
-// end encrypt_Kobara_Imai
