@@ -63,26 +63,17 @@ unsafe fn char_right_bit_shift_n(length: i32, mut input: *mut u8, amount: i32) {
  * conversion */
 unsafe fn bytestream_into_poly_seq(
     mut polySeq: &mut [DIGIT],
-    mut numPoly: i32,
-    mut S: &mut [u8],
-    _byteLenS: u64,
-) -> i32 {
+    mut numPoly: usize,
+    mut S: &mut [u8]) -> Result<()> {
 
-    let padsize: i32 = if (2i32 - 1i32) * crate::consts::P as i32 % 8i32 != 0 {
-        (8i32) - (2i32 - 1i32) * crate::consts::P as i32 % 8i32
-    } else {
-        0i32
-    };
-    char_right_bit_shift_n(S.len() as i32, S.as_mut_ptr(), padsize);
-    if numPoly <= 0
-        || S.len() <= 0
-        || S.len() < ((numPoly * crate::consts::P as i32 + 7i32) / 8i32) as usize
-    {
-        return 0i32;
+    let padsize = if K % 8 != 0 { 8 - (K % 8) } else { 0 };
+    char_right_bit_shift_n(S.len() as i32, S.as_mut_ptr(), padsize as i32);
+    if numPoly == 0 || S.len() < ((numPoly * P + 7) / 8) {
+        return Err(Error::Custom("Error in bytestream_into_poly_seq".into()));
     }
     let mut slack_bits: u32 = (S.len() as u64)
         .wrapping_mul(8i32 as u64)
-        .wrapping_sub((numPoly * crate::consts::P as i32) as u64)
+        .wrapping_sub((numPoly as i32 * crate::consts::P as i32) as u64)
         as u32;
     let mut bitCursor: u32 = slack_bits;
     for polyIdx in 0..(numPoly as usize) {
@@ -97,7 +88,7 @@ unsafe fn bytestream_into_poly_seq(
             exponent += 1;
         }
     }
-    return 1i32;
+    Ok(())
 }
 
 // return 0 i.e., insuccess, if bitLenPtx > (N0-1)*P + be - bc - bh or bitLenPtx <= 0
@@ -213,10 +204,8 @@ unsafe {
     /* transform into an information word poly sequence */
     let mut informationWord: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     bytestream_into_poly_seq(&mut informationWord,
-                             (N0 - 1) as i32,
-                             &mut iwordBuffer,
-        (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u64,
-    );
+                             N0 - 1,
+                             &mut iwordBuffer)?;
     /* prepare hash of padded sequence, before leftover is moved to its final place */
     let hashDigest = sha3_384(std::slice::from_raw_parts(
         output,
