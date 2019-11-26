@@ -110,24 +110,18 @@ fn decrypt_McEliece(
     return 1i32;
 }
 
-unsafe fn char_left_bit_shift_n(input: &mut [u8], amount: i32) {
+fn char_left_bit_shift_n(input: &mut [u8], amount: i32) {
     assert!(amount < 8);
     if amount == 0 {
         return;
     }
-    let mut j: i32 = 0;
     let mask: u8 = !(((0x1i32 as u8 as i32) << 8i32 - amount) - 1i32) as u8;
-    while j < input.len() as i32 - 1i32 {
-        let ref mut fresh0 = *input.as_mut_ptr().offset(j as isize);
-        *fresh0 = ((*fresh0 as i32) << amount) as u8;
-        let ref mut fresh1 = *input.as_mut_ptr().offset(j as isize);
-        *fresh1 = (*fresh1 as i32
-            | (*input.as_mut_ptr().offset((j + 1i32) as isize) as i32 & mask as i32) >> 8i32 - amount)
-            as u8;
-        j += 1
+
+    for j in 0..input.len() - 1 {
+        input[j] <<= amount;
+        input[j] |= (input[j+1] & mask) >> (8 - amount);
     }
-    let ref mut fresh2 = *input.as_mut_ptr().offset(j as isize);
-    *fresh2 = ((*fresh2 as i32) << amount) as u8;
+    input[input.len()-1] <<= amount;
 }
 
 fn poly_seq_into_bytestream(
@@ -164,7 +158,7 @@ fn poly_seq_into_bytestream(
     }
 
     let padsize = if K % 8 != 0 { 8 - (K % 8) } else { 0 };
-    unsafe { char_left_bit_shift_n(output, padsize as i32); }
+    char_left_bit_shift_n(output, padsize as i32);
     return 1i32;
 }
 
