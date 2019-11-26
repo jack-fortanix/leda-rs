@@ -37,26 +37,16 @@ fn encrypt_McEliece(pk: &LedaPublicKey, ptx: &[DIGIT], err: &[DIGIT]) -> Vec<DIG
 // end encrypt_McEliece
 /*----------------------------------------------------------------------------*/
 
-unsafe fn char_right_bit_shift_n(length: i32, mut input: *mut u8, amount: i32) {
-    if amount > 8i32 {
-        panic!("bad amount");
+fn char_right_bit_shift_n(data: &mut [u8], amount: usize) {
+    assert!(amount < 8);
+
+    let mask : u8 = (1 << amount) - 1;
+
+    for j in (1..data.len()).rev() {
+        data[j] >>= amount;
+        data[j] |= (data[j-1] & mask) << (8 - amount);
     }
-    if amount == 0i32 {
-        return;
-    }
-    let mut j: i32 = length - 1;
-    let mask: u8 = (((0x1i32 as u8 as i32) << amount) - 1i32) as u8;
-    while j > 0i32 {
-        let ref mut fresh0 = *input.offset(j as isize);
-        *fresh0 = (*fresh0 as i32 >> amount) as u8;
-        let ref mut fresh1 = *input.offset(j as isize);
-        *fresh1 = (*fresh1 as i32
-            | (*input.offset((j - 1i32) as isize) as i32 & mask as i32) << 8i32 - amount)
-            as u8;
-        j -= 1
-    }
-    let ref mut fresh2 = *input.offset(j as isize);
-    *fresh2 = (*fresh2 as i32 >> amount) as u8;
+    data[0] >>= amount;
 }
 /*----------------------------------------------------------------------------*/
 /*  shifts the input stream so that the bytewise pad is on the left before
@@ -67,7 +57,7 @@ unsafe fn bytestream_into_poly_seq(
     mut S: &mut [u8]) -> Result<()> {
 
     let padsize = if K % 8 != 0 { 8 - (K % 8) } else { 0 };
-    char_right_bit_shift_n(S.len() as i32, S.as_mut_ptr(), padsize as i32);
+    char_right_bit_shift_n(S, padsize);
     if numPoly == 0 || S.len() < ((numPoly * P + 7) / 8) {
         return Err(Error::Custom("Error in bytestream_into_poly_seq".into()));
     }
