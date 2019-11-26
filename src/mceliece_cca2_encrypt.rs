@@ -53,7 +53,7 @@ fn bytestream_into_poly_seq(
     let mut bitCursor: u32 = slack_bits as u32;
     for polyIdx in 0..numPoly {
         for exponent in 0..P {
-            let buffer = unsafe { bitstream_read(S, 1, &mut bitCursor) };
+            let buffer = bitstream_read(S, 1, &mut bitCursor);
             gf2x_set_coeff(&mut polySeq[NUM_DIGITS_GF2X_ELEMENT*polyIdx..], exponent, buffer);
         }
     }
@@ -129,12 +129,10 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
         /* draw filler randomness for cwenc input from an independent random*/
         randombytes(&mut secretSeed);
         drbg(&mut cwEncInputBuffer[48..1072], &secretSeed)?;
-        let binaryToConstantWeightOk = unsafe {
-            binary_to_constant_weight_approximate(
+        let binaryToConstantWeightOk = binary_to_constant_weight_approximate(
                 &mut cwEncodedError,
                 &cwEncInputBuffer
             )
-        };
 
         if binaryToConstantWeightOk {
             break;

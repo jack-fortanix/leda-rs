@@ -71,7 +71,7 @@ pub unsafe fn bitstream_write(
  * them to the encoding. Given the estimates for log_2(d), this is plentiful
  */
 
-pub unsafe fn bitstream_read(stream: &[u8], bit_amount: u32, bit_cursor: &mut u32) -> u64 {
+pub fn bitstream_read(stream: &[u8], bit_amount: u32, bit_cursor: &mut u32) -> u64 {
     if bit_amount == 0 {
         return 0;
     }
@@ -82,31 +82,29 @@ pub unsafe fn bitstream_read(stream: &[u8], bit_amount: u32, bit_cursor: &mut u3
     let bit_cursor_in_char: i32 = (*bit_cursor).wrapping_rem(8i32 as u32) as i32;
     let remaining_bits_in_char: i32 = 8i32 - bit_cursor_in_char;
     if bit_amount <= remaining_bits_in_char as u32 {
-        extracted_bits = *stream.as_ptr().offset((*bit_cursor).wrapping_div(8i32 as u32) as isize) as u64;
+        extracted_bits = stream[(*bit_cursor).wrapping_div(8i32 as u32) as usize] as u64;
         let slack_bits: i32 = (remaining_bits_in_char as u32).wrapping_sub(bit_amount) as i32;
         extracted_bits = extracted_bits >> slack_bits;
         extracted_bits = extracted_bits & ((1i32 as u64) << bit_amount).wrapping_sub(1i32 as u64)
     } else {
         let mut byte_cursor: u32 = (*bit_cursor).wrapping_div(8i32 as u32);
         let mut still_to_extract: u32 = bit_amount;
-        if bit_cursor_in_char != 0i32 {
-            extracted_bits =
-                *stream.as_ptr().offset((*bit_cursor).wrapping_div(8i32 as u32) as isize) as u64;
+        if bit_cursor_in_char != 0 {
+            extracted_bits = stream[(*bit_cursor).wrapping_div(8i32 as u32) as usize] as u64;
             extracted_bits = extracted_bits
                 & ((1i32 as u64) << 7i32 - (bit_cursor_in_char - 1i32)).wrapping_sub(1i32 as u64);
             still_to_extract = bit_amount.wrapping_sub((7i32 - (bit_cursor_in_char - 1i32)) as u32);
             byte_cursor = byte_cursor.wrapping_add(1)
         }
-        while still_to_extract > 8i32 as u32 {
-            extracted_bits = extracted_bits << 8i32 | *stream.as_ptr().offset(byte_cursor as isize) as u64;
+        while still_to_extract > 8 {
+            extracted_bits = extracted_bits << 8 | stream[byte_cursor as usize] as u64;
             byte_cursor = byte_cursor.wrapping_add(1);
             still_to_extract = still_to_extract.wrapping_sub(8i32 as u32)
         }
         /* here byte cursor is on the byte where the still_to_extract MSbs are to be
         taken from */
-        extracted_bits = extracted_bits << still_to_extract
-            | *stream.as_ptr().offset(byte_cursor as isize) as u64
-                >> (8i32 as u32).wrapping_sub(still_to_extract)
+        extracted_bits = (extracted_bits << still_to_extract) |
+        ((stream[byte_cursor as usize] as u64) >> (8 - still_to_extract));
     }
     *bit_cursor = (*bit_cursor).wrapping_add(bit_amount);
     return extracted_bits;
@@ -115,7 +113,7 @@ pub unsafe fn bitstream_read(stream: &[u8], bit_amount: u32, bit_cursor: &mut u3
 /*----------------------------------------------------------------------------*/
 /* returns the portion of the bitstream read, padded with zeroes if the
 bitstream has less bits than required. Updates the value of the bit cursor */
-unsafe fn bitstream_read_padded(
+fn bitstream_read_padded(
     stream: &[u8],
     bitAmount: u32,
     bitCursor: &mut u32,
@@ -223,7 +221,7 @@ pub unsafe fn constant_weight_to_binary_approximate(
     }
 }
 
-pub unsafe fn binary_to_constant_weight_approximate(constantWeightOut: &mut [DIGIT], bitstreamIn: &[u8]) -> bool {
+pub fn binary_to_constant_weight_approximate(constantWeightOut: &mut [DIGIT], bitstreamIn: &[u8]) -> bool {
     let mut distancesBetweenOnes: [u32; NUM_ERRORS] = [0; NUM_ERRORS];
     let mut idxDistances: u32 = 0i32 as u32;
     let mut onesStillToPlaceOut: u32 = NUM_ERRORS as u32;
