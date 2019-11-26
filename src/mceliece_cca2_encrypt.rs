@@ -137,9 +137,6 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
         if binaryToConstantWeightOk {
             break;
         }
-        else {
-            panic!("wups");
-        }
     }
 
     let mut codeword = encrypt_McEliece(&*pk, &informationWord, &cwEncodedError);
