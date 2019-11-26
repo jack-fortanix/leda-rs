@@ -116,25 +116,22 @@ pub unsafe fn bitstream_read(stream: *const u8, bit_amount: u32, bit_cursor: *mu
 /* returns the portion of the bitstream read, padded with zeroes if the
 bitstream has less bits than required. Updates the value of the bit cursor */
 unsafe fn bitstream_read_padded(
-    stream: *const u8,
+    stream: &[u8],
     bitAmount: u32,
-    bitstreamLength: u32,
-    bitCursor: *mut u32,
+    bitCursor: &mut u32,
 ) -> u64 {
-    let mut readBitstreamFragment: u64 = 0;
-    if (*bitCursor).wrapping_add(bitAmount) < bitstreamLength {
-        readBitstreamFragment = bitstream_read(stream, bitAmount, bitCursor)
+    if (*bitCursor).wrapping_add(bitAmount) < stream.len() as u32 {
+        return bitstream_read(stream.as_ptr(), bitAmount, bitCursor)
     } else {
         /*if remaining bits are not sufficient, pad with enough zeroes */
-        let available_bits: u32 = bitstreamLength.wrapping_sub(*bitCursor);
+        let available_bits: u32 = (stream.len() as u32) - *bitCursor;
         if available_bits != 0 {
-            readBitstreamFragment = bitstream_read(stream, available_bits, bitCursor);
-            readBitstreamFragment = readBitstreamFragment << bitAmount.wrapping_sub(available_bits)
+            let readBitstreamFragment = bitstream_read(stream.as_ptr(), available_bits, bitCursor);
+            return readBitstreamFragment << (bitAmount - available_bits);
         } else {
-            readBitstreamFragment = 0i32 as u64
+            return 0;
         }
     }
-    return readBitstreamFragment;
 }
 
 fn estimate_d_u(n: u32, t: u32) -> (u32,u32) {
@@ -227,7 +224,6 @@ pub unsafe fn constant_weight_to_binary_approximate(
 }
 
 pub unsafe fn binary_to_constant_weight_approximate(constantWeightOut: &mut [DIGIT], bitstreamIn: &[u8]) -> bool {
-    let bitLength = bitstreamIn.len() as u32;
     let mut distancesBetweenOnes: [u32; NUM_ERRORS] = [0; NUM_ERRORS];
     let mut idxDistances: u32 = 0i32 as u32;
     let mut onesStillToPlaceOut: u32 = NUM_ERRORS as u32;
@@ -250,9 +246,8 @@ pub unsafe fn binary_to_constant_weight_approximate(constantWeightOut: &mut [DIG
         let mut quotient: u32 = 0i32 as u32;
         while 1i32 as u64
             == bitstream_read_padded(
-                bitstreamIn.as_ptr(),
-                1i32 as u32,
-                bitLength as u32,
+                &bitstreamIn,
+                1u32,
                 &mut bitstreamInCursor,
             )
         {
@@ -261,9 +256,8 @@ pub unsafe fn binary_to_constant_weight_approximate(constantWeightOut: &mut [DIG
         /* decode truncated binary encoded integer */
         let mut distanceToBeComputed: u32 = if u > 0i32 as u32 {
             bitstream_read_padded(
-                bitstreamIn.as_ptr(),
+                &bitstreamIn,
                 u.wrapping_sub(1i32 as u32),
-                bitLength as u32,
                 &mut bitstreamInCursor,
             )
         } else {
@@ -274,9 +268,8 @@ pub unsafe fn binary_to_constant_weight_approximate(constantWeightOut: &mut [DIG
                 (distanceToBeComputed as u32).wrapping_mul(2i32 as u32) as u32 as u32;
             distanceToBeComputed =
                 (distanceToBeComputed as u64).wrapping_add(bitstream_read_padded(
-                    bitstreamIn.as_ptr(),
+                    &bitstreamIn,
                     1i32 as u32,
-                    bitLength as u32,
                     &mut bitstreamInCursor,
                 )) as u32 as u32;
             distanceToBeComputed = (distanceToBeComputed as u32)
