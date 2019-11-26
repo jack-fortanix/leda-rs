@@ -1,5 +1,5 @@
-use crate::djbsort::uint32_sort;
 use crate::consts::*;
+use crate::djbsort::uint32_sort;
 
 /*---------------------------------------------------------------------------*/
 /* Tests if the current code attains the desired DFR. If that is the case,

@@ -13,7 +13,7 @@ pub fn gf2x_copy(mut dest: &mut [DIGIT], input: &[DIGIT]) {
 }
 
 pub fn population_count(upc: &[DIGIT]) -> usize {
-    let mut sum : usize = 0;
+    let mut sum: usize = 0;
     for x in upc {
         sum += x.count_ones() as usize;
     }
@@ -172,14 +172,14 @@ unsafe fn gf2x_add(
 /*--------------------------------------------------------------------------*/
 /* sets the coefficient of the x^exponent term as the LSB of a digit */
 pub fn gf2x_set_coeff(poly: &mut [DIGIT], exponent: usize, value: DIGIT) {
-    let straightIdx = (NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_b - 1) - exponent;
+    let straightIdx = (NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_b - 1) - exponent;
     let digitIdx = straightIdx / DIGIT_SIZE_b;
     let inDigitIdx = straightIdx % DIGIT_SIZE_b;
 
     /* clear given coefficient */
-    let mask = !(((1 as DIGIT)) << (DIGIT_SIZE_b-1-inDigitIdx));
+    let mask = !((1 as DIGIT) << (DIGIT_SIZE_b - 1 - inDigitIdx));
     poly[digitIdx] = poly[digitIdx] & mask;
-    poly[digitIdx] = poly[digitIdx] | (( value & (1 as DIGIT)) << (DIGIT_SIZE_b-1-inDigitIdx));
+    poly[digitIdx] = poly[digitIdx] | ((value & (1 as DIGIT)) << (DIGIT_SIZE_b - 1 - inDigitIdx));
 }
 
 unsafe fn gf2x_mul_comb(
@@ -341,7 +341,7 @@ unsafe fn gf2x_mul_Kar(
     }
     if na % 2i32 == 0i32 {
         let mut bih: u32 = (na / 2i32) as u32;
-        let mut middle: Vec<DIGIT> = vec![0; 2*bih as usize];
+        let mut middle: Vec<DIGIT> = vec![0; 2 * bih as usize];
         let mut sumA: Vec<DIGIT> = vec![0; bih as usize];
         let mut sumB: Vec<DIGIT> = vec![0; bih as usize];
         gf2x_add(
@@ -565,7 +565,7 @@ pub unsafe fn gf2x_mul_TC3(
         v1,
     );
     gf2x_add_2(&mut sum_v, &v2);
-    let mut w1: Vec<DIGIT> = vec![0; 2*bih as usize];
+    let mut w1: Vec<DIGIT> = vec![0; 2 * bih as usize];
     gf2x_mul_TC3(
         w1.len() as i32,
         w1.as_mut_ptr(),
@@ -650,7 +650,7 @@ pub unsafe fn gf2x_mul_TC3(
         sum_v.as_ptr(),
     );
 
-    let mut w3: Vec<DIGIT> = vec![0; 2*(bih as usize)+2];
+    let mut w3: Vec<DIGIT> = vec![0; 2 * (bih as usize) + 2];
     gf2x_mul_TC3(
         w3.len() as i32,
         w3.as_mut_ptr(),
@@ -675,7 +675,7 @@ pub unsafe fn gf2x_mul_TC3(
         bih as i32,
         v0,
     );
-    let mut w2: Vec<DIGIT> = vec![0; 2*(bih as usize)+2];
+    let mut w2: Vec<DIGIT> = vec![0; 2 * (bih as usize) + 2];
     gf2x_mul_TC3(
         w3.len() as i32,
         w2.as_mut_ptr(),
@@ -729,11 +729,7 @@ pub unsafe fn gf2x_mul_TC3(
         w4.as_mut_ptr() as *const libc::c_void,
         (2i32 as u32).wrapping_mul(bih).wrapping_mul(8i32 as u32) as u64,
     );
-    left_bit_shift_n(
-        w4_x3_plus_1.len() as i32,
-        w4_x3_plus_1.as_mut_ptr(),
-        3i32,
-    );
+    left_bit_shift_n(w4_x3_plus_1.len() as i32, w4_x3_plus_1.as_mut_ptr(), 3i32);
     gf2x_add_asymm(
         w2.len() as i32,
         w2.as_mut_ptr(),
@@ -763,15 +759,8 @@ pub unsafe fn gf2x_mul_TC3(
         w1.len() as i32,
         w1.as_ptr(),
     );
-    right_bit_shift_n(
-        w3.len() as i32,
-        w3.as_mut_ptr(),
-        1i32,
-    );
-    gf2x_exact_div_x_plus_one(
-        w3.len() as i32,
-        w3.as_mut_ptr(),
-    );
+    right_bit_shift_n(w3.len() as i32, w3.as_mut_ptr(), 1i32);
+    gf2x_exact_div_x_plus_one(w3.len() as i32, w3.as_mut_ptr());
     gf2x_add_2(&mut w1, &w4);
     let vla_17 = (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as usize;
     let mut w1_final: Vec<DIGIT> = ::std::vec::from_elem(0, vla_17);

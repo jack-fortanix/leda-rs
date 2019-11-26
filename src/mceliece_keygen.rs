@@ -6,15 +6,15 @@ use crate::gf2x_arith_mod_xPplusOne::*;
 use crate::types::*;
 use crate::H_Q_matrices_generation::*;
 
-pub fn key_gen_mceliece(seed: &[u8]) -> Result<(LedaPublicKey,LedaPrivateKey)> {
+pub fn key_gen_mceliece(seed: &[u8]) -> Result<(LedaPublicKey, LedaPrivateKey)> {
     let mut pk = LedaPublicKey {
-        Mtr: [0; NUM_DIGITS_GF2X_ELEMENT ]
+        Mtr: [0; NUM_DIGITS_GF2X_ELEMENT],
     };
 
     let mut sk = LedaPrivateKey {
         prng_seed: [0u8; 32],
         rejections: 0,
-        secondIterThreshold: 0
+        secondIterThreshold: 0,
     };
 
     sk.prng_seed.copy_from_slice(seed);
@@ -37,7 +37,7 @@ pub fn key_gen_mceliece(seed: &[u8]) -> Result<(LedaPublicKey,LedaPrivateKey)> {
         generateHPosOnes(&mut HPosOnes, &mut keys_expander);
         generateQPosOnes(&mut QPosOnes, &mut keys_expander);
         for i in 0..2 {
-            for j in 0..(11*11) {
+            for j in 0..(11 * 11) {
                 LPosOnes[i][j] = P32;
             }
         }
@@ -45,9 +45,12 @@ pub fn key_gen_mceliece(seed: &[u8]) -> Result<(LedaPublicKey,LedaPrivateKey)> {
         let mut processedQOnes: [usize; 2] = [0, 0];
         for colQ in 0..N0 {
             for i_0 in 0..N0 {
-                gf2x_mod_mul_sparse(&mut auxPosOnes,
-                                    &HPosOnes[i_0],
-                                    &QPosOnes[i_0][processedQOnes[i_0]..(processedQOnes[i_0]+qBlockWeights[i_0][colQ] as usize)]);
+                gf2x_mod_mul_sparse(
+                    &mut auxPosOnes,
+                    &HPosOnes[i_0],
+                    &QPosOnes[i_0][processedQOnes[i_0]
+                        ..(processedQOnes[i_0] + qBlockWeights[i_0][colQ] as usize)],
+                );
                 gf2x_mod_add_sparse(&mut LPosOnes[colQ], &auxPosOnes);
                 processedQOnes[i_0] += qBlockWeights[i_0][colQ as usize] as usize;
             }
@@ -56,8 +59,8 @@ pub fn key_gen_mceliece(seed: &[u8]) -> Result<(LedaPublicKey,LedaPrivateKey)> {
         let mut i_1: i32 = 0i32;
 
         while i_1 < 2i32 {
-            is_L_full = (is_L_full != 0
-                && LPosOnes[i_1 as usize][(11 * 11 - 1i32) as usize] != P32) as i32;
+            is_L_full =
+                (is_L_full != 0 && LPosOnes[i_1 as usize][(11 * 11 - 1i32) as usize] != P32) as i32;
             i_1 += 1
         }
 
@@ -75,7 +78,7 @@ pub fn key_gen_mceliece(seed: &[u8]) -> Result<(LedaPublicKey,LedaPrivateKey)> {
     }
     let mut Ln0dense: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
 
-    for j in 0..(DV*M) {
+    for j in 0..(DV * M) {
         if LPosOnes[1][j] != P32 {
             gf2x_set_coeff(&mut Ln0dense, LPosOnes[1][j] as usize, 1 as DIGIT);
         }
@@ -85,5 +88,5 @@ pub fn key_gen_mceliece(seed: &[u8]) -> Result<(LedaPublicKey,LedaPrivateKey)> {
     gf2x_mod_mul_dense_to_sparse(&mut pk.Mtr, &Ln0Inv, &LPosOnes[0]);
     gf2x_transpose_in_place(&mut pk.Mtr);
 
-    Ok((pk,sk))
+    Ok((pk, sk))
 }

@@ -5,11 +5,7 @@ use crate::types::*;
 pub fn generateHPosOnes(HPosOnes: &mut [[u32; DV]; N0], keys_expander: &mut AES_XOF_struct) {
     for i in 0..N0 {
         /* Generate a random block of Htr */
-        rand_circulant_sparse_block(
-            &mut HPosOnes[i],
-            DV,
-            keys_expander,
-        );
+        rand_circulant_sparse_block(&mut HPosOnes[i], DV, keys_expander);
     }
 }
 

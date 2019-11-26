@@ -36,7 +36,7 @@ pub struct LedaExpandedPrivateKey {
 
     pub HPosOnes: [[u32; DV]; N0],
     pub QPosOnes: [[u32; DV]; N0],
-    pub LPosOnes: [[u32; DV*M]; N0],
+    pub LPosOnes: [[u32; DV * M]; N0],
 }
 
 #[derive(Copy, Clone)]

@@ -19,7 +19,8 @@ unsafe fn decrypt_McEliece(
     correct_codeword: &mut [DIGIT],
     sk: &LedaPrivateKey,
     thresholds: &[i32],
-    ctext: &[u8]) -> i32 {
+    ctext: &[u8],
+) -> i32 {
     let mut xof = seedexpander_from_trng(&sk.prng_seed).unwrap();
     /* rebuild secret key values */
     let mut HPosOnes: [[u32; 11]; 2] = [[0; 11]; 2];
@@ -66,14 +67,16 @@ unsafe fn decrypt_McEliece(
     }
 
     for i in 0..N0 {
-        gf2x_transpose_in_place(&mut codewordPoly[i*NUM_DIGITS_GF2X_ELEMENT..(i+1)*NUM_DIGITS_GF2X_ELEMENT]);
+        gf2x_transpose_in_place(
+            &mut codewordPoly[i * NUM_DIGITS_GF2X_ELEMENT..(i + 1) * NUM_DIGITS_GF2X_ELEMENT],
+        );
     }
     let mut privateSyndrome: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     let mut aux: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     for i in 0..N0 {
         gf2x_mod_mul_dense_to_sparse(
             &mut aux,
-            &codewordPoly[i*NUM_DIGITS_GF2X_ELEMENT..],
+            &codewordPoly[i * NUM_DIGITS_GF2X_ELEMENT..],
             &LPosOnes[i],
         );
         gf2x_mod_add_2(&mut privateSyndrome, &aux);
@@ -98,14 +101,17 @@ unsafe fn decrypt_McEliece(
 
     let mut ctext_digits = vec![0 as DIGIT; ctext.len() / 8];
     for i in 0..ctext_digits.len() {
-        ctext_digits[i] = u64::from_le_bytes(ctext[8*i..8*(i+1)].try_into().expect("8 bytes"));
+        ctext_digits[i] =
+            u64::from_le_bytes(ctext[8 * i..8 * (i + 1)].try_into().expect("8 bytes"));
     }
 
     for i in 0..N0 {
-        gf2x_mod_add_3(&mut correct_codeword[i*NUM_DIGITS_GF2X_ELEMENT..(i+1)*NUM_DIGITS_GF2X_ELEMENT],
-                       &ctext_digits[i*NUM_DIGITS_GF2X_ELEMENT..(i+1)*NUM_DIGITS_GF2X_ELEMENT],
-                       &decoded_err[i*NUM_DIGITS_GF2X_ELEMENT..(i+1)*NUM_DIGITS_GF2X_ELEMENT]);
-   }
+        gf2x_mod_add_3(
+            &mut correct_codeword[i * NUM_DIGITS_GF2X_ELEMENT..(i + 1) * NUM_DIGITS_GF2X_ELEMENT],
+            &ctext_digits[i * NUM_DIGITS_GF2X_ELEMENT..(i + 1) * NUM_DIGITS_GF2X_ELEMENT],
+            &decoded_err[i * NUM_DIGITS_GF2X_ELEMENT..(i + 1) * NUM_DIGITS_GF2X_ELEMENT],
+        );
+    }
     return 1i32;
 }
 /*----------------------------------------------------------------------------*/
@@ -219,52 +225,56 @@ pub fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<Vec<u8>>
             as u64
     }
     let mut paddedOutput: Vec<u8> = vec![0u8; paddedSequenceLen as usize];
-    unsafe {poly_seq_into_bytestream(
-        &mut paddedOutput,
-        (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u32,
-        correctedCodeword.as_mut_ptr(),
-        (2i32 - 1i32) as u32,
-    ); }
+    unsafe {
+        poly_seq_into_bytestream(
+            &mut paddedOutput,
+            (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u32,
+            correctedCodeword.as_mut_ptr(),
+            (2i32 - 1i32) as u32,
+        );
+    }
     /* move back leftover padded string (if present) onto its position*/
     if clen
         > (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32)
             as u64
-                   {
-                       unsafe {
-        /* meld back byte split across iword and leftover. Recall that leftover is
-         * built with leading zeroes, and output from iword has trailing zeroes
-         * so no masking away is needed */
-        let ref mut fresh3 = *paddedOutput
-            .as_mut_ptr()
-            .offset((((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32 - 1i32) as isize);
-        *fresh3 = (*fresh3 as i32
-            | *ctx.offset(
-                (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32)
-                    as isize,
-            ) as i32) as u8;
-        let mut remainingToCopy: i32 = paddedSequenceLen
-            .wrapping_sub((((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u64)
-            as i32;
-        memmove(
-            paddedOutput
+    {
+        unsafe {
+            /* meld back byte split across iword and leftover. Recall that leftover is
+             * built with leading zeroes, and output from iword has trailing zeroes
+             * so no masking away is needed */
+            let ref mut fresh3 = *paddedOutput
                 .as_mut_ptr()
-                .offset((((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as isize)
-                as *mut libc::c_void,
-            ctx.offset(
-                (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32)
-                    as isize,
-            )
-            .offset(1) as *const libc::c_void,
-            remainingToCopy as u64,
-                );
-            }
+                .offset((((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32 - 1i32) as isize);
+            *fresh3 = (*fresh3 as i32
+                | *ctx.offset(
+                    (2i32
+                        * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32))
+                        * 8i32) as isize,
+                ) as i32) as u8;
+            let mut remainingToCopy: i32 = paddedSequenceLen
+                .wrapping_sub((((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u64)
+                as i32;
+            memmove(
+                paddedOutput
+                    .as_mut_ptr()
+                    .offset((((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as isize)
+                    as *mut libc::c_void,
+                ctx.offset(
+                    (2i32
+                        * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32))
+                        * 8i32) as isize,
+                )
+                .offset(1) as *const libc::c_void,
+                remainingToCopy as u64,
+            );
+        }
     }
 
     let outputHash = sha3_384(&paddedOutput);
     /* rebuild message hash ^ seed from error vector */
     let mut cwEncOutputBuffer = vec![0u8; 1072];
-    unsafe {constant_weight_to_binary_approximate(
-        &mut cwEncOutputBuffer, &err);
+    unsafe {
+        constant_weight_to_binary_approximate(&mut cwEncOutputBuffer, &err);
     }
     /* obtain back the PRNG seed */
     let mut secretSeed: [u8; 32] = [0; 32];

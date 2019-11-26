@@ -1,8 +1,8 @@
+use crate::consts::*;
 use crate::mceliece_cca2_decrypt::decrypt_Kobara_Imai;
 use crate::mceliece_cca2_encrypt::encrypt_Kobara_Imai;
 use crate::mceliece_keygen::key_gen_mceliece;
 use crate::types::*;
-use crate::consts::*;
 use std::convert::TryInto;
 
 fn leda_decode_pk(pk: &[u8]) -> Result<LedaPublicKey> {
@@ -10,10 +10,12 @@ fn leda_decode_pk(pk: &[u8]) -> Result<LedaPublicKey> {
         return Err(Error::InvalidKey);
     }
 
-    let mut key = LedaPublicKey { Mtr: [0; NUM_DIGITS_GF2X_ELEMENT ] };
+    let mut key = LedaPublicKey {
+        Mtr: [0; NUM_DIGITS_GF2X_ELEMENT],
+    };
 
     for i in 0..NUM_DIGITS_GF2X_ELEMENT {
-        let word : [u8; 8] = pk[(8*i)..(8*i+8)].try_into().expect("8 bytes");
+        let word: [u8; 8] = pk[(8 * i)..(8 * i + 8)].try_into().expect("8 bytes");
         key.Mtr[i] = u64::from_le_bytes(word);
     }
 
@@ -21,11 +23,11 @@ fn leda_decode_pk(pk: &[u8]) -> Result<LedaPublicKey> {
 }
 
 fn leda_encode_pk(pk: &LedaPublicKey) -> Result<Vec<u8>> {
-    let mut buf = vec![0u8; 8*NUM_DIGITS_GF2X_ELEMENT];
+    let mut buf = vec![0u8; 8 * NUM_DIGITS_GF2X_ELEMENT];
 
     for i in 0..NUM_DIGITS_GF2X_ELEMENT {
-        let word : [u8; 8] = pk.Mtr[i].to_le_bytes();
-        buf[(8*i)..(8*i+8)].copy_from_slice(&word);
+        let word: [u8; 8] = pk.Mtr[i].to_le_bytes();
+        buf[(8 * i)..(8 * i + 8)].copy_from_slice(&word);
     }
 
     Ok(buf)
@@ -49,7 +51,7 @@ fn leda_decode_sk(sk: &[u8]) -> Result<LedaPrivateKey> {
     let mut key = LedaPrivateKey {
         prng_seed: [0u8; 32],
         rejections: 0,
-        secondIterThreshold: 0
+        secondIterThreshold: 0,
     };
 
     key.prng_seed.copy_from_slice(&sk[0..32]);
@@ -63,7 +65,7 @@ pub fn leda_gen_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
     let mut seed = vec![0u8; 32];
     crate::crypto::randombytes(&mut seed);
 
-    let (pk,sk) = key_gen_mceliece(&seed)?;
+    let (pk, sk) = key_gen_mceliece(&seed)?;
 
     Ok((leda_encode_sk(&sk)?, leda_encode_pk(&pk)?))
 }

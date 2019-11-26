@@ -1,6 +1,6 @@
+use crate::consts::*;
 use crate::gf2x_arith::*;
 use crate::types::*;
-use crate::consts::*;
 
 pub unsafe fn bitstream_write(
     output: &mut [u8],
@@ -103,8 +103,8 @@ pub fn bitstream_read(stream: &[u8], bit_amount: u32, bit_cursor: &mut u32) -> u
         }
         /* here byte cursor is on the byte where the still_to_extract MSbs are to be
         taken from */
-        extracted_bits = (extracted_bits << still_to_extract) |
-        ((stream[byte_cursor as usize] as u64) >> (8 - still_to_extract));
+        extracted_bits = (extracted_bits << still_to_extract)
+            | ((stream[byte_cursor as usize] as u64) >> (8 - still_to_extract));
     }
     *bit_cursor = (*bit_cursor).wrapping_add(bit_amount);
     return extracted_bits;
@@ -113,13 +113,9 @@ pub fn bitstream_read(stream: &[u8], bit_amount: u32, bit_cursor: &mut u32) -> u
 /*----------------------------------------------------------------------------*/
 /* returns the portion of the bitstream read, padded with zeroes if the
 bitstream has less bits than required. Updates the value of the bit cursor */
-fn bitstream_read_padded(
-    stream: &[u8],
-    bitAmount: u32,
-    bitCursor: &mut u32,
-) -> u64 {
+fn bitstream_read_padded(stream: &[u8], bitAmount: u32, bitCursor: &mut u32) -> u64 {
     if (*bitCursor).wrapping_add(bitAmount) < stream.len() as u32 {
-        return bitstream_read(stream, bitAmount, bitCursor)
+        return bitstream_read(stream, bitAmount, bitCursor);
     } else {
         /*if remaining bits are not sufficient, pad with enough zeroes */
         let available_bits: u32 = (stream.len() as u32) - *bitCursor;
@@ -132,7 +128,7 @@ fn bitstream_read_padded(
     }
 }
 
-fn estimate_d_u(n: u32, t: u32) -> (u32,u32) {
+fn estimate_d_u(n: u32, t: u32) -> (u32, u32) {
     let d = (0.69315f64 * (n as f64 - (t as f64 - 1.0f64) / 2.0f64) / t as f64) as u32;
     let mut u = 0u32;
     let mut tmp = d;
@@ -140,13 +136,14 @@ fn estimate_d_u(n: u32, t: u32) -> (u32,u32) {
         tmp >>= 1;
         u = u + 1;
     }
-    return (d,u)
+    return (d, u);
 }
 
 /* Encodes a bit string into a constant weight N0 polynomials vector*/
 pub unsafe fn constant_weight_to_binary_approximate(
     bitstreamOut: &mut [u8],
-    constantWeightIn: &[DIGIT]) {
+    constantWeightIn: &[DIGIT],
+) {
     let mut distancesBetweenOnes: [u32; NUM_ERRORS] = [0; NUM_ERRORS];
     /*compute the array of inter-ones distances. Note that there
     is an implicit one out of bounds to compute the first distance from */
@@ -161,9 +158,11 @@ pub unsafe fn constant_weight_to_binary_approximate(
         current_inspected_poly =
             current_inspected_position.wrapping_div(crate::consts::P as i32 as u32);
         if gf2x_get_coeff(
-            constantWeightIn.as_ptr().offset(current_inspected_poly.wrapping_mul(
-                ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as u32,
-            ) as isize),
+            constantWeightIn
+                .as_ptr()
+                .offset(current_inspected_poly.wrapping_mul(
+                    ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as u32,
+                ) as isize),
             current_inspected_exponent,
         ) == 1i32 as u64
         {
@@ -184,7 +183,7 @@ pub unsafe fn constant_weight_to_binary_approximate(
     let mut outputBitCursor: u32 = 0i32 as u32;
     idxDistances = 0i32 as u32;
     while idxDistances < NUM_ERRORS as u32 {
-        let (d,u) = estimate_d_u(inPositionsStillAvailable, onesStillToPlaceOut);
+        let (d, u) = estimate_d_u(inPositionsStillAvailable, onesStillToPlaceOut);
         let mut quotient: u32 = 0;
         if d != 0i32 as u32 {
             quotient = distancesBetweenOnes[idxDistances as usize].wrapping_div(d)
@@ -221,7 +220,10 @@ pub unsafe fn constant_weight_to_binary_approximate(
     }
 }
 
-pub fn binary_to_constant_weight_approximate(constantWeightOut: &mut [DIGIT], bitstreamIn: &[u8]) -> bool {
+pub fn binary_to_constant_weight_approximate(
+    constantWeightOut: &mut [DIGIT],
+    bitstreamIn: &[u8],
+) -> bool {
     let mut distancesBetweenOnes: [u32; NUM_ERRORS] = [0; NUM_ERRORS];
     let mut idxDistances: u32 = 0i32 as u32;
     let mut onesStillToPlaceOut: u32 = NUM_ERRORS as u32;
@@ -236,19 +238,10 @@ pub fn binary_to_constant_weight_approximate(constantWeightOut: &mut [DIGIT], bi
             return false;
         }
         /*estimate d and u */
-        let (d,u) = estimate_d_u(
-            outPositionsStillAvailable,
-            onesStillToPlaceOut,
-        );
+        let (d, u) = estimate_d_u(outPositionsStillAvailable, onesStillToPlaceOut);
         /* read unary-encoded quotient, i.e. leading 1^* 0 */
         let mut quotient: u32 = 0i32 as u32;
-        while 1i32 as u64
-            == bitstream_read_padded(
-                &bitstreamIn,
-                1u32,
-                &mut bitstreamInCursor,
-            )
-        {
+        while 1i32 as u64 == bitstream_read_padded(&bitstreamIn, 1u32, &mut bitstreamInCursor) {
             quotient = quotient.wrapping_add(1)
         }
         /* decode truncated binary encoded integer */
@@ -264,12 +257,9 @@ pub fn binary_to_constant_weight_approximate(constantWeightOut: &mut [DIGIT], bi
         if distanceToBeComputed >= ((1i32 << u) as u32).wrapping_sub(d) {
             distanceToBeComputed =
                 (distanceToBeComputed as u32).wrapping_mul(2i32 as u32) as u32 as u32;
-            distanceToBeComputed =
-                (distanceToBeComputed as u64).wrapping_add(bitstream_read_padded(
-                    &bitstreamIn,
-                    1i32 as u32,
-                    &mut bitstreamInCursor,
-                )) as u32 as u32;
+            distanceToBeComputed = (distanceToBeComputed as u64).wrapping_add(
+                bitstream_read_padded(&bitstreamIn, 1i32 as u32, &mut bitstreamInCursor),
+            ) as u32 as u32;
             distanceToBeComputed = (distanceToBeComputed as u32)
                 .wrapping_sub(((1i32 << u) as u32).wrapping_sub(d))
                 as u32 as u32
@@ -306,9 +296,10 @@ pub fn binary_to_constant_weight_approximate(constantWeightOut: &mut [DIGIT], bi
         }
         let polyIndex = (current_one_position / crate::consts::P as i32) as usize;
         let exponent = (current_one_position % crate::consts::P as i32) as usize;
-        gf2x_set_coeff(&mut constantWeightOut[NUM_DIGITS_GF2X_ELEMENT*polyIndex..],
-                       exponent,
-                       1i32 as DIGIT,
+        gf2x_set_coeff(
+            &mut constantWeightOut[NUM_DIGITS_GF2X_ELEMENT * polyIndex..],
+            exponent,
+            1i32 as DIGIT,
         );
         i += 1
     }

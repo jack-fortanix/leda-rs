@@ -18,8 +18,11 @@ fn gf2x_mod(out: &mut [DIGIT], input: &[DIGIT]) {
             aux.as_mut_ptr(),
             MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS as i32,
         );
-        gf2x_mod_add_3(out, &aux[1..NUM_DIGITS_GF2X_ELEMENT+1],
-                       &input[NUM_DIGITS_GF2X_ELEMENT..2*NUM_DIGITS_GF2X_ELEMENT]);
+        gf2x_mod_add_3(
+            out,
+            &aux[1..NUM_DIGITS_GF2X_ELEMENT + 1],
+            &input[NUM_DIGITS_GF2X_ELEMENT..2 * NUM_DIGITS_GF2X_ELEMENT],
+        );
 
         out[0] &= ((1 as DIGIT) << MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS) - 1;
     }
@@ -93,13 +96,13 @@ fn rotate_bit_left(input: &mut [DIGIT]) {
 
     assert_eq!(NUM_DIGITS_GF2X_MODULUS, NUM_DIGITS_GF2X_ELEMENT);
 
-    let msb_offset_in_digit = MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS-1;
+    let msb_offset_in_digit = MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS - 1;
     let mask = (0x1i32 as DIGIT) << msb_offset_in_digit;
     let rotated_bit = (input[0] & mask != 0) as i32 as DIGIT;
     input[0] &= !mask;
 
     unsafe { left_bit_shift(NUM_DIGITS_GF2X_ELEMENT as i32, input.as_mut_ptr()) }
-    input[NUM_DIGITS_GF2X_ELEMENT-1] |= rotated_bit;
+    input[NUM_DIGITS_GF2X_ELEMENT - 1] |= rotated_bit;
 }
 
 fn rotate_bit_right(input: &mut [DIGIT]) {

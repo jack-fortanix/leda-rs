@@ -8,7 +8,7 @@ pub const M: usize = 11;
 //pub const M1: usize = 5;
 pub const NUM_ERRORS: usize = 199;
 
-pub const P32 : u32 = P as u32;
+pub const P32: u32 = P as u32;
 
 //pub const HASH_BYTE_LENGTH: usize = 48;
 pub const TRNG_BYTE_LENGTH: usize = 32;
@@ -29,9 +29,10 @@ pub const NUM_DIGITS_GF2X_ELEMENT: usize = ((P + DIGIT_SIZE_b - 1) / DIGIT_SIZE_
 pub const NUM_DIGITS_GF2X_MODULUS: usize = ((P + DIGIT_SIZE_b) / DIGIT_SIZE_b);
 
 //pub const MSb_POSITION_IN_MSB_DIGIT_OF_ELEMENT: usize = (P % DIGIT_SIZE_b) ? (P % DIGIT_SIZE_b)-1 : DIGIT_SIZE_b-1
-pub const MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS: usize = (P-DIGIT_SIZE_b*(NUM_DIGITS_GF2X_MODULUS-1));
+pub const MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS: usize =
+    (P - DIGIT_SIZE_b * (NUM_DIGITS_GF2X_MODULUS - 1));
 
-pub const GF2_INVERSE_MASK : u64 = 0x80000000000;
+pub const GF2_INVERSE_MASK: u64 = 0x80000000000;
 
 // Derived parameters, they are useful for QC-LDPC algorithms
 // Circulant weight structure of the Q matrix, specialized per value of N0
