@@ -138,13 +138,8 @@ unsafe {
     /*to avoid the use of additional memory, exploit the memory allocated for
      * the ciphertext to host the prng-padded ptx+const+len. */
     let mut ctext = vec![0u8; clen];
-    let mut correctlySizedBytePtxLen: u64 = bytePtxLen as u64;
 
-    memcpy(
-        ctext.as_mut_ptr().offset(32) as *mut libc::c_void,
-        &mut correctlySizedBytePtxLen as *mut u64 as *const libc::c_void,
-        ::std::mem::size_of::<u64>() as u64,
-    );
+    ctext[32..40].copy_from_slice(&(bytePtxLen as u64).to_le_bytes());
     ctext[40..40 + bytePtxLen as usize].copy_from_slice(&msg);
 
     for i in 0..paddedSequenceLen as usize {
