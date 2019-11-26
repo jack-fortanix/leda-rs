@@ -238,11 +238,9 @@ pub unsafe fn constant_weight_to_binary_approximate(
     }
 }
 
-pub unsafe fn binary_to_constant_weight_approximate(
-    constantWeightOut: &mut [DIGIT],
-    bitstreamIn: *const u8,
-    bitLength: i32,
-) -> i32 {
+pub unsafe fn binary_to_constant_weight_approximate(constantWeightOut: &mut [DIGIT], bitstreamIn: &[u8]) -> bool {
+
+    let bitLength = bitstreamIn.len() as u32;
     let mut distancesBetweenOnes: [u32; NUM_ERRORS] = [0; NUM_ERRORS]; /* assuming trailing slack bits in the input
                                                          stream. In case the slack bits in the input stream are leading, change to
                                                          8- (bitLength %8) - 1 */
@@ -256,7 +254,7 @@ pub unsafe fn binary_to_constant_weight_approximate(
         if outPositionsStillAvailable < onesStillToPlaceOut
             || outPositionsStillAvailable < 0i32 as u32
         {
-            return 0i32;
+            return false;
         }
         /*estimate d and u */
         let mut d: u32 = 0;
@@ -271,7 +269,7 @@ pub unsafe fn binary_to_constant_weight_approximate(
         let mut quotient: u32 = 0i32 as u32;
         while 1i32 as u64
             == bitstream_read_padded(
-                bitstreamIn,
+                bitstreamIn.as_ptr(),
                 1i32 as u32,
                 bitLength as u32,
                 &mut bitstreamInCursor,
@@ -282,7 +280,7 @@ pub unsafe fn binary_to_constant_weight_approximate(
         /* decode truncated binary encoded integer */
         let mut distanceToBeComputed: u32 = if u > 0i32 as u32 {
             bitstream_read_padded(
-                bitstreamIn,
+                bitstreamIn.as_ptr(),
                 u.wrapping_sub(1i32 as u32),
                 bitLength as u32,
                 &mut bitstreamInCursor,
@@ -295,7 +293,7 @@ pub unsafe fn binary_to_constant_weight_approximate(
                 (distanceToBeComputed as u32).wrapping_mul(2i32 as u32) as u32 as u32;
             distanceToBeComputed =
                 (distanceToBeComputed as u64).wrapping_add(bitstream_read_padded(
-                    bitstreamIn,
+                    bitstreamIn.as_ptr(),
                     1i32 as u32,
                     bitLength as u32,
                     &mut bitstreamInCursor,
@@ -319,10 +317,10 @@ pub unsafe fn binary_to_constant_weight_approximate(
         }
     }
     if outPositionsStillAvailable < onesStillToPlaceOut {
-        return 0i32;
+        return false;
     }
     if bitstreamInCursor < (48i32 * 8i32) as u32 {
-        return 0i32;
+        return false;
     }
     /*encode ones according to distancesBetweenOnes into constantWeightOut */
     let mut current_one_position: i32 = -1i32;
@@ -332,7 +330,7 @@ pub unsafe fn binary_to_constant_weight_approximate(
             .wrapping_add(distancesBetweenOnes[i as usize].wrapping_add(1i32 as u32))
             as i32 as i32;
         if current_one_position >= 2i32 * crate::consts::P as i32 {
-            return 0i32;
+            return false;
         }
         let polyIndex = (current_one_position / crate::consts::P as i32) as usize;
         let exponent = (current_one_position % crate::consts::P as i32) as usize;
@@ -342,6 +340,5 @@ pub unsafe fn binary_to_constant_weight_approximate(
         );
         i += 1
     }
-    return 1i32;
+    return true;
 }
-// end binary_to_constant_weight_approximate

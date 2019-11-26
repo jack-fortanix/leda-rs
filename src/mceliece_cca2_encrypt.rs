@@ -132,21 +132,18 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
         let binaryToConstantWeightOk = unsafe {
             binary_to_constant_weight_approximate(
                 &mut cwEncodedError,
-                cwEncInputBuffer.as_mut_ptr(),
-                48i32 + 1024i32,
+                &cwEncInputBuffer
             )
         };
 
-        if !(binaryToConstantWeightOk == 0i32) {
+        if binaryToConstantWeightOk {
             break;
+        }
+        else {
+            panic!("wups");
         }
     }
 
     let mut codeword = encrypt_McEliece(&*pk, &informationWord, &cwEncodedError);
-
-    /* output composition looks like codeword || left bytepad leftover
-     * and is thus long as ROUND_UP(leftover_bits,8)+
-     * N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B */
-    // the output byte stream is made of N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B bytes
     Ok(digits_to_bytes(&codeword))
 }
