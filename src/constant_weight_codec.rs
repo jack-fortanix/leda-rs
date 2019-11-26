@@ -284,12 +284,11 @@ pub fn binary_to_constant_weight_approximate(
     }
     /*encode ones according to distancesBetweenOnes into constantWeightOut */
     let mut current_one_position: i32 = -1i32;
-    let mut i: i32 = 0i32;
-    while i < NUM_ERRORS as i32 {
+    for i in 0..NUM_ERRORS {
         current_one_position = (current_one_position as u32)
-            .wrapping_add(distancesBetweenOnes[i as usize].wrapping_add(1i32 as u32))
+            .wrapping_add(distancesBetweenOnes[i].wrapping_add(1i32 as u32))
             as i32 as i32;
-        if current_one_position >= 2i32 * crate::consts::P as i32 {
+        if current_one_position >= 2 * crate::consts::P as i32 {
             return false;
         }
         let polyIndex = (current_one_position / crate::consts::P as i32) as usize;
@@ -297,9 +296,8 @@ pub fn binary_to_constant_weight_approximate(
         gf2x_set_coeff(
             &mut constantWeightOut[NUM_DIGITS_GF2X_ELEMENT * polyIndex..],
             exponent,
-            1i32 as DIGIT,
+            1 as DIGIT,
         );
-        i += 1
     }
     return true;
 }
