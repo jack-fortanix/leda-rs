@@ -64,22 +64,23 @@ unsafe fn char_right_bit_shift_n(length: i32, mut input: *mut u8, amount: i32) {
 unsafe fn bytestream_into_poly_seq(
     mut polySeq: &mut [DIGIT],
     mut numPoly: i32,
-    mut S: *mut u8,
-    byteLenS: u64,
+    mut S: &mut [u8],
+    _byteLenS: u64,
 ) -> i32 {
+
     let padsize: i32 = if (2i32 - 1i32) * crate::consts::P as i32 % 8i32 != 0 {
         (8i32) - (2i32 - 1i32) * crate::consts::P as i32 % 8i32
     } else {
         0i32
     };
-    char_right_bit_shift_n(byteLenS as i32, S, padsize);
-    if numPoly <= 0i32
-        || byteLenS <= 0i32 as u64
-        || byteLenS < ((numPoly * crate::consts::P as i32 + 7i32) / 8i32) as u64
+    char_right_bit_shift_n(S.len() as i32, S.as_mut_ptr(), padsize);
+    if numPoly <= 0
+        || S.len() <= 0
+        || S.len() < ((numPoly * crate::consts::P as i32 + 7i32) / 8i32) as usize
     {
         return 0i32;
     }
-    let mut slack_bits: u32 = byteLenS
+    let mut slack_bits: u32 = (S.len() as u64)
         .wrapping_mul(8i32 as u64)
         .wrapping_sub((numPoly * crate::consts::P as i32) as u64)
         as u32;
@@ -87,7 +88,7 @@ unsafe fn bytestream_into_poly_seq(
     for polyIdx in 0..(numPoly as usize) {
         let mut exponent: u32 = 0i32 as u32;
         while exponent < crate::consts::P as i32 as u32 {
-            let buffer = bitstream_read(S, 1i32 as u32, &mut bitCursor);
+            let buffer = bitstream_read(S.as_mut_ptr(), 1i32 as u32, &mut bitCursor);
 
             gf2x_set_coeff(&mut polySeq[NUM_DIGITS_GF2X_ELEMENT*polyIdx..],
                            exponent as usize,
@@ -207,13 +208,13 @@ unsafe {
                 .to_owned(),
         ));
     }
-    let mut iwordBuffer: [u8; 7238] = [0; 7238];
-    iwordBuffer.copy_from_slice(&ctext[0..7238]);
+    let mut iwordBuffer: [u8; (K+7)/8] = [0; (K+7)/8];
+    iwordBuffer.copy_from_slice(&ctext[0..(K+7)/8]);
     /* transform into an information word poly sequence */
     let mut informationWord: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
     bytestream_into_poly_seq(&mut informationWord,
-        2i32 - 1i32,
-        iwordBuffer.as_mut_ptr(),
+                             (N0 - 1) as i32,
+                             &mut iwordBuffer,
         (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u64,
     );
     /* prepare hash of padded sequence, before leftover is moved to its final place */
