@@ -71,14 +71,11 @@ unsafe fn bytestream_into_poly_seq(
     if numPoly == 0 || S.len() < ((numPoly * P + 7) / 8) {
         return Err(Error::Custom("Error in bytestream_into_poly_seq".into()));
     }
-    let mut slack_bits: u32 = (S.len() as u64)
-        .wrapping_mul(8i32 as u64)
-        .wrapping_sub((numPoly as i32 * crate::consts::P as i32) as u64)
-        as u32;
-    let mut bitCursor: u32 = slack_bits;
-    for polyIdx in 0..(numPoly as usize) {
-        let mut exponent: u32 = 0i32 as u32;
-        while exponent < crate::consts::P as i32 as u32 {
+    let slack_bits = S.len()*8 - numPoly*P;
+    let mut bitCursor: u32 = slack_bits as u32;
+    for polyIdx in 0..numPoly {
+        let mut exponent: u32 = 0;
+        while exponent < P32 {
             let buffer = bitstream_read(S.as_mut_ptr(), 1i32 as u32, &mut bitCursor);
 
             gf2x_set_coeff(&mut polySeq[NUM_DIGITS_GF2X_ELEMENT*polyIdx..],
