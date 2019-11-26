@@ -132,7 +132,7 @@ unsafe fn char_left_bit_shift_n(length: i32, mut input: *mut u8, amount: i32) {
 }
 /*----------------------------------------------------------------------------*/
 unsafe fn poly_seq_into_bytestream(
-    mut output: *mut u8,
+    output: &mut [u8],
     byteOutputLength: u32,
     mut zPoly: *mut DIGIT,
     numPoly: u32,
@@ -167,7 +167,7 @@ unsafe fn poly_seq_into_bytestream(
     } else {
         0i32
     };
-    char_left_bit_shift_n(byteOutputLength as i32, output, padsize);
+    char_left_bit_shift_n(byteOutputLength as i32, output.as_mut_ptr(), padsize);
     return 1i32;
 }
 
@@ -220,7 +220,7 @@ pub fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<Vec<u8>>
     }
     let mut paddedOutput: Vec<u8> = vec![0u8; paddedSequenceLen as usize];
     unsafe {poly_seq_into_bytestream(
-        paddedOutput.as_mut_ptr(),
+        &mut paddedOutput,
         (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u32,
         correctedCodeword.as_mut_ptr(),
         (2i32 - 1i32) as u32,
@@ -264,9 +264,8 @@ pub fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<Vec<u8>>
     /* rebuild message hash ^ seed from error vector */
     let mut cwEncOutputBuffer = vec![0u8; 1072];
     unsafe {constant_weight_to_binary_approximate(
-        cwEncOutputBuffer.as_mut_ptr(),
-        err.as_ptr(),
-    ); }
+        &mut cwEncOutputBuffer, &err);
+    }
     /* obtain back the PRNG seed */
     let mut secretSeed: [u8; 32] = [0; 32];
     for i in 0..32 {
