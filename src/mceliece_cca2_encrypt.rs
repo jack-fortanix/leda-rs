@@ -126,13 +126,11 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
     for i in 0..32 {
         cwEncInputBuffer[i] ^= secretSeed[i];
     }
-    let mut cwEncodedError: [DIGIT; N0 * NUM_DIGITS_GF2X_ELEMENT] =
-        [0; N0 * NUM_DIGITS_GF2X_ELEMENT];
-    /* continue drawing fresh randomness in case the constant weight encoding
-     * fails */
+
+    // continue drawing fresh randomness in case the constant weight encoding fails
     loop {
-        /* blank cwenc destination buffer */
-        cwEncodedError.copy_from_slice(&[0; N0 * NUM_DIGITS_GF2X_ELEMENT]);
+        let mut cwEncodedError: [DIGIT; N0 * NUM_DIGITS_GF2X_ELEMENT] = [0; N0 * NUM_DIGITS_GF2X_ELEMENT];
+
         /* draw filler randomness for cwenc input from an independent random*/
         randombytes(&mut secretSeed);
         drbg(&mut cwEncInputBuffer[48..1072], &secretSeed)?;
@@ -140,10 +138,8 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
             binary_to_constant_weight_approximate(&mut cwEncodedError, &cwEncInputBuffer);
 
         if binaryToConstantWeightOk {
-            break;
+            let codeword = encrypt_McEliece(&*pk, &informationWord, &cwEncodedError);
+            return Ok(digits_to_bytes(&codeword));
         }
     }
-
-    let codeword = encrypt_McEliece(&*pk, &informationWord, &cwEncodedError);
-    Ok(digits_to_bytes(&codeword))
 }
