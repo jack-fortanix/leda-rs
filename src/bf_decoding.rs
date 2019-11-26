@@ -36,7 +36,7 @@ pub unsafe fn bf_decoding(
                         (*HtrPosOnes.offset(i as isize))[HtrOneIdx as usize]
                             .wrapping_add(valueIdx as u32)
                     };
-                    if gf2x_get_coeff(currSyndrome.as_ptr(), tmp) != 0 {
+                    if gf2x_get_coeff(&currSyndrome, tmp) != 0 {
                         unsatParityChecks[(i * crate::consts::P as i32 + valueIdx) as usize] =
                             unsatParityChecks[(i * crate::consts::P as i32 + valueIdx) as usize]
                                 .wrapping_add(1)

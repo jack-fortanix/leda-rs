@@ -140,7 +140,7 @@ unsafe fn char_left_bit_shift_n(length: i32, mut input: *mut u8, amount: i32) {
 unsafe fn poly_seq_into_bytestream(
     output: &mut [u8],
     byteOutputLength: u32,
-    mut zPoly: *mut DIGIT,
+    zPoly: &[DIGIT],
     numPoly: u32,
 ) -> i32 {
     let mut output_bit_cursor: u32 = byteOutputLength
@@ -156,10 +156,10 @@ unsafe fn poly_seq_into_bytestream(
         let mut exponent: u32 = 0i32 as u32;
         while exponent < crate::consts::P as i32 as u32 {
             let bitValue = gf2x_get_coeff(
-                zPoly.offset(
+                &zPoly[
                     (i * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
-                        as isize,
-                ) as *const DIGIT,
+                        as usize..
+                ],
                 exponent,
             );
             bitstream_write(output, 1i32 as u32, &mut output_bit_cursor, bitValue);
@@ -229,7 +229,7 @@ pub fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<Vec<u8>>
         poly_seq_into_bytestream(
             &mut paddedOutput,
             (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u32,
-            correctedCodeword.as_mut_ptr(),
+            &correctedCodeword,
             (2i32 - 1i32) as u32,
         );
     }

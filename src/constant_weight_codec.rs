@@ -156,11 +156,10 @@ pub unsafe fn constant_weight_to_binary_approximate(
         current_inspected_poly =
             current_inspected_position.wrapping_div(crate::consts::P as i32 as u32);
         if gf2x_get_coeff(
-            constantWeightIn
-                .as_ptr()
-                .offset(current_inspected_poly.wrapping_mul(
+            &constantWeightIn
+                [current_inspected_poly.wrapping_mul(
                     ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as u32,
-                ) as isize),
+                ) as usize..],
             current_inspected_exponent,
         ) == 1i32 as u64
         {

@@ -20,14 +20,14 @@ pub fn population_count(upc: &[DIGIT]) -> usize {
     return sum;
 }
 
-pub unsafe fn gf2x_get_coeff(mut poly: *const DIGIT, exponent: u32) -> DIGIT {
+pub unsafe fn gf2x_get_coeff(poly: &[DIGIT], exponent: u32) -> DIGIT {
     let mut straightIdx: u32 = (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
         * (8i32 << 3i32)
         - 1i32) as u32)
         .wrapping_sub(exponent);
     let mut digitIdx: u32 = straightIdx.wrapping_div((8i32 << 3i32) as u32);
     let mut inDigitIdx: u32 = straightIdx.wrapping_rem((8i32 << 3i32) as u32);
-    return *poly.offset(digitIdx as isize)
+    return poly[digitIdx as usize]
         >> (((8i32 << 3i32) - 1i32) as u32).wrapping_sub(inDigitIdx)
         & 1i32 as DIGIT;
 }
