@@ -74,15 +74,9 @@ unsafe fn bytestream_into_poly_seq(
     let slack_bits = S.len()*8 - numPoly*P;
     let mut bitCursor: u32 = slack_bits as u32;
     for polyIdx in 0..numPoly {
-        let mut exponent: u32 = 0;
-        while exponent < P32 {
+        for exponent in 0..P {
             let buffer = bitstream_read(S.as_mut_ptr(), 1i32 as u32, &mut bitCursor);
-
-            gf2x_set_coeff(&mut polySeq[NUM_DIGITS_GF2X_ELEMENT*polyIdx..],
-                           exponent as usize,
-                           buffer
-            );
-            exponent += 1;
+            gf2x_set_coeff(&mut polySeq[NUM_DIGITS_GF2X_ELEMENT*polyIdx..], exponent, buffer);
         }
     }
     Ok(())
