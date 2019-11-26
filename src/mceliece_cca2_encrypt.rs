@@ -95,12 +95,14 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
      * KOBARA_IMAI_CONSTANT_LENGTH_B +
      * sizeof(KI_LENGTH_FIELD_TYPE)  */
 
-    let clen = if msg.len() <= MAX_BYTES_IN_IWORD {
-        N0 * NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_B
-    } else {
-        let leftover_len = msg.len() - MAX_BYTES_IN_IWORD;
-        N0 * NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_B + leftover_len
-    };
+    // Longer is supported by LEDA spec using a different encoding,
+    // but with our parameters, this supports up to 7K which seems plenty
+
+    if msg.len() > MAX_BYTES_IN_IWORD {
+        return Err(Error::Custom("Plaintext is too long for Leda-PKC".into()));
+    }
+
+    let clen = N0 * NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_B;
 
     // pull randombytes upwards:
 
@@ -109,40 +111,23 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
     let mut secretSeed: [u8; 32] = [0; 32];
     randombytes(&mut secretSeed);
 
-    let mut paddedSequenceLen: u64 = 0;
-    let mut isPaddedSequenceOnlyKBits: i32 = 0i32;
     let bytePtxLen: u32 = msg.len() as u32;
-    if bytePtxLen as u64
-        <= (((2i32 - 1i32) * crate::consts::P as i32) as u64)
-            .wrapping_sub(
-                (8i32 as u64)
-                    .wrapping_mul((32i32 as u64).wrapping_add(::std::mem::size_of::<u64>() as u64)),
-            )
-            .wrapping_div(8i32 as u64)
-    {
-        /*warning, in this case the padded sequence is exactly K bits*/
-        paddedSequenceLen = (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u64;
-        isPaddedSequenceOnlyKBits = 1i32
-    } else {
-        paddedSequenceLen = (32i32 as u64)
-            .wrapping_add(::std::mem::size_of::<u64>() as u64)
-            .wrapping_add(bytePtxLen as u64)
-    }
+
+    let paddedSequenceLen = (K+7)/8;
+
     let prngSequence =
-        deterministic_random_byte_generator(&secretSeed, paddedSequenceLen as usize)?;
-    /*to avoid the use of additional memory, exploit the memory allocated for
-     * the ciphertext to host the prng-padded ptx+const+len. */
+        deterministic_random_byte_generator(&secretSeed, paddedSequenceLen)?;
+
     let mut ctext = vec![0u8; clen];
 
     ctext[32..40].copy_from_slice(&(bytePtxLen as u64).to_le_bytes());
     ctext[40..40 + bytePtxLen as usize].copy_from_slice(&msg);
 
-    for i in 0..paddedSequenceLen as usize {
+    for i in 0..paddedSequenceLen {
         ctext[i] ^= prngSequence[i];
     }
-    if isPaddedSequenceOnlyKBits == 1 {
-        ctext[paddedSequenceLen as usize-1] &= !(0xFF >> (K % 8));
-    }
+    ctext[paddedSequenceLen-1] &= !(0xFF >> (K % 8));
+
     /* prepare buffer which will be translated in the information word */
 
     let mut iwordBuffer: [u8; (K+7)/8] = [0; (K+7)/8];
@@ -153,42 +138,9 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
                              N0 - 1,
                              &mut iwordBuffer)?;
     /* prepare hash of padded sequence, before leftover is moved to its final place */
-    let hashDigest = sha3_384(&ctext[0..paddedSequenceLen as usize]);
+    let hashDigest = sha3_384(&ctext[0..paddedSequenceLen]);
     /* move leftover padded string (if present) onto its final position*/
 unsafe {
-    if bytePtxLen as u64
-        > (((2i32 - 1i32) * crate::consts::P as i32) as u64)
-            .wrapping_sub(
-                (8i32 as u64)
-                    .wrapping_mul((32i32 as u64).wrapping_add(::std::mem::size_of::<u64>() as u64)),
-            )
-            .wrapping_div(8i32 as u64)
-    {
-        memmove(
-            ctext.as_mut_ptr().offset(
-                (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32)
-                    as isize,
-            ) as *mut libc::c_void,
-            ctext.as_mut_ptr()
-                .offset(::std::mem::size_of::<[u8; 7238]>() as u64 as isize)
-                .offset(-1) as *const libc::c_void,
-            (bytePtxLen as u64).wrapping_sub(
-                (((2i32 - 1i32) * crate::consts::P as i32) as u64)
-                    .wrapping_sub((8i32 as u64).wrapping_mul(
-                        (32i32 as u64).wrapping_add(::std::mem::size_of::<u64>() as u64),
-                    ))
-                    .wrapping_div(8i32 as u64),
-            ),
-        );
-        /*clear partial leakage from leftover string, only happens if K%8 !=0 */
-        let mut initialLeftoverMask: u8 =
-            (0xffi32 as u8 as i32 >> (2i32 - 1i32) * crate::consts::P as i32 % 8i32) as u8;
-        let ref mut fresh5 = *ctext.as_mut_ptr().offset(
-            (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32)
-                as isize,
-        );
-        *fresh5 = (*fresh5 as i32 & initialLeftoverMask as i32) as u8
-    }
     /*prepare CWEnc input as zero extended seed ^ hash of */
     let mut cwEncInputBuffer: [u8; 1072] = [0; 1072];
     cwEncInputBuffer[0..48].copy_from_slice(&hashDigest);
