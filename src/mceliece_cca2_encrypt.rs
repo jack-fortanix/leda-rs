@@ -7,11 +7,7 @@ use crate::consts::*;
 
 extern "C" {
     #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    #[no_mangle]
     fn memmove(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
 }
 
 fn encrypt_McEliece(pk: &LedaPublicKey, ptx: &[DIGIT], err: &[DIGIT]) -> Vec<DIGIT> {
@@ -134,7 +130,6 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
     }
     let prngSequence =
         deterministic_random_byte_generator(&secretSeed, paddedSequenceLen as usize)?;
-unsafe {
     /*to avoid the use of additional memory, exploit the memory allocated for
      * the ciphertext to host the prng-padded ptx+const+len. */
     let mut ctext = vec![0u8; clen];
@@ -160,6 +155,7 @@ unsafe {
     /* prepare hash of padded sequence, before leftover is moved to its final place */
     let hashDigest = sha3_384(&ctext[0..paddedSequenceLen as usize]);
     /* move leftover padded string (if present) onto its final position*/
+unsafe {
     if bytePtxLen as u64
         > (((2i32 - 1i32) * crate::consts::P as i32) as u64)
             .wrapping_sub(
