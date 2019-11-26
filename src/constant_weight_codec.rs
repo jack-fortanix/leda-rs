@@ -2,37 +2,37 @@ use crate::consts::*;
 use crate::gf2x_arith::*;
 use crate::types::*;
 
-pub unsafe fn bitstream_write(
+pub fn bitstream_write(
     output: &mut [u8],
     amount_to_write: u32,
     output_bit_cursor: &mut u32,
-    value_to_write: u64,
-) {
-    if amount_to_write == 0i32 as u32 {
+    value_to_write: u64) {
+    if amount_to_write == 0 {
         return;
     }
-    if amount_to_write >= 64i32 as u32 {
-        panic!("invalid amount_to_write");
+    if amount_to_write >= 64 {
+        panic!("invalid amount_to_write in bitstream_write");
     }
+
     let bit_cursor_in_char: u32 = output_bit_cursor.wrapping_rem(8i32 as u32);
     let mut byte_cursor: u32 = output_bit_cursor.wrapping_div(8i32 as u32);
     let remaining_bits_in_char: u32 = (8i32 as u32).wrapping_sub(bit_cursor_in_char);
     if amount_to_write <= remaining_bits_in_char {
         let cleanup_mask: u64 = !(((1i32 as u64) << amount_to_write).wrapping_sub(1i32 as u64)
             << remaining_bits_in_char.wrapping_sub(amount_to_write));
-        let mut buffer: u64 = *output.as_mut_ptr().offset(byte_cursor as isize) as u64;
+        let mut buffer: u64 = output[byte_cursor as usize] as u64;
         buffer = buffer & cleanup_mask
             | value_to_write << remaining_bits_in_char.wrapping_sub(amount_to_write);
-        *output.as_mut_ptr().offset(byte_cursor as isize) = buffer as u8;
+        output[byte_cursor as usize] = buffer as u8;
         *output_bit_cursor += amount_to_write;
     } else {
         /*copy remaining_bits_in_char, allowing further copies to be byte aligned */
         let mut write_buffer: u64 =
             value_to_write >> amount_to_write.wrapping_sub(remaining_bits_in_char);
         let cleanup_mask_0: u64 = !((1i32 << remaining_bits_in_char) - 1i32) as u64;
-        let mut buffer_0: u64 = *output.as_mut_ptr().offset(byte_cursor as isize) as u64;
-        buffer_0 = buffer_0 & cleanup_mask_0 | write_buffer;
-        *output.as_mut_ptr().offset(byte_cursor as isize) = buffer_0 as u8;
+        let mut buffer: u64 = output[byte_cursor as usize] as u64;
+        buffer = buffer & cleanup_mask_0 | write_buffer;
+        output[byte_cursor as usize] = buffer as u8;
         *output_bit_cursor += remaining_bits_in_char;
         byte_cursor = output_bit_cursor.wrapping_div(8i32 as u32);
         /*write out as many as possible full bytes*/
@@ -40,7 +40,7 @@ pub unsafe fn bitstream_write(
         while still_to_write > 8i32 as u64 {
             write_buffer =
                 value_to_write >> still_to_write.wrapping_sub(8i32 as u64) & 0xffi32 as u64;
-            *output.as_mut_ptr().offset(byte_cursor as isize) = write_buffer as u8;
+            output[byte_cursor as usize] = write_buffer as u8;
             *output_bit_cursor += 8;
             byte_cursor = byte_cursor.wrapping_add(1);
             still_to_write = (still_to_write as u64).wrapping_sub(8i32 as u64) as u64 as u64
@@ -53,10 +53,8 @@ pub unsafe fn bitstream_write(
                 << (8i32 as u64).wrapping_sub(still_to_write))
                 as u64;
             write_buffer = write_buffer << (8i32 as u64).wrapping_sub(still_to_write);
-            let ref mut fresh0 = *output.as_mut_ptr().offset(byte_cursor as isize);
-            *fresh0 = (*fresh0 as u64 & cleanup_mask_1) as u8;
-            let ref mut fresh1 = *output.as_mut_ptr().offset(byte_cursor as isize);
-            *fresh1 = (*fresh1 as u64 | write_buffer) as u8;
+            output[byte_cursor as usize] &= cleanup_mask_1 as u8;
+            output[byte_cursor as usize] |= write_buffer as u8;
             *output_bit_cursor =
                 (*output_bit_cursor as u64).wrapping_add(still_to_write) as u32 as u32
         }
