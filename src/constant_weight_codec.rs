@@ -136,27 +136,22 @@ unsafe fn bitstream_read_padded(
     }
     return readBitstreamFragment;
 }
-// end bitstream_read_padded
-/*----------------------------------------------------------------------------*/
-#[inline]
-unsafe fn estimate_d_u(d: *mut u32, u: *mut u32, n: u32, t: u32) {
-    *d = (0.69315f64 * (n as libc::c_double - (t as libc::c_double - 1.0f64) / 2.0f64)
-        / t as libc::c_double) as u32;
-    *u = 0i32 as u32;
-    let mut tmp: u32 = *d;
-    while tmp != 0 {
-        tmp >>= 1i32;
-        *u = (*u).wrapping_add(1i32 as u32)
-    }
-}
-//end bitstream_read_padded
-/*----------------------------------------------------------------------------*/
-/* Encodes a bit string into a constant weight N0 polynomials vector*/
 
+fn estimate_d_u(n: u32, t: u32) -> (u32,u32) {
+    let d = (0.69315f64 * (n as f64 - (t as f64 - 1.0f64) / 2.0f64) / t as f64) as u32;
+    let mut u = 0u32;
+    let mut tmp = d;
+    while tmp != 0 {
+        tmp >>= 1;
+        u = u + 1;
+    }
+    return (d,u)
+}
+
+/* Encodes a bit string into a constant weight N0 polynomials vector*/
 pub unsafe fn constant_weight_to_binary_approximate(
     bitstreamOut: &mut [u8],
-    constantWeightIn: &[DIGIT],
-) {
+    constantWeightIn: &[DIGIT]) {
     let mut distancesBetweenOnes: [u32; NUM_ERRORS] = [0; NUM_ERRORS];
     /*compute the array of inter-ones distances. Note that there
     is an implicit one out of bounds to compute the first distance from */
@@ -192,16 +187,9 @@ pub unsafe fn constant_weight_to_binary_approximate(
     let mut onesStillToPlaceOut: u32 = NUM_ERRORS as u32;
     let mut inPositionsStillAvailable: u32 = (2i32 * crate::consts::P as i32) as u32;
     let mut outputBitCursor: u32 = 0i32 as u32;
-    let mut d: u32 = 0;
-    let mut u: u32 = 0;
     idxDistances = 0i32 as u32;
     while idxDistances < NUM_ERRORS as u32 {
-        estimate_d_u(
-            &mut d,
-            &mut u,
-            inPositionsStillAvailable,
-            onesStillToPlaceOut,
-        );
+        let (d,u) = estimate_d_u(inPositionsStillAvailable, onesStillToPlaceOut);
         let mut quotient: u32 = 0;
         if d != 0i32 as u32 {
             quotient = distancesBetweenOnes[idxDistances as usize].wrapping_div(d)
@@ -217,7 +205,7 @@ pub unsafe fn constant_weight_to_binary_approximate(
         ); // clamp u-minus-one to zero
         let remainder: u32 = distancesBetweenOnes[idxDistances as usize].wrapping_rem(d);
         if remainder < ((1i32 << u) as u32).wrapping_sub(d) {
-            u = if u > 0i32 as u32 {
+            let u = if u > 0i32 as u32 {
                 u.wrapping_sub(1i32 as u32)
             } else {
                 0i32 as u32
@@ -239,11 +227,8 @@ pub unsafe fn constant_weight_to_binary_approximate(
 }
 
 pub unsafe fn binary_to_constant_weight_approximate(constantWeightOut: &mut [DIGIT], bitstreamIn: &[u8]) -> bool {
-
     let bitLength = bitstreamIn.len() as u32;
-    let mut distancesBetweenOnes: [u32; NUM_ERRORS] = [0; NUM_ERRORS]; /* assuming trailing slack bits in the input
-                                                         stream. In case the slack bits in the input stream are leading, change to
-                                                         8- (bitLength %8) - 1 */
+    let mut distancesBetweenOnes: [u32; NUM_ERRORS] = [0; NUM_ERRORS];
     let mut idxDistances: u32 = 0i32 as u32;
     let mut onesStillToPlaceOut: u32 = NUM_ERRORS as u32;
     let mut outPositionsStillAvailable: u32 = (2i32 * crate::consts::P as i32) as u32;
@@ -257,11 +242,7 @@ pub unsafe fn binary_to_constant_weight_approximate(constantWeightOut: &mut [DIG
             return false;
         }
         /*estimate d and u */
-        let mut d: u32 = 0;
-        let mut u: u32 = 0;
-        estimate_d_u(
-            &mut d,
-            &mut u,
+        let (d,u) = estimate_d_u(
             outPositionsStillAvailable,
             onesStillToPlaceOut,
         );
