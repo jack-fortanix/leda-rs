@@ -144,6 +144,6 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
         }
     }
 
-    let mut codeword = encrypt_McEliece(&*pk, &informationWord, &cwEncodedError);
+    let codeword = encrypt_McEliece(&*pk, &informationWord, &cwEncodedError);
     Ok(digits_to_bytes(&codeword))
 }
