@@ -106,8 +106,6 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
         N0 * NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_B + leftover_len
     };
 
-    let mut ctext = vec![0u8; clen];
-
     // pull randombytes upwards:
 
     /* Generate PRNG pad */
@@ -140,11 +138,7 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
 unsafe {
     /*to avoid the use of additional memory, exploit the memory allocated for
      * the ciphertext to host the prng-padded ptx+const+len. */
-    memset(
-        ctext.as_mut_ptr() as *mut libc::c_void,
-        0i32,
-        (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32) as u64,
-    );
+    let mut ctext = vec![0u8; clen];
     let mut correctlySizedBytePtxLen: u64 = bytePtxLen as u64;
     memcpy(
         ctext.as_mut_ptr().offset(32) as *mut libc::c_void,
@@ -164,7 +158,7 @@ unsafe {
         *fresh3 = (*fresh3 as i32 ^ *prngSequence.as_ptr().offset(i as isize) as i32) as u8;
         i += 1
     }
-    if isPaddedSequenceOnlyKBits == 1i32 {
+    if isPaddedSequenceOnlyKBits == 1 {
         let ref mut fresh4 = *ctext.as_mut_ptr().offset(paddedSequenceLen.wrapping_sub(1i32 as u64) as isize);
         *fresh4 = (*fresh4 as i32
             & !(0xffi32 as u8 as i32 >> (2i32 - 1i32) * crate::consts::P as i32 % 8i32))
@@ -258,6 +252,7 @@ unsafe {
             break;
         }
     }
+
     let mut codeword = encrypt_McEliece(&*pk, &informationWord, &cwEncodedError);
 
     /* output composition looks like codeword || left bytepad leftover
