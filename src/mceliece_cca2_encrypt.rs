@@ -42,7 +42,7 @@ fn char_right_bit_shift_n(data: &mut [u8], amount: usize) {
 fn bytestream_into_poly_seq(
     mut polySeq: &mut [DIGIT],
     mut numPoly: usize,
-    mut S: &mut [u8]) -> Result<()> {
+    S: &mut [u8]) -> Result<()> {
 
     let padsize = if K % 8 != 0 { 8 - (K % 8) } else { 0 };
     char_right_bit_shift_n(S, padsize);
@@ -53,7 +53,7 @@ fn bytestream_into_poly_seq(
     let mut bitCursor: u32 = slack_bits as u32;
     for polyIdx in 0..numPoly {
         for exponent in 0..P {
-            let buffer = unsafe { bitstream_read(S.as_mut_ptr(), 1i32 as u32, &mut bitCursor) };
+            let buffer = unsafe { bitstream_read(S, 1, &mut bitCursor) };
             gf2x_set_coeff(&mut polySeq[NUM_DIGITS_GF2X_ELEMENT*polyIdx..], exponent, buffer);
         }
     }

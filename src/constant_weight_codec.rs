@@ -71,18 +71,18 @@ pub unsafe fn bitstream_write(
  * them to the encoding. Given the estimates for log_2(d), this is plentiful
  */
 
-pub unsafe fn bitstream_read(stream: *const u8, bit_amount: u32, bit_cursor: *mut u32) -> u64 {
-    if bit_amount == 0i32 as u32 {
-        return 0i32 as u64;
+pub unsafe fn bitstream_read(stream: &[u8], bit_amount: u32, bit_cursor: &mut u32) -> u64 {
+    if bit_amount == 0 {
+        return 0;
     }
-    if bit_amount > 64i32 as u32 {
-        panic!("invalid bit_amount");
+    if bit_amount > 64 {
+        panic!("invalid bit_amount in bitstream_read");
     }
     let mut extracted_bits: u64 = 0i32 as u64;
     let bit_cursor_in_char: i32 = (*bit_cursor).wrapping_rem(8i32 as u32) as i32;
     let remaining_bits_in_char: i32 = 8i32 - bit_cursor_in_char;
     if bit_amount <= remaining_bits_in_char as u32 {
-        extracted_bits = *stream.offset((*bit_cursor).wrapping_div(8i32 as u32) as isize) as u64;
+        extracted_bits = *stream.as_ptr().offset((*bit_cursor).wrapping_div(8i32 as u32) as isize) as u64;
         let slack_bits: i32 = (remaining_bits_in_char as u32).wrapping_sub(bit_amount) as i32;
         extracted_bits = extracted_bits >> slack_bits;
         extracted_bits = extracted_bits & ((1i32 as u64) << bit_amount).wrapping_sub(1i32 as u64)
@@ -91,21 +91,21 @@ pub unsafe fn bitstream_read(stream: *const u8, bit_amount: u32, bit_cursor: *mu
         let mut still_to_extract: u32 = bit_amount;
         if bit_cursor_in_char != 0i32 {
             extracted_bits =
-                *stream.offset((*bit_cursor).wrapping_div(8i32 as u32) as isize) as u64;
+                *stream.as_ptr().offset((*bit_cursor).wrapping_div(8i32 as u32) as isize) as u64;
             extracted_bits = extracted_bits
                 & ((1i32 as u64) << 7i32 - (bit_cursor_in_char - 1i32)).wrapping_sub(1i32 as u64);
             still_to_extract = bit_amount.wrapping_sub((7i32 - (bit_cursor_in_char - 1i32)) as u32);
             byte_cursor = byte_cursor.wrapping_add(1)
         }
         while still_to_extract > 8i32 as u32 {
-            extracted_bits = extracted_bits << 8i32 | *stream.offset(byte_cursor as isize) as u64;
+            extracted_bits = extracted_bits << 8i32 | *stream.as_ptr().offset(byte_cursor as isize) as u64;
             byte_cursor = byte_cursor.wrapping_add(1);
             still_to_extract = still_to_extract.wrapping_sub(8i32 as u32)
         }
         /* here byte cursor is on the byte where the still_to_extract MSbs are to be
         taken from */
         extracted_bits = extracted_bits << still_to_extract
-            | *stream.offset(byte_cursor as isize) as u64
+            | *stream.as_ptr().offset(byte_cursor as isize) as u64
                 >> (8i32 as u32).wrapping_sub(still_to_extract)
     }
     *bit_cursor = (*bit_cursor).wrapping_add(bit_amount);
@@ -121,12 +121,12 @@ unsafe fn bitstream_read_padded(
     bitCursor: &mut u32,
 ) -> u64 {
     if (*bitCursor).wrapping_add(bitAmount) < stream.len() as u32 {
-        return bitstream_read(stream.as_ptr(), bitAmount, bitCursor)
+        return bitstream_read(stream, bitAmount, bitCursor)
     } else {
         /*if remaining bits are not sufficient, pad with enough zeroes */
         let available_bits: u32 = (stream.len() as u32) - *bitCursor;
         if available_bits != 0 {
-            let readBitstreamFragment = bitstream_read(stream.as_ptr(), available_bits, bitCursor);
+            let readBitstreamFragment = bitstream_read(stream, available_bits, bitCursor);
             return readBitstreamFragment << (bitAmount - available_bits);
         } else {
             return 0;
