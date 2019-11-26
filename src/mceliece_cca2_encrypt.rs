@@ -198,10 +198,7 @@ unsafe {
                              N0 - 1,
                              &mut iwordBuffer)?;
     /* prepare hash of padded sequence, before leftover is moved to its final place */
-    let hashDigest = sha3_384(std::slice::from_raw_parts(
-        ctext.as_mut_ptr(),
-        paddedSequenceLen as usize,
-    ));
+    let hashDigest = sha3_384(&ctext[0..paddedSequenceLen as usize]);
     /* move leftover padded string (if present) onto its final position*/
     if bytePtxLen as u64
         > (((2i32 - 1i32) * crate::consts::P as i32) as u64)
@@ -239,11 +236,8 @@ unsafe {
     /*prepare CWEnc input as zero extended seed ^ hash of */
     let mut cwEncInputBuffer: [u8; 1072] = [0; 1072];
     cwEncInputBuffer[0..48].copy_from_slice(&hashDigest);
-    let mut i_0: u32 = 0i32 as u32;
-    while i_0 < 32i32 as u32 {
-        cwEncInputBuffer[i_0 as usize] =
-            (cwEncInputBuffer[i_0 as usize] as i32 ^ secretSeed[i_0 as usize] as i32) as u8;
-        i_0 = i_0.wrapping_add(1)
+    for i in 0..32 {
+        cwEncInputBuffer[i] ^= secretSeed[i];
     }
     let mut cwEncodedError: [DIGIT; N0*NUM_DIGITS_GF2X_ELEMENT] = [0; N0*NUM_DIGITS_GF2X_ELEMENT];
     /* continue drawing fresh randomness in case the constant weight encoding
