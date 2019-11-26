@@ -76,6 +76,17 @@ fn bytestream_into_poly_seq(
 // end bytestream_into_poly_seq
 /*----------------------------------------------------------------------------*/
 
+pub fn digits_to_bytes(d: &[DIGIT]) -> Vec<u8> {
+    let mut out = vec![0u8; d.len() * 8];
+
+    for i in 0..d.len() {
+        let word : [u8; 8] = d[i].to_le_bytes();
+        out[(8*i)..(8*i+8)].copy_from_slice(&word);
+    }
+
+    return out;
+}
+
 pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
     /* NIST API provides a byte aligned message: all bytes are assumed full.
      * Therefore, if mlen exceeds
@@ -96,7 +107,6 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
     };
 
     let mut ctext = vec![0u8; clen];
-    let output = ctext.as_mut_ptr();
 
     // pull randombytes upwards:
 
@@ -131,18 +141,18 @@ unsafe {
     /*to avoid the use of additional memory, exploit the memory allocated for
      * the ciphertext to host the prng-padded ptx+const+len. */
     memset(
-        output as *mut libc::c_void,
+        ctext.as_mut_ptr() as *mut libc::c_void,
         0i32,
         (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32) as u64,
     );
     let mut correctlySizedBytePtxLen: u64 = bytePtxLen as u64;
     memcpy(
-        output.offset(32) as *mut libc::c_void,
+        ctext.as_mut_ptr().offset(32) as *mut libc::c_void,
         &mut correctlySizedBytePtxLen as *mut u64 as *const libc::c_void,
         ::std::mem::size_of::<u64>() as u64,
     );
     memcpy(
-        output
+        ctext.as_mut_ptr()
             .offset(32)
             .offset(::std::mem::size_of::<u64>() as u64 as isize) as *mut libc::c_void,
         ptx as *const libc::c_void,
@@ -150,12 +160,12 @@ unsafe {
     );
     let mut i: i32 = 0i32;
     while (i as u64) < paddedSequenceLen {
-        let ref mut fresh3 = *output.offset(i as isize);
+        let ref mut fresh3 = *ctext.as_mut_ptr().offset(i as isize);
         *fresh3 = (*fresh3 as i32 ^ *prngSequence.as_ptr().offset(i as isize) as i32) as u8;
         i += 1
     }
     if isPaddedSequenceOnlyKBits == 1i32 {
-        let ref mut fresh4 = *output.offset(paddedSequenceLen.wrapping_sub(1i32 as u64) as isize);
+        let ref mut fresh4 = *ctext.as_mut_ptr().offset(paddedSequenceLen.wrapping_sub(1i32 as u64) as isize);
         *fresh4 = (*fresh4 as i32
             & !(0xffi32 as u8 as i32 >> (2i32 - 1i32) * crate::consts::P as i32 % 8i32))
             as u8
@@ -189,7 +199,7 @@ unsafe {
                              &mut iwordBuffer)?;
     /* prepare hash of padded sequence, before leftover is moved to its final place */
     let hashDigest = sha3_384(std::slice::from_raw_parts(
-        output,
+        ctext.as_mut_ptr(),
         paddedSequenceLen as usize,
     ));
     /* move leftover padded string (if present) onto its final position*/
@@ -202,11 +212,11 @@ unsafe {
             .wrapping_div(8i32 as u64)
     {
         memmove(
-            output.offset(
+            ctext.as_mut_ptr().offset(
                 (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32)
                     as isize,
             ) as *mut libc::c_void,
-            output
+            ctext.as_mut_ptr()
                 .offset(::std::mem::size_of::<[u8; 7238]>() as u64 as isize)
                 .offset(-1) as *const libc::c_void,
             (bytePtxLen as u64).wrapping_sub(
@@ -220,7 +230,7 @@ unsafe {
         /*clear partial leakage from leftover string, only happens if K%8 !=0 */
         let mut initialLeftoverMask: u8 =
             (0xffi32 as u8 as i32 >> (2i32 - 1i32) * crate::consts::P as i32 % 8i32) as u8;
-        let ref mut fresh5 = *output.offset(
+        let ref mut fresh5 = *ctext.as_mut_ptr().offset(
             (2i32 * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) * 8i32)
                 as isize,
         );
@@ -260,13 +270,8 @@ unsafe {
      * and is thus long as ROUND_UP(leftover_bits,8)+
      * N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B */
     // the output byte stream is made of N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B bytes
-    memcpy(
-        output as *mut libc::c_void,
-        codeword.as_mut_ptr() as *const libc::c_void,
-        (codeword.len() * 8) as u64
-    );
+    Ok(digits_to_bytes(&codeword))
         }
-    Ok(ctext)
 }
 /*----------------------------------------------------------------------------*/
 // end encrypt_Kobara_Imai
