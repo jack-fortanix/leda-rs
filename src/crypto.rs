@@ -100,20 +100,6 @@ pub fn randombytes_ctx_init(ctx: &mut AES256_CTR_DRBG_struct, entropy_input: &[u
     AES256_CTR_DRBG_Update(&entropy_input, &mut ctx.key, &mut ctx.v);
 }
 
-pub static mut DRBG_ctx: AES256_CTR_DRBG_struct = AES256_CTR_DRBG_struct {
-    key: [0; 32],
-    v: [0; 16],
-    reseed_counter: 0,
-};
-
-pub fn randombytes(x: &mut [u8]) {
-    unsafe { randombytes_ctx(&mut DRBG_ctx, x) }
-}
-
-pub fn randombytes_init(entropy_input: &[u8]) {
-    unsafe { randombytes_ctx_init(&mut DRBG_ctx, entropy_input); }
-}
-
 fn AES256_CTR_DRBG_Update(provided_data: &[u8], key: &mut [u8], v: &mut [u8]) {
     let mut temp: [u8; 48] = [0; 48];
     for block in 0..3 {

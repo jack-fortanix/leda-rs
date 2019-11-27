@@ -80,7 +80,7 @@ pub fn digits_to_bytes(d: &[DIGIT]) -> Vec<u8> {
     return out;
 }
 
-pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
+pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8], mut rng: impl FnMut(&mut [u8])) -> Result<Vec<u8>> {
     if msg.len() > MAX_BYTES_IN_IWORD {
         // Longer plaintext is supported by LEDA spec using a different encoding,
         // but with our parameters, this supports up to 7K which seems plenty
@@ -94,7 +94,7 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
     /* Generate PRNG pad */
 
     let mut secretSeed: [u8; 32] = [0; 32];
-    randombytes(&mut secretSeed);
+    rng(&mut secretSeed);
 
     let paddedSequenceLen = (K + 7) / 8;
 
@@ -133,7 +133,7 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
             [0; N0 * NUM_DIGITS_GF2X_ELEMENT];
 
         /* draw filler randomness for cwenc input from an independent random*/
-        randombytes(&mut secretSeed);
+        rng(&mut secretSeed);
         drbg(&mut cwEncInputBuffer[48..1072], &secretSeed)?;
         let binaryToConstantWeightOk =
             binary_to_constant_weight_approximate(&mut cwEncodedError, &cwEncInputBuffer);

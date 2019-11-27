@@ -61,18 +61,20 @@ fn leda_decode_sk(sk: &[u8]) -> Result<LedaPrivateKey> {
     Ok(key)
 }
 
-pub fn leda_gen_keypair() -> Result<(Vec<u8>, Vec<u8>)> {
-    let mut seed = vec![0u8; 32];
-    crate::crypto::randombytes(&mut seed);
+pub fn leda_gen_keypair(seed: &[u8]) -> Result<(Vec<u8>, Vec<u8>)> {
+    if seed.len() != 32 {
+        return Err(Error::Custom("Leda seed must be exactly 32 bytes".into()));
+    }
 
-    let (pk, sk) = key_gen_mceliece(&seed)?;
+    let (pk, sk) = key_gen_mceliece(seed)?;
 
     Ok((leda_encode_sk(&sk)?, leda_encode_pk(&pk)?))
 }
 
-pub fn leda_encrypt(msg: &[u8], pk: &[u8]) -> Result<Vec<u8>> {
+pub fn leda_encrypt(msg: &[u8], pk: &[u8],
+                    rng: impl FnMut(&mut [u8])) -> Result<Vec<u8>> {
     let pk = leda_decode_pk(pk)?;
-    encrypt_Kobara_Imai(&pk, msg)
+    encrypt_Kobara_Imai(&pk, msg, rng)
 }
 
 pub fn leda_decrypt(ctext: &[u8], sk: &[u8]) -> Result<Vec<u8>> {
