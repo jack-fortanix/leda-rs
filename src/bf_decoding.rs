@@ -3,9 +3,9 @@ use crate::gf2x_arith::*;
 use crate::types::*;
 
 pub unsafe fn bf_decoding(
-    out: *mut DIGIT,
-    HtrPosOnes: *const [u32; 11],
-    QtrPosOnes: *const [u32; 11],
+    out: &mut [DIGIT],
+    HtrPosOnes: &[[u32; 11]; 2],
+    QtrPosOnes: &[[u32; 11]; 2],
     privateSyndrome: &mut [DIGIT],
     thresholds: &[i32],
 ) -> i32
@@ -25,15 +25,15 @@ pub unsafe fn bf_decoding(
             while valueIdx < crate::consts::P as i32 {
                 let mut HtrOneIdx: i32 = 0i32;
                 while HtrOneIdx < 11i32 {
-                    let tmp: u32 = if (*HtrPosOnes.offset(i as isize))[HtrOneIdx as usize]
+                    let tmp: u32 = if HtrPosOnes[i as usize][HtrOneIdx as usize]
                         .wrapping_add(valueIdx as u32)
                         >= crate::consts::P as i32 as u32
                     {
-                        (*HtrPosOnes.offset(i as isize))[HtrOneIdx as usize]
+                        HtrPosOnes[i as usize][HtrOneIdx as usize]
                             .wrapping_add(valueIdx as u32)
                             .wrapping_sub(crate::consts::P as i32 as u32)
                     } else {
-                        (*HtrPosOnes.offset(i as isize))[HtrOneIdx as usize]
+                        HtrPosOnes[i as usize][HtrOneIdx as usize]
                             .wrapping_add(valueIdx as u32)
                     };
                     if gf2x_get_coeff(&currSyndrome, tmp) != 0 {
@@ -63,7 +63,7 @@ pub unsafe fn bf_decoding(
                     let currblockoffset: i32 = blockIdx * crate::consts::P as i32;
                     while currQoneIdx < endQblockIdx {
                         let mut tmp_0: i32 =
-                            (*QtrPosOnes.offset(i_0 as isize))[currQoneIdx as usize]
+                            QtrPosOnes[i_0 as usize][currQoneIdx as usize]
                                 .wrapping_add(j as u32) as i32;
                         tmp_0 = if tmp_0 >= crate::consts::P as i32 {
                             (tmp_0) - crate::consts::P as i32
@@ -80,7 +80,7 @@ pub unsafe fn bf_decoding(
                 /* Correlation based flipping */
                 if correlation >= corrt_syndrome_based {
                     gf2x_toggle_coeff(
-                        out.offset(
+                        out.as_mut_ptr().offset(
                             ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
                                 * i_0) as isize,
                         ),
@@ -91,9 +91,7 @@ pub unsafe fn bf_decoding(
                         let mut syndromePosToFlip: u32 = 0;
                         let mut HtrOneIdx_0: i32 = 0i32;
                         while HtrOneIdx_0 < 11i32 {
-                            syndromePosToFlip = (*HtrPosOnes
-                                .offset(currQBlkPos[v as usize] as isize))
-                                [HtrOneIdx_0 as usize]
+                            syndromePosToFlip = HtrPosOnes[currQBlkPos[v as usize] as usize][HtrOneIdx_0 as usize]
                                 .wrapping_add(currQBitPos[v as usize]);
                             syndromePosToFlip =
                                 if syndromePosToFlip >= crate::consts::P as i32 as u32 {

@@ -79,9 +79,9 @@ fn decrypt_McEliece(
     gf2x_transpose_in_place(&mut privateSyndrome);
     /*perform syndrome decoding to obtain error vector */
     let ok = unsafe { bf_decoding(
-        decoded_err.as_mut_ptr(),
-        HtrPosOnes.as_mut_ptr() as *const [u32; DV],
-        QtrPosOnes.as_mut_ptr() as *const [u32; DV],
+        decoded_err,
+        &HtrPosOnes,
+        &QtrPosOnes,
         &mut privateSyndrome,
         thresholds,
     ) };
