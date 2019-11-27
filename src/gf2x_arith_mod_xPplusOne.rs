@@ -18,17 +18,16 @@ fn gf2x_mod(out: &mut [DIGIT], input: &[DIGIT]) {
             aux.as_mut_ptr(),
             MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS as i32,
         );
-        gf2x_mod_add_3(
-            out,
-            &aux[1..NUM_DIGITS_GF2X_ELEMENT + 1],
-            &input[NUM_DIGITS_GF2X_ELEMENT..2 * NUM_DIGITS_GF2X_ELEMENT],
-        );
-
-        out[0] &= ((1 as DIGIT) << MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS) - 1;
     }
+    gf2x_mod_add_3(
+        out,
+        &aux[1..NUM_DIGITS_GF2X_ELEMENT + 1],
+        &input[NUM_DIGITS_GF2X_ELEMENT..2 * NUM_DIGITS_GF2X_ELEMENT],
+    );
+
+    out[0] &= ((1 as DIGIT) << MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS) - 1;
 }
-// end gf2x_mod
-/*----------------------------------------------------------------------------*/
+
 unsafe fn left_bit_shift(length: i32, mut input: *mut DIGIT) {
     let mut j: i32 = 0; /* logical shift does not need clearing */
     while j < length - 1i32 {
