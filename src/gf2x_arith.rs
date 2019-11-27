@@ -156,8 +156,7 @@ unsafe fn gf2x_mul_comb(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
         if A[i as usize] & (1 as DIGIT) != 0 {
             j = nb - 1i32;
             while j >= 0i32 {
-                let ref mut fresh1 = *Res.as_mut_ptr().offset((i + j + 1i32) as isize);
-                *fresh1 ^= B[j as usize];
+                Res[(i + j + 1) as usize] ^= B[j as usize];
                 j -= 1
             }
         }
