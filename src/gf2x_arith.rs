@@ -265,20 +265,19 @@ fn left_bit_shift_n(input: &mut [DIGIT], amount: usize) {
     }
     input[input.len() - 1] <<= amount;
 }
-// end left_bit_shift_n
-/*----------------------------------------------------------------------------*/
-#[inline]
-unsafe fn gf2x_exact_div_x_plus_one(na: i32, mut A: *mut DIGIT) {
+
+fn gf2x_exact_div_x_plus_one(A: &mut [DIGIT]) {
     let mut t: DIGIT = 0;
+    let na = A.len() as i32;
     let mut i: i32 = na - 1i32;
     while i >= 0i32 {
-        t ^= *A.offset(i as isize);
+        t ^= A[i as usize];
         let mut j: i32 = 1i32;
         while j <= (8i32 << 3i32) / 2i32 {
             t ^= t << j as u32;
             j = j * 2i32
         }
-        *A.offset(i as isize) = t;
+        A[i as usize] = t;
         t >>= (8i32 << 3i32) - 1i32;
         i -= 1
     }
@@ -533,14 +532,11 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     left_bit_shift_n(&mut w4_x3_plus_1, 3);
     gf2x_add_asymm_2(&mut w2, &w4);
     gf2x_add_asymm_2(&mut w2, &w4_x3_plus_1);
-    gf2x_exact_div_x_plus_one(
-        w2.len() as i32,
-        w2.as_mut_ptr(),
-    );
+    gf2x_exact_div_x_plus_one(&mut w2);
     gf2x_add_2(&mut w1, &w0);
     gf2x_add_asymm_2(&mut w3, &w1);
     right_bit_shift_n(&mut w3, 1);
-    gf2x_exact_div_x_plus_one(w3.len() as i32, w3.as_mut_ptr());
+    gf2x_exact_div_x_plus_one(&mut w3);
     gf2x_add_2(&mut w1, &w4);
     let mut w1_final: Vec<DIGIT> = vec![0; 2*bih + 2];
     gf2x_add_asymm_3(&mut w1_final, &w2, &w1);
