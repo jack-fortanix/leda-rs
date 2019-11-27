@@ -93,8 +93,11 @@ pub fn randombytes_ctx(ctx: &mut AES256_CTR_DRBG_struct, x: &mut [u8]) {
     ctx.reseed_counter += 1;
 }
 
-pub fn randombytes(x: &mut [u8]) {
-    unsafe { randombytes_ctx(&mut DRBG_ctx, x) }
+pub fn randombytes_ctx_init(ctx: &mut AES256_CTR_DRBG_struct, entropy_input: &[u8]) {
+    ctx.key.copy_from_slice(&[0u8; 32]);
+    ctx.v.copy_from_slice(&[0u8; 16]);
+    ctx.reseed_counter = 1;
+    AES256_CTR_DRBG_Update(&entropy_input, &mut ctx.key, &mut ctx.v);
 }
 
 pub static mut DRBG_ctx: AES256_CTR_DRBG_struct = AES256_CTR_DRBG_struct {
@@ -103,13 +106,12 @@ pub static mut DRBG_ctx: AES256_CTR_DRBG_struct = AES256_CTR_DRBG_struct {
     reseed_counter: 0,
 };
 
+pub fn randombytes(x: &mut [u8]) {
+    unsafe { randombytes_ctx(&mut DRBG_ctx, x) }
+}
+
 pub fn randombytes_init(entropy_input: &[u8]) {
-    unsafe {
-        DRBG_ctx.key.copy_from_slice(&[0u8; 32]);
-        DRBG_ctx.v.copy_from_slice(&[0u8; 16]);
-        DRBG_ctx.reseed_counter = 1;
-        AES256_CTR_DRBG_Update(&entropy_input, &mut DRBG_ctx.key, &mut DRBG_ctx.v);
-    }
+    unsafe { randombytes_ctx_init(&mut DRBG_ctx, entropy_input); }
 }
 
 fn AES256_CTR_DRBG_Update(provided_data: &[u8], key: &mut [u8], v: &mut [u8]) {
