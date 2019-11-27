@@ -113,55 +113,53 @@ pub fn gf2x_set_coeff(poly: &mut [DIGIT], exponent: usize, value: DIGIT) {
     poly[digitIdx] = poly[digitIdx] | ((value & (1 as DIGIT)) << (DIGIT_SIZE_b - 1 - inDigitIdx));
 }
 
-unsafe fn gf2x_mul_comb(
-    nr: i32,
-    mut Res: *mut DIGIT,
-    na: i32,
-    mut A: *const DIGIT,
-    nb: i32,
-    mut B: *const DIGIT,
-) {
+unsafe fn gf2x_mul_comb(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
+
+    for i in 0..Res.len() {
+        Res[i] = 0;
+    }
+
     let mut i: i32 = 0;
     let mut j: i32 = 0;
     let mut k: i32 = 0;
     let mut u: DIGIT = 0;
     let mut h: DIGIT = 0;
 
-    for i in 0..nr {
-        *Res.offset(i as isize) = 0;
-    }
+    let na = A.len() as i32;
+    let nb = B.len() as i32;
+
     k = (8i32 << 3i32) - 1i32;
     while k > 0i32 {
         i = na - 1i32;
         while i >= 0i32 {
-            if *A.offset(i as isize) & (0x1i32 as DIGIT) << k != 0 {
+            if *A.as_ptr().offset(i as isize) & (0x1i32 as DIGIT) << k != 0 {
                 j = nb - 1i32;
                 while j >= 0i32 {
-                    let ref mut fresh0 = *Res.offset((i + j + 1i32) as isize);
-                    *fresh0 ^= *B.offset(j as isize);
+                    let ref mut fresh0 = *Res.as_mut_ptr().offset((i + j + 1i32) as isize);
+                    *fresh0 ^= *B.as_ptr().offset(j as isize);
                     j -= 1
                 }
             }
             i -= 1
         }
-        u = *Res.offset((na + nb - 1i32) as isize);
-        *Res.offset((na + nb - 1i32) as isize) = u << 0x1i32;
+        u = *Res.as_mut_ptr().offset((na + nb - 1i32) as isize);
+        *Res.as_mut_ptr().offset((na + nb - 1i32) as isize) = u << 0x1i32;
         j = 1i32;
         while j < na + nb {
             h = u >> (8i32 << 3i32) - 1i32;
-            u = *Res.offset((na + nb - 1i32 - j) as isize);
-            *Res.offset((na + nb - 1i32 - j) as isize) = h ^ u << 0x1i32;
+            u = *Res.as_mut_ptr().offset((na + nb - 1i32 - j) as isize);
+            *Res.as_mut_ptr().offset((na + nb - 1i32 - j) as isize) = h ^ u << 0x1i32;
             j += 1
         }
         k -= 1
     }
     i = na - 1i32;
     while i >= 0i32 {
-        if *A.offset(i as isize) & 0x1i32 as DIGIT != 0 {
+        if *A.as_ptr().offset(i as isize) & 0x1i32 as DIGIT != 0 {
             j = nb - 1i32;
             while j >= 0i32 {
-                let ref mut fresh1 = *Res.offset((i + j + 1i32) as isize);
-                *fresh1 ^= *B.offset(j as isize);
+                let ref mut fresh1 = *Res.as_mut_ptr().offset((i + j + 1i32) as isize);
+                *fresh1 ^= *B.as_ptr().offset(j as isize);
                 j -= 1
             }
         }
@@ -240,14 +238,7 @@ fn gf2x_mul_Kar(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     if A.len() % 2 != 0 || A.len() < 9 || B.len() < 9 {
         /* fall back to schoolbook */
         unsafe {
-            gf2x_mul_comb(
-                Res.len() as i32,
-                Res.as_mut_ptr(),
-                A.len() as i32,
-                A.as_ptr(),
-                B.len() as i32,
-                B.as_ptr(),
-            );
+            gf2x_mul_comb(Res, A, B);
         }
         return;
     }
