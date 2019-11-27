@@ -223,7 +223,7 @@ unsafe fn gf2x_add_asymm(
     );
 }
 
-fn gf2x_add_asymm_safe(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
+fn gf2x_add_asymm_3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     unsafe {
         gf2x_add_asymm(
             Res.len() as i32,
@@ -565,7 +565,7 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     let mut u1_x1_u2_x2: Vec<DIGIT> = vec![0; bih as usize + 1];
     gf2x_add_3(&mut u1_x1_u2_x2, &u1_x, &u2_x2);
     let mut temp_u_components: Vec<DIGIT> = vec![0; bih as usize + 1];
-    gf2x_add_asymm_safe(&mut temp_u_components, &u1_x1_u2_x2, &sum_u);
+    gf2x_add_asymm_3(&mut temp_u_components, &u1_x1_u2_x2, &sum_u);
 
     let mut v2_x2: Vec<DIGIT> = vec![0; bih as usize + 1];
     memcpy(
@@ -593,7 +593,7 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     gf2x_add_3(&mut v1_x1_v2_x2, &v1_x, &v2_x2);
 
     let mut temp_v_components: Vec<DIGIT> = vec![0; bih as usize + 1];
-    gf2x_add_asymm_safe(&mut temp_v_components, &v1_x1_v2_x2, &sum_v);
+    gf2x_add_asymm_3(&mut temp_v_components, &v1_x1_v2_x2, &sum_v);
 
     let mut w3: Vec<DIGIT> = vec![0; 2 * (bih as usize) + 2];
     gf2x_mul_TC3(&mut w3, &temp_u_components, &temp_v_components);
@@ -634,7 +634,7 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     gf2x_add_2(&mut w1, &w4);
     let vla_17 = (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as usize;
     let mut w1_final: Vec<DIGIT> = ::std::vec::from_elem(0, vla_17);
-    gf2x_add_asymm_safe(&mut w1_final, &w2, &w1);
+    gf2x_add_asymm_3(&mut w1_final, &w2, &w1);
     gf2x_add_2(&mut w2, &w3);
     // Result recombination starts here
 
