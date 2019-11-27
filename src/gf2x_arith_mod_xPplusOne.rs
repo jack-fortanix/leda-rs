@@ -28,15 +28,16 @@ fn gf2x_mod(out: &mut [DIGIT], input: &[DIGIT]) {
     out[0] &= ((1 as DIGIT) << MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS) - 1;
 }
 
-unsafe fn left_bit_shift(length: i32, mut input: *mut DIGIT) {
+unsafe fn left_bit_shift(length: i32, input: &mut [DIGIT]) {
+    assert_eq!(length as usize, input.len());
     let mut j: i32 = 0; /* logical shift does not need clearing */
     while j < length - 1i32 {
-        *input.offset(j as isize) <<= 1i32;
-        let ref mut fresh1 = *input.offset(j as isize);
-        *fresh1 |= *input.offset((j + 1i32) as isize) >> (8i32 << 3i32) - 1i32;
+        *input.as_mut_ptr().offset(j as isize) <<= 1i32;
+        let ref mut fresh1 = *input.as_mut_ptr().offset(j as isize);
+        *fresh1 |= *input.as_mut_ptr().offset((j + 1i32) as isize) >> (8i32 << 3i32) - 1i32;
         j += 1
     }
-    *input.offset(j as isize) <<= 1i32;
+    *input.as_mut_ptr().offset(j as isize) <<= 1i32;
 }
 // end left_bit_shift
 
@@ -100,7 +101,7 @@ fn rotate_bit_left(input: &mut [DIGIT]) {
     let rotated_bit = (input[0] & mask != 0) as i32 as DIGIT;
     input[0] &= !mask;
 
-    unsafe { left_bit_shift(NUM_DIGITS_GF2X_ELEMENT as i32, input.as_mut_ptr()) }
+    unsafe { left_bit_shift(NUM_DIGITS_GF2X_ELEMENT as i32, input) }
     input[NUM_DIGITS_GF2X_ELEMENT - 1] |= rotated_bit;
 }
 
@@ -198,7 +199,7 @@ pub fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
             if f[0] & GF2_INVERSE_MASK == 0i32 as u64 {
                 left_bit_shift(
                     (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-                    f.as_mut_ptr(),
+                    &mut f,
                 );
                 rotate_bit_left(&mut u);
                 delta += 1i32
@@ -209,7 +210,7 @@ pub fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
                 }
                 left_bit_shift(
                     (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-                    s.as_mut_ptr(),
+                                                       &mut s,
                 );
                 if delta == 0i32 {
                     gf2x_swap(
