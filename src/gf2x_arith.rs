@@ -239,7 +239,16 @@ fn gf2x_exact_div_x_plus_one(A: &mut [DIGIT]) {
 fn gf2x_mul_Kar(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     if A.len() % 2 != 0 || A.len() < 9 || B.len() < 9 {
         /* fall back to schoolbook */
-        unsafe { gf2x_mul_comb(Res.len() as i32, Res.as_mut_ptr(), A.len() as i32, A.as_ptr(), B.len() as i32, B.as_ptr()); }
+        unsafe {
+            gf2x_mul_comb(
+                Res.len() as i32,
+                Res.as_mut_ptr(),
+                A.len() as i32,
+                A.as_ptr(),
+                B.len() as i32,
+                B.as_ptr(),
+            );
+        }
         return;
     }
 
@@ -248,14 +257,18 @@ fn gf2x_mul_Kar(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     let mut middle: Vec<DIGIT> = vec![0; 2 * bihu];
     let mut sumA: Vec<DIGIT> = vec![0; bihu];
     let mut sumB: Vec<DIGIT> = vec![0; bihu];
-    gf2x_add_3(&mut sumA, &A[0..bihu], &A[bihu..2*bihu]);
-    gf2x_add_3(&mut sumB, &B[0..bihu], &B[bihu..2*bihu]);
+    gf2x_add_3(&mut sumA, &A[0..bihu], &A[bihu..2 * bihu]);
+    gf2x_add_3(&mut sumB, &B[0..bihu], &B[bihu..2 * bihu]);
     gf2x_mul_Kar(&mut middle, &sumA, &sumB);
-    gf2x_mul_Kar(&mut Res[2*bihu..3*bihu], &A[bihu..2*bihu], &B[bihu..2*bihu]);
-    gf2x_add_2(&mut middle, &Res[2*bihu..4*bihu]);
-    gf2x_mul_Kar(&mut Res[0..2*bihu], &A[0..bihu], &B[0..bihu]);
-    gf2x_add_2(&mut middle, &Res[0..2*bihu]);
-    gf2x_add_2(&mut Res[bihu..3*bihu], &middle);
+    gf2x_mul_Kar(
+        &mut Res[2 * bihu..3 * bihu],
+        &A[bihu..2 * bihu],
+        &B[bihu..2 * bihu],
+    );
+    gf2x_add_2(&mut middle, &Res[2 * bihu..4 * bihu]);
+    gf2x_mul_Kar(&mut Res[0..2 * bihu], &A[0..bihu], &B[0..bihu]);
+    gf2x_add_2(&mut middle, &Res[0..2 * bihu]);
+    gf2x_add_2(&mut Res[bihu..3 * bihu], &middle);
 }
 
 /*----------------------------------------------------------------------------*/
