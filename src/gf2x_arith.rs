@@ -21,7 +21,7 @@ pub fn population_count(upc: &[DIGIT]) -> usize {
 }
 
 pub fn gf2x_get_coeff(poly: &[DIGIT], exponent: u32) -> DIGIT {
-    let straightIdx = (NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_b - 1) - exponent as usize;
+    let straightIdx = (NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_b - 1) - exponent as usize;
     let digitIdx = straightIdx / DIGIT_SIZE_b;
     let inDigitIdx = straightIdx % DIGIT_SIZE_b;
     let mask = 1 as DIGIT;
@@ -29,7 +29,7 @@ pub fn gf2x_get_coeff(poly: &[DIGIT], exponent: u32) -> DIGIT {
 }
 
 pub fn gf2x_toggle_coeff(poly: &mut [DIGIT], exponent: u32) {
-    let straightIdx = (NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_b - 1) - exponent as usize;
+    let straightIdx = (NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_b - 1) - exponent as usize;
     let digitIdx = straightIdx / DIGIT_SIZE_b;
     let inDigitIdx = straightIdx % DIGIT_SIZE_b;
     let mask: DIGIT = (1 as DIGIT) << (DIGIT_SIZE_b - 1 - inDigitIdx);
@@ -261,7 +261,7 @@ fn left_bit_shift_n(input: &mut [DIGIT], amount: usize) {
     let mask: DIGIT = !((1 as DIGIT) << (DIGIT_SIZE_b - amount - 1));
     for j in 0..(input.len() - 1) {
         input[j] <<= amount;
-        input[j] |= (input[j+1] & mask) >> (DIGIT_SIZE_b - amount);
+        input[j] |= (input[j + 1] & mask) >> (DIGIT_SIZE_b - amount);
     }
     input[input.len() - 1] <<= amount;
 }
@@ -447,7 +447,16 @@ unsafe fn gf2x_mul_Kar(
 pub fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     if A.len() < 50 || B.len() < 50 {
         /* fall back to schoolbook */
-        unsafe { gf2x_mul_Kar(Res.len() as i32, Res.as_mut_ptr(), A.len() as i32, A.as_ptr(), B.len() as i32, B.as_ptr()); }
+        unsafe {
+            gf2x_mul_Kar(
+                Res.len() as i32,
+                Res.as_mut_ptr(),
+                A.len() as i32,
+                A.as_ptr(),
+                B.len() as i32,
+                B.as_ptr(),
+            );
+        }
         return;
     }
 
@@ -465,11 +474,11 @@ pub fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
         v2[i] = B[(i - leading_slack)];
     }
 
-    let u1 = &A[bih - leading_slack..2*bih - leading_slack];
-    let u0 = &A[2*bih - leading_slack..3*bih - leading_slack];
+    let u1 = &A[bih - leading_slack..2 * bih - leading_slack];
+    let u0 = &A[2 * bih - leading_slack..3 * bih - leading_slack];
 
-    let v1 = &B[bih - leading_slack..2*bih - leading_slack];
-    let v0 = &B[2*bih - leading_slack..3*bih - leading_slack];
+    let v1 = &B[bih - leading_slack..2 * bih - leading_slack];
+    let v0 = &B[2 * bih - leading_slack..3 * bih - leading_slack];
 
     let mut sum_u: Vec<DIGIT> = vec![0; bih];
     gf2x_add_3(&mut sum_u, u0, u1);
@@ -492,10 +501,10 @@ pub fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     gf2x_add_asymm_3(&mut temp_u_components, &u1_x1_u2_x2, &sum_u);
 
     let mut v2_x2: Vec<DIGIT> = vec![0; bih + 1];
-    v2_x2[1..bih+1].copy_from_slice(&v2);
+    v2_x2[1..bih + 1].copy_from_slice(&v2);
     left_bit_shift_n(&mut v2_x2, 2);
     let mut v1_x: Vec<DIGIT> = vec![0; bih + 1];
-    v1_x[1..1+bih].copy_from_slice(v1);
+    v1_x[1..1 + bih].copy_from_slice(v1);
     left_bit_shift_n(&mut v1_x, 1);
     let mut v1_x1_v2_x2: Vec<DIGIT> = vec![0; bih + 1];
     gf2x_add_3(&mut v1_x1_v2_x2, &v1_x, &v2_x2);
@@ -521,7 +530,7 @@ pub fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     right_bit_shift_n(&mut w2, 1);
     gf2x_add_2(&mut w2, &w3);
     // w2 + (w4 * x^3+1) = w2 + w4 + w4 << 3
-    let mut w4_x3_plus_1: Vec<DIGIT> = vec![0; 2*bih+1];
+    let mut w4_x3_plus_1: Vec<DIGIT> = vec![0; 2 * bih + 1];
     w4_x3_plus_1[1..1 + 2 * bih].copy_from_slice(&w4);
 
     left_bit_shift_n(&mut w4_x3_plus_1, 3);
@@ -533,7 +542,7 @@ pub fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     right_bit_shift_n(&mut w3, 1);
     gf2x_exact_div_x_plus_one(&mut w3);
     gf2x_add_2(&mut w1, &w4);
-    let mut w1_final: Vec<DIGIT> = vec![0; 2*bih + 2];
+    let mut w1_final: Vec<DIGIT> = vec![0; 2 * bih + 2];
     gf2x_add_asymm_3(&mut w1_final, &w2, &w1);
     gf2x_add_2(&mut w2, &w3);
     // Result recombination starts here
@@ -542,27 +551,27 @@ pub fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
         Res[i] = 0;
     }
 
-        let mut leastSignifDigitIdx = Res.len() - 1;
-        for i in 0..2*bih {
-            Res[leastSignifDigitIdx - i] ^= w0[2*bih   - 1 - i];
+    let mut leastSignifDigitIdx = Res.len() - 1;
+    for i in 0..2 * bih {
+        Res[leastSignifDigitIdx - i] ^= w0[2 * bih - 1 - i];
+    }
+    leastSignifDigitIdx -= bih;
+    for i in 0..2 * bih + 2 {
+        Res[leastSignifDigitIdx - i] ^= w1_final[2 * bih + 2 - 1 - i];
+    }
+    leastSignifDigitIdx -= bih;
+    for i in 0..2 * bih + 2 {
+        Res[leastSignifDigitIdx - i] ^= w2[2 * bih + 2 - 1 - i];
+    }
+    leastSignifDigitIdx -= bih;
+    for i in 0..2 * bih + 2 {
+        Res[leastSignifDigitIdx - i] ^= w3[2 * bih + 2 - 1 - i];
+    }
+    leastSignifDigitIdx -= bih;
+    for i in 0..2 * bih {
+        if i > leastSignifDigitIdx {
+            break;
         }
-        leastSignifDigitIdx -= bih;
-        for i in 0..2*bih + 2 {
-            Res[leastSignifDigitIdx - i] ^= w1_final[2*bih+2   - 1 - i];
-        }
-        leastSignifDigitIdx -= bih;
-        for i in 0..2*bih + 2 {
-            Res[leastSignifDigitIdx - i] ^= w2[2*bih+2 - 1 - i];
-        }
-        leastSignifDigitIdx -= bih;
-        for i in 0..2*bih + 2 {
-            Res[leastSignifDigitIdx - i] ^= w3[2*bih+2 - 1 - i];
-        }
-        leastSignifDigitIdx -= bih;
-        for i in 0..2*bih {
-            if i > leastSignifDigitIdx {
-                break;
-            }
-            Res[leastSignifDigitIdx - i] ^= w4[2*bih   - 1 - i];
-        }
+        Res[leastSignifDigitIdx - i] ^= w4[2 * bih - 1 - i];
+    }
 }
