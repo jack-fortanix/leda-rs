@@ -471,11 +471,11 @@ pub unsafe fn gf2x_mul_TC3(
     let mut i: i32 = 0; /* partitioned inputs */
     i = 0i32; /*bih digit wide*/
     while i < leading_slack {
-        *u2.as_mut_ptr().offset(i as isize) = 0i32 as DIGIT; /*bih digit wide*/
+        u2[i as usize] = 0; /*bih digit wide*/
         i += 1
     }
     while (i as u32) < bih {
-        *u2.as_mut_ptr().offset(i as isize) = *A.offset((i - leading_slack) as isize);
+        u2[i as usize] = *A.offset((i - leading_slack) as isize);
         i += 1
     }
     let u1 = A.offset(bih as isize).offset(-(leading_slack as isize));
@@ -485,11 +485,11 @@ pub unsafe fn gf2x_mul_TC3(
     let mut v2: Vec<DIGIT> = vec![0; bih as usize];
     i = 0i32;
     while i < leading_slack {
-        *v2.as_mut_ptr().offset(i as isize) = 0i32 as DIGIT;
+        v2[i as usize] = 0;
         i += 1
     }
     while (i as u32) < bih {
-        *v2.as_mut_ptr().offset(i as isize) = *B.offset((i - leading_slack) as isize);
+        v2[i as usize] = *B.offset((i - leading_slack) as isize);
         i += 1
     }
     let v1 = B.offset(bih as isize).offset(-(leading_slack as isize));
@@ -535,7 +535,6 @@ pub unsafe fn gf2x_mul_TC3(
         sum_v.as_ptr(),
     );
     let mut u2_x2: Vec<DIGIT> = vec![0; 1 + bih as usize];
-    *u2_x2.as_mut_ptr().offset(0) = 0i32 as DIGIT;
     memcpy(
         u2_x2.as_mut_ptr().offset(1) as *mut libc::c_void,
         u2.as_mut_ptr() as *const libc::c_void,
@@ -546,9 +545,7 @@ pub unsafe fn gf2x_mul_TC3(
         u2_x2.as_mut_ptr(),
         2i32,
     );
-    let vla_5 = bih.wrapping_add(1i32 as u32) as usize;
-    let mut u1_x: Vec<DIGIT> = ::std::vec::from_elem(0, vla_5);
-    *u1_x.as_mut_ptr().offset(0) = 0i32 as DIGIT;
+    let mut u1_x: Vec<DIGIT> = vec![0; bih as usize + 1];
     memcpy(
         u1_x.as_mut_ptr().offset(1) as *mut libc::c_void,
         u1 as *const libc::c_void,
@@ -561,8 +558,7 @@ pub unsafe fn gf2x_mul_TC3(
     );
     let mut u1_x1_u2_x2: Vec<DIGIT> = vec![0; bih as usize + 1];
     gf2x_add_3(&mut u1_x1_u2_x2, &u1_x, &u2_x2);
-    let vla_7 = bih.wrapping_add(1i32 as u32) as usize;
-    let mut temp_u_components: Vec<DIGIT> = ::std::vec::from_elem(0, vla_7);
+    let mut temp_u_components: Vec<DIGIT> = vec![0; bih as usize + 1];
     gf2x_add_asymm(
         bih.wrapping_add(1i32 as u32) as i32,
         temp_u_components.as_mut_ptr(),
@@ -571,9 +567,7 @@ pub unsafe fn gf2x_mul_TC3(
         bih as i32,
         sum_u.as_ptr(),
     );
-    let vla_8 = bih.wrapping_add(1i32 as u32) as usize;
-    let mut v2_x2: Vec<DIGIT> = ::std::vec::from_elem(0, vla_8);
-    *v2_x2.as_mut_ptr().offset(0) = 0i32 as DIGIT;
+    let mut v2_x2: Vec<DIGIT> = vec![0; bih as usize + 1];
     memcpy(
         v2_x2.as_mut_ptr().offset(1) as *mut libc::c_void,
         v2.as_mut_ptr() as *const libc::c_void,
@@ -584,9 +578,7 @@ pub unsafe fn gf2x_mul_TC3(
         v2_x2.as_mut_ptr(),
         2i32,
     );
-    let vla_9 = bih.wrapping_add(1i32 as u32) as usize;
-    let mut v1_x: Vec<DIGIT> = ::std::vec::from_elem(0, vla_9);
-    *v1_x.as_mut_ptr().offset(0) = 0i32 as DIGIT;
+    let mut v1_x: Vec<DIGIT> = vec![0; bih as usize + 1];
     memcpy(
         v1_x.as_mut_ptr().offset(1) as *mut libc::c_void,
         v1 as *const libc::c_void,
