@@ -605,13 +605,12 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     );
     let mut w2: Vec<DIGIT> = vec![0; 2 * (bih as usize) + 2];
     gf2x_mul_TC3(&mut w2, &u1_x1_u2_x2, &v1_x1_v2_x2);
-    let vla_14 = (2i32 as u32).wrapping_mul(bih) as usize;
-    let mut w4: Vec<DIGIT> = ::std::vec::from_elem(0, vla_14);
+    let mut w4: Vec<DIGIT> = vec![0; 2 * bih as usize];
     gf2x_mul_TC3(&mut w4, &u2, &v2);
-    let vla_15 = (2i32 as u32).wrapping_mul(bih) as usize;
-    let mut w0: Vec<DIGIT> = ::std::vec::from_elem(0, vla_15);
+    let mut w0: Vec<DIGIT> = vec![0; 2 * bih as usize];
     gf2x_mul_TC3(
-        &mut w0, std::slice::from_raw_parts(u0, bih as usize),
+        &mut w0,
+        std::slice::from_raw_parts(u0, bih as usize),
         std::slice::from_raw_parts(v0, bih as usize));
 
     // Interpolation starts
