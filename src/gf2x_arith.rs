@@ -241,22 +241,22 @@ fn gf2x_mul_Kar(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
         return;
     }
 
-    let bih = (A.len() / 2);
-    let mut middle: Vec<DIGIT> = vec![0; 2 * bih];
-    let mut sumA: Vec<DIGIT> = vec![0; bih];
-    let mut sumB: Vec<DIGIT> = vec![0; bih];
-    gf2x_add_3(&mut sumA, &A[0..bih], &A[bih..2 * bih]);
-    gf2x_add_3(&mut sumB, &B[0..bih], &B[bih..2 * bih]);
+    let half = A.len() / 2;
+    let mut middle: Vec<DIGIT> = vec![0; 2 * half];
+    let mut sumA: Vec<DIGIT> = vec![0; half];
+    let mut sumB: Vec<DIGIT> = vec![0; half];
+    gf2x_add_3(&mut sumA, &A[0..half], &A[half..2 * half]);
+    gf2x_add_3(&mut sumB, &B[0..half], &B[half..2 * half]);
     gf2x_mul_Kar(&mut middle, &sumA, &sumB);
     gf2x_mul_Kar(
-        &mut Res[2 * bih..4 * bih],
-        &A[bih..2 * bih],
-        &B[bih..2 * bih],
+        &mut Res[2 * half..4 * half],
+        &A[half..2 * half],
+        &B[half..2 * half],
     );
-    gf2x_add_2(&mut middle, &Res[2 * bih..4 * bih]);
-    gf2x_mul_Kar(&mut Res[0..2 * bih], &A[0..bih], &B[0..bih]);
-    gf2x_add_2(&mut middle, &Res[0..2 * bih]);
-    gf2x_add_2(&mut Res[bih..3 * bih], &middle);
+    gf2x_add_2(&mut middle, &Res[2 * half..4 * half]);
+    gf2x_mul_Kar(&mut Res[0..2 * half], &A[0..half], &B[0..half]);
+    gf2x_add_2(&mut middle, &Res[0..2 * half]);
+    gf2x_add_2(&mut Res[half..3 * half], &middle);
 }
 
 /*----------------------------------------------------------------------------*/
