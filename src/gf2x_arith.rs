@@ -113,7 +113,7 @@ pub fn gf2x_set_coeff(poly: &mut [DIGIT], exponent: usize, value: DIGIT) {
     poly[digitIdx] = poly[digitIdx] | ((value & (1 as DIGIT)) << (DIGIT_SIZE_b - 1 - inDigitIdx));
 }
 
-unsafe fn gf2x_mul_comb(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
+fn gf2x_mul_comb(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     for i in 0..Res.len() {
         Res[i] = 0;
     }
@@ -140,13 +140,13 @@ unsafe fn gf2x_mul_comb(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
             }
             i -= 1
         }
-        u = *Res.as_mut_ptr().offset((na + nb - 1i32) as isize);
-        *Res.as_mut_ptr().offset((na + nb - 1i32) as isize) = u << 0x1i32;
+        u = Res[(na + nb - 1) as usize];
+        Res[(na + nb - 1) as usize] = u << 1;
         j = 1i32;
         while j < na + nb {
-            h = u >> (8i32 << 3i32) - 1i32;
-            u = *Res.as_mut_ptr().offset((na + nb - 1i32 - j) as isize);
-            *Res.as_mut_ptr().offset((na + nb - 1i32 - j) as isize) = h ^ u << 0x1i32;
+            h = u >> (DIGIT_SIZE_b - 1);
+            u = Res[(na + nb -1 - j) as usize];
+            Res[(na + nb - 1 -j) as usize] = h ^ u << 1;
             j += 1
         }
         k -= 1
@@ -234,9 +234,7 @@ fn gf2x_exact_div_x_plus_one(A: &mut [DIGIT]) {
 fn gf2x_mul_Kar(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     if A.len() % 2 != 0 || A.len() < 9 || B.len() < 9 {
         /* fall back to schoolbook */
-        unsafe {
-            gf2x_mul_comb(Res, A, B);
-        }
+        gf2x_mul_comb(Res, A, B);
         return;
     }
 
