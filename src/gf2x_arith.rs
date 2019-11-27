@@ -303,10 +303,11 @@ unsafe fn gf2x_mul_Kar(
         return;
     }
     if na % 2i32 == 0i32 {
-        let mut bih: u32 = (na / 2i32) as u32;
-        let mut middle: Vec<DIGIT> = vec![0; 2 * bih as usize];
-        let mut sumA: Vec<DIGIT> = vec![0; bih as usize];
-        let mut sumB: Vec<DIGIT> = vec![0; bih as usize];
+        let bih: u32 = (na / 2i32) as u32;
+        let bihu = bih as usize;
+        let mut middle: Vec<DIGIT> = vec![0; 2 * bihu];
+        let mut sumA: Vec<DIGIT> = vec![0; bihu];
+        let mut sumB: Vec<DIGIT> = vec![0; bihu];
         gf2x_add(
             sumA.len() as i32,
             sumA.as_mut_ptr(),
@@ -372,10 +373,11 @@ unsafe fn gf2x_mul_Kar(
             middle.as_ptr(),
         );
     } else {
-        let mut bih: u32 = (na / 2i32 + 1i32) as u32;
-        let mut middle: Vec<DIGIT> = vec![0; bih as usize * 2];
-        let mut sumA: Vec<DIGIT> = vec![0; bih as usize];
-        let mut sumB: Vec<DIGIT> = vec![0; bih as usize];
+        let bih: u32 = (na / 2i32 + 1i32) as u32;
+        let bihu = bih as usize;
+        let mut middle: Vec<DIGIT> = vec![0; bihu * 2];
+        let mut sumA: Vec<DIGIT> = vec![0; bihu];
+        let mut sumB: Vec<DIGIT> = vec![0; bihu];
         gf2x_add_asymm(
             sumA.len() as i32,
             sumA.as_mut_ptr(),
@@ -458,19 +460,19 @@ pub unsafe fn gf2x_mul_TC3(
     nb: i32,
     mut B: *const DIGIT,
 ) {
-    if na < 50i32 || nb < 50i32 {
+    if na < 50 || nb < 50 {
         /* fall back to schoolbook */
         gf2x_mul_Kar(nr, Res, na, A, nb, B); //number of limbs for each part.
         return;
     }
-    let mut bih: u32 = 0;
-    if na % 3i32 == 0i32 {
-        bih = (na / 3i32) as u32
+
+    let bih = if na % 3 == 0 {
+        (na / 3) as u32
     } else {
-        bih = (na / 3i32 + 1i32) as u32
-    }
+        (na / 3 + 1) as u32
+    };
     let mut u2: Vec<DIGIT> = vec![0; bih as usize];
-    let mut leading_slack: i32 = (3i32 - na % 3i32) % 3i32;
+    let leading_slack: i32 = (3 - na % 3) % 3;
     let mut i: i32 = 0; /* partitioned inputs */
     i = 0i32; /*bih digit wide*/
     while i < leading_slack {
