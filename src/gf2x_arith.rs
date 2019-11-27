@@ -236,9 +236,7 @@ unsafe fn gf2x_add_asymm(
 /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
 
 pub fn right_bit_shift_n(input: &mut [DIGIT], amount: usize) {
-    if amount >= DIGIT_SIZE_b {
-        panic!("amount > DIGIT_SIZE_b");
-    }
+    assert!(amount < DIGIT_SIZE_b);
     if amount == 0 {
         return;
     }
@@ -250,7 +248,7 @@ pub fn right_bit_shift_n(input: &mut [DIGIT], amount: usize) {
     input[0] >>= amount;
 }
 
-pub unsafe fn left_bit_shift_n(length: i32, mut input: *mut DIGIT, amount: i32) {
+unsafe fn left_bit_shift_n(length: i32, mut input: *mut DIGIT, amount: i32) {
     if amount > 8i32 << 3i32 {
         panic!("amount > DIGIT_SIZE_b");
     }
