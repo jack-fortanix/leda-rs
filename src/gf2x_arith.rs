@@ -542,74 +542,27 @@ pub fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
         Res[i] = 0;
     }
 
-    unsafe {
-    /* optimization: topmost slack digits should be computed, and not addedd,
-     * zeroization can be avoided altogether with a proper merge of the
-     * results */
-    let mut leastSignifDigitIdx: i32 = Res.len() as i32 - 1i32;
-    let mut i_0: i32 = 0i32;
-
-    let bih = bih as u32;
-    while (i_0 as u32) < (2i32 as u32).wrapping_mul(bih) {
-        let ref mut fresh4 = *Res.as_mut_ptr().offset((leastSignifDigitIdx - i_0) as isize);
-        *fresh4 ^= *w0.as_mut_ptr().offset(
-            (2i32 as u32)
-                .wrapping_mul(bih)
-                .wrapping_sub(1i32 as u32)
-                .wrapping_sub(i_0 as u32) as isize,
-        );
-        i_0 += 1
-    }
-    leastSignifDigitIdx = (leastSignifDigitIdx as u32).wrapping_sub(bih) as i32 as i32;
-    let mut i_1: i32 = 0i32;
-    while (i_1 as u32) < (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) {
-        let ref mut fresh5 = *Res.as_mut_ptr().offset((leastSignifDigitIdx - i_1) as isize);
-        *fresh5 ^= *w1_final.as_mut_ptr().offset(
-            (2i32 as u32)
-                .wrapping_mul(bih)
-                .wrapping_add(2i32 as u32)
-                .wrapping_sub(1i32 as u32)
-                .wrapping_sub(i_1 as u32) as isize,
-        );
-        i_1 += 1
-    }
-    leastSignifDigitIdx = (leastSignifDigitIdx as u32).wrapping_sub(bih) as i32 as i32;
-    let mut i_2: i32 = 0i32;
-    while (i_2 as u32) < (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) {
-        let ref mut fresh6 = *Res.as_mut_ptr().offset((leastSignifDigitIdx - i_2) as isize);
-        *fresh6 ^= *w2.as_mut_ptr().offset(
-            (2i32 as u32)
-                .wrapping_mul(bih)
-                .wrapping_add(2i32 as u32)
-                .wrapping_sub(1i32 as u32)
-                .wrapping_sub(i_2 as u32) as isize,
-        );
-        i_2 += 1
-    }
-    leastSignifDigitIdx = (leastSignifDigitIdx as u32).wrapping_sub(bih) as i32 as i32;
-    let mut i_3: i32 = 0i32;
-    while (i_3 as u32) < (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) {
-        let ref mut fresh7 = *Res.as_mut_ptr().offset((leastSignifDigitIdx - i_3) as isize);
-        *fresh7 ^= *w3.as_mut_ptr().offset(
-            (2i32 as u32)
-                .wrapping_mul(bih)
-                .wrapping_add(2i32 as u32)
-                .wrapping_sub(1i32 as u32)
-                .wrapping_sub(i_3 as u32) as isize,
-        );
-        i_3 += 1
-    }
-    leastSignifDigitIdx = (leastSignifDigitIdx as u32).wrapping_sub(bih) as i32 as i32;
-    let mut i_4: i32 = 0i32;
-    while (i_4 as u32) < (2i32 as u32).wrapping_mul(bih) && leastSignifDigitIdx - i_4 >= 0i32 {
-        let ref mut fresh8 = *Res.as_mut_ptr().offset((leastSignifDigitIdx - i_4) as isize);
-        *fresh8 ^= *w4.as_mut_ptr().offset(
-            (2i32 as u32)
-                .wrapping_mul(bih)
-                .wrapping_sub(1i32 as u32)
-                .wrapping_sub(i_4 as u32) as isize,
-        );
-        i_4 += 1
-    }
-    }
+        let mut leastSignifDigitIdx = Res.len() - 1;
+        for i in 0..2*bih {
+            Res[leastSignifDigitIdx - i] ^= w0[2*bih   - 1 - i];
+        }
+        leastSignifDigitIdx -= bih;
+        for i in 0..2*bih + 2 {
+            Res[leastSignifDigitIdx - i] ^= w1_final[2*bih+2   - 1 - i];
+        }
+        leastSignifDigitIdx -= bih;
+        for i in 0..2*bih + 2 {
+            Res[leastSignifDigitIdx - i] ^= w2[2*bih+2 - 1 - i];
+        }
+        leastSignifDigitIdx -= bih;
+        for i in 0..2*bih + 2 {
+            Res[leastSignifDigitIdx - i] ^= w3[2*bih+2 - 1 - i];
+        }
+        leastSignifDigitIdx -= bih;
+        for i in 0..2*bih {
+            if i > leastSignifDigitIdx {
+                break;
+            }
+            Res[leastSignifDigitIdx - i] ^= w4[2*bih   - 1 - i];
+        }
 }
