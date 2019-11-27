@@ -62,15 +62,13 @@ pub fn bf_decoding(
                     for v in 0..DV {
                         let mut syndromePosToFlip: u32 = 0;
                         for HtrOneIdx in 0..DV {
-                            syndromePosToFlip = HtrPosOnes[currQBlkPos[v] as usize]
-                                [HtrOneIdx]
+                            syndromePosToFlip = HtrPosOnes[currQBlkPos[v] as usize][HtrOneIdx]
                                 .wrapping_add(currQBitPos[v]);
-                            syndromePosToFlip =
-                                if syndromePosToFlip >= P32 {
-                                    syndromePosToFlip.wrapping_sub(P32)
-                                } else {
-                                    syndromePosToFlip
-                                };
+                            syndromePosToFlip = if syndromePosToFlip >= P32 {
+                                syndromePosToFlip.wrapping_sub(P32)
+                            } else {
+                                syndromePosToFlip
+                            };
                             gf2x_toggle_coeff(privateSyndrome, syndromePosToFlip);
                         }
                     }
@@ -90,7 +88,8 @@ pub fn bf_decoding(
         if !(iteration < 2i32
             && check < (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32))
         {
-            return (check == (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as i32;
+            return (check == (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32))
+                as i32;
         }
     }
 }

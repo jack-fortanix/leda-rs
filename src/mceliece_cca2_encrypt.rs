@@ -1,6 +1,6 @@
 use crate::constant_weight_codec::{binary_to_constant_weight_approximate, bitstream_read};
 use crate::consts::*;
-use crate::crypto::*;
+use crate::crypto::{deterministic_random_byte_generator, drbg, sha3_384};
 use crate::gf2x_arith::*;
 use crate::gf2x_arith_mod_xPplusOne::*;
 use crate::types::*;
@@ -44,11 +44,7 @@ fn char_right_bit_shift_n(data: &mut [u8], amount: usize) {
 }
 
 // shifts the input stream so that the bytewise pad is on the left before conversion
-fn bytestream_into_poly_seq(
-    polySeq: &mut [DIGIT],
-    numPoly: usize,
-    S: &mut [u8],
-) -> Result<()> {
+fn bytestream_into_poly_seq(polySeq: &mut [DIGIT], numPoly: usize, S: &mut [u8]) -> Result<()> {
     let padsize = if K % 8 != 0 { 8 - (K % 8) } else { 0 };
     char_right_bit_shift_n(S, padsize);
     if numPoly == 0 || S.len() < ((numPoly * P + 7) / 8) {
@@ -80,7 +76,11 @@ pub fn digits_to_bytes(d: &[DIGIT]) -> Vec<u8> {
     return out;
 }
 
-pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8], mut rng: impl FnMut(&mut [u8])) -> Result<Vec<u8>> {
+pub fn encrypt_Kobara_Imai(
+    pk: &LedaPublicKey,
+    msg: &[u8],
+    mut rng: impl FnMut(&mut [u8]),
+) -> Result<Vec<u8>> {
     if msg.len() > MAX_BYTES_IN_IWORD {
         // Longer plaintext is supported by LEDA spec using a different encoding,
         // but with our parameters, this supports up to 7K which seems plenty

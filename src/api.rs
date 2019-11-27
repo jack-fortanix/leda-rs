@@ -71,8 +71,7 @@ pub fn leda_gen_keypair(seed: &[u8]) -> Result<(Vec<u8>, Vec<u8>)> {
     Ok((leda_encode_sk(&sk)?, leda_encode_pk(&pk)?))
 }
 
-pub fn leda_encrypt(msg: &[u8], pk: &[u8],
-                    rng: impl FnMut(&mut [u8])) -> Result<Vec<u8>> {
+pub fn leda_encrypt(msg: &[u8], pk: &[u8], rng: impl FnMut(&mut [u8])) -> Result<Vec<u8>> {
     let pk = leda_decode_pk(pk)?;
     encrypt_Kobara_Imai(&pk, msg, rng)
 }

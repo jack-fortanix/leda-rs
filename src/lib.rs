@@ -26,4 +26,4 @@ pub use api::leda_decrypt;
 pub use api::leda_encrypt;
 pub use api::leda_gen_keypair;
 pub use crypto::{randombytes_ctx, randombytes_ctx_init};
-pub use types::{Error, Result, AES256_CTR_DRBG_struct};
+pub use types::{AES256_CTR_DRBG_struct, Error, Result};
