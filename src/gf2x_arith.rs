@@ -142,12 +142,11 @@ fn gf2x_mul_comb(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
         }
         u = Res[(na + nb - 1) as usize];
         Res[(na + nb - 1) as usize] = u << 1;
-        j = 1i32;
-        while j < na + nb {
+
+        for j in 1..(A.len() + B.len()) {
             h = u >> (DIGIT_SIZE_b - 1);
-            u = Res[(na + nb -1 - j) as usize];
-            Res[(na + nb - 1 -j) as usize] = h ^ u << 1;
-            j += 1
+            u = Res[A.len() + B.len() - 1 - j];
+            Res[A.len() + B.len() - 1 - j] = h ^ u << 1;
         }
         k -= 1
     }
