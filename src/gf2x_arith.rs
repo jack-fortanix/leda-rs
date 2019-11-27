@@ -235,7 +235,8 @@ unsafe fn gf2x_add_asymm(
 /*----------------------------------------------------------------------------*/
 /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
 
-pub unsafe fn right_bit_shift_n(length: i32, mut input: *mut DIGIT, amount: i32) {
+pub fn right_bit_shift_n(length: i32, input: &mut [DIGIT], amount: i32) {
+    assert_eq!(length as usize, input.len());
     if amount >= 8i32 << 3i32 {
         panic!("amount > DIGIT_SIZE");
     }
@@ -247,12 +248,11 @@ pub unsafe fn right_bit_shift_n(length: i32, mut input: *mut DIGIT, amount: i32)
     mask = ((0x1i32 as DIGIT) << amount).wrapping_sub(1i32 as u64);
     j = length - 1i32;
     while j > 0i32 {
-        *input.offset(j as isize) >>= amount;
-        let ref mut fresh2 = *input.offset(j as isize);
-        *fresh2 |= (*input.offset((j - 1i32) as isize) & mask) << (8i32 << 3i32) - amount;
+        input[j as usize] >>= amount;
+        input[j as usize] |= (input[j as usize - 1] & mask) << (DIGIT_SIZE_b - amount as usize);
         j -= 1
     }
-    *input.offset(j as isize) >>= amount;
+    input[0] >>= amount;
 }
 
 pub unsafe fn left_bit_shift_n(length: i32, mut input: *mut DIGIT, amount: i32) {
@@ -683,7 +683,7 @@ pub unsafe fn gf2x_mul_TC3(
     );
     right_bit_shift_n(
         (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
-        w2.as_mut_ptr(),
+        &mut w2,
         1i32,
     );
     gf2x_add_2(&mut w2, &w3);
@@ -726,7 +726,7 @@ pub unsafe fn gf2x_mul_TC3(
         w1.len() as i32,
         w1.as_ptr(),
     );
-    right_bit_shift_n(w3.len() as i32, w3.as_mut_ptr(), 1i32);
+    right_bit_shift_n(w3.len() as i32, &mut w3, 1i32);
     gf2x_exact_div_x_plus_one(w3.len() as i32, w3.as_mut_ptr());
     gf2x_add_2(&mut w1, &w4);
     let vla_17 = (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as usize;

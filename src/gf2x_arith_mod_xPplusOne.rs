@@ -12,13 +12,11 @@ fn gf2x_mod(out: &mut [DIGIT], input: &[DIGIT]) {
 
     aux.copy_from_slice(&input[0..(NUM_DIGITS_GF2X_ELEMENT + 1)]);
 
-    unsafe {
-        right_bit_shift_n(
-            NUM_DIGITS_GF2X_ELEMENT as i32 + 1,
-            aux.as_mut_ptr(),
-            MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS as i32,
-        );
-    }
+    right_bit_shift_n(
+        NUM_DIGITS_GF2X_ELEMENT as i32 + 1,
+        &mut aux,
+        MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS as i32);
+
     gf2x_mod_add_3(
         out,
         &aux[1..NUM_DIGITS_GF2X_ELEMENT + 1],
@@ -35,7 +33,6 @@ fn left_bit_shift(input: &mut [DIGIT]) {
     }
     input[input.len() - 1] <<= 1;
 }
-// end left_bit_shift
 
 fn right_bit_shift(input: &mut [DIGIT]) {
     for j in (1..input.len()).rev() {
@@ -73,12 +70,10 @@ pub fn gf2x_transpose_in_place(mut A: &mut [DIGIT]) {
         A[NUM_DIGITS_GF2X_ELEMENT / 2] = reverse_digit(A[NUM_DIGITS_GF2X_ELEMENT / 2]);
     }
     if slack_bits_amount != 0 {
-        unsafe {
-            right_bit_shift_n(
-                NUM_DIGITS_GF2X_ELEMENT as i32,
-                A.as_mut_ptr(),
-                slack_bits_amount as i32,
-            );
+        right_bit_shift_n(
+            NUM_DIGITS_GF2X_ELEMENT as i32,
+            A,
+            slack_bits_amount as i32,
         }
     }
 
