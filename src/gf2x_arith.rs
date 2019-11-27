@@ -222,7 +222,19 @@ unsafe fn gf2x_add_asymm(
         B,
     );
 }
-// end gf2x_add
+
+fn gf2x_add_asymm_safe(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
+    unsafe {
+        gf2x_add_asymm(
+            Res.len() as i32,
+            Res.as_mut_ptr(),
+            A.len() as i32,
+            A.as_ptr(),
+            B.len() as i32,
+            B.as_ptr());
+    }
+}
+
 /*----------------------------------------------------------------------------*/
 /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
 
@@ -490,7 +502,7 @@ pub unsafe fn gf2x_mul_TC3(
 
     let mut sum_u: Vec<DIGIT> = vec![0; bih as usize];
     gf2x_add(
-        bih as i32,
+        sum_u.len() as i32,
         sum_u.as_mut_ptr(),
         bih as i32,
         u0,
@@ -500,7 +512,7 @@ pub unsafe fn gf2x_mul_TC3(
     gf2x_add(
         sum_u.len() as i32,
         sum_u.as_mut_ptr(),
-        bih as i32,
+        sum_u.len() as i32,
         sum_u.as_ptr(),
         bih as i32,
         u2.as_ptr(),
@@ -520,9 +532,9 @@ pub unsafe fn gf2x_mul_TC3(
     gf2x_mul_TC3(
         w1.len() as i32,
         w1.as_mut_ptr(),
-        bih as i32,
+        sum_u.len() as i32,
         sum_u.as_ptr(),
-        bih as i32,
+        sum_v.len() as i32,
         sum_v.as_ptr(),
     );
     let mut u2_x2: Vec<DIGIT> = vec![0; 1 + bih as usize];
@@ -548,11 +560,11 @@ pub unsafe fn gf2x_mul_TC3(
     gf2x_add_3(&mut u1_x1_u2_x2, &u1_x, &u2_x2);
     let mut temp_u_components: Vec<DIGIT> = vec![0; bih as usize + 1];
     gf2x_add_asymm(
-        bih.wrapping_add(1i32 as u32) as i32,
+        temp_u_components.len() as i32,
         temp_u_components.as_mut_ptr(),
-        bih.wrapping_add(1i32 as u32) as i32,
+        u1_x1_u2_x2.len() as i32,
         u1_x1_u2_x2.as_ptr(),
-        bih as i32,
+        sum_u.len() as i32,
         sum_u.as_ptr(),
     );
     let mut v2_x2: Vec<DIGIT> = vec![0; bih as usize + 1];
