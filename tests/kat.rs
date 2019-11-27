@@ -98,19 +98,23 @@ pub fn all_kats() {
 
         println!("Leda count {}", kat.count);
 
-        randombytes_init(&kat.seed);
+        let mut drbg_ctx = AES256_CTR_DRBG_struct {
+            key: [0; 32],
+            v: [0; 16],
+            reseed_counter: 0,
+        };
 
-        /*
+        randombytes_ctx_init(&mut drbg_ctx, &kat.seed);
+
         let mut kp_seed = vec![0u8; 32];
-        randombytes(&mut kp_seed);
-*/
+        randombytes_ctx(&mut drbg_ctx, &mut kp_seed);
 
-        let (sk,pk) = leda_gen_keypair().unwrap();
+        let (sk,pk) = leda_gen_keypair(&kp_seed).unwrap();
 
         assert_eq!(sk.to_hex(), kat.sk.to_hex());
         assert_eq!(pk.to_hex(), kat.pk.to_hex());
 
-        let ctext = leda_encrypt(&kat.msg, &kat.pk).unwrap();
+        let ctext = leda_encrypt(&kat.msg, &kat.pk, |v| randombytes_ctx(&mut drbg_ctx, v)).unwrap();
 
         assert_eq!(ctext.len(), kat.clen);
         assert_eq!(ctext.to_hex(), kat.ctext.to_hex());
