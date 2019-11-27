@@ -519,32 +519,11 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     let v1 = std::slice::from_raw_parts(v1, bih as usize);
 
     let mut sum_u: Vec<DIGIT> = vec![0; bih as usize];
-    gf2x_add(
-        sum_u.len() as i32,
-        sum_u.as_mut_ptr(),
-        bih as i32,
-        u0.as_ptr(),
-        bih as i32,
-        u1.as_ptr(),
-    );
-    gf2x_add(
-        sum_u.len() as i32,
-        sum_u.as_mut_ptr(),
-        sum_u.len() as i32,
-        sum_u.as_ptr(),
-        bih as i32,
-        u2.as_ptr(),
-    );
+    gf2x_add_3(&mut sum_u, u0, u1);
+    gf2x_add_2(&mut sum_u, &u2);
 
     let mut sum_v: Vec<DIGIT> = vec![0; bih as usize];
-    gf2x_add(
-        sum_v.len() as i32,
-        sum_v.as_mut_ptr(),
-        bih as i32,
-        v0.as_ptr(),
-        bih as i32,
-        v1.as_ptr(),
-    );
+    gf2x_add_3(&mut sum_v, v0, v1);
     gf2x_add_2(&mut sum_v, &v2);
     let mut w1: Vec<DIGIT> = vec![0; 2 * bih as usize];
     gf2x_mul_TC3(&mut w1, &sum_u, &sum_v);
