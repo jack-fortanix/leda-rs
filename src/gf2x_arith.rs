@@ -264,41 +264,13 @@ unsafe fn gf2x_mul_Kar(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     let mut middle: Vec<DIGIT> = vec![0; 2 * bihu];
     let mut sumA: Vec<DIGIT> = vec![0; bihu];
     let mut sumB: Vec<DIGIT> = vec![0; bihu];
-    gf2x_add(
-        sumA.len() as i32,
-        sumA.as_mut_ptr(),
-        bih as i32,
-        A.as_ptr(),
-        bih as i32,
-        A.as_ptr().offset(bih as isize),
-    );
-    gf2x_add(
-        sumB.len() as i32,
-        sumB.as_mut_ptr(),
-        bih as i32,
-        B.as_ptr(),
-        bih as i32,
-        B.as_ptr().offset(bih as isize),
-    );
+    gf2x_add_3(&mut sumA, &A[0..bihu], &A[bihu..2*bihu]);
+    gf2x_add_3(&mut sumB, &B[0..bihu], &B[bihu..2*bihu]);
     gf2x_mul_Kar(&mut middle, &sumA, &sumB);
     gf2x_mul_Kar(&mut Res[2*bihu..3*bihu], &A[bihu..2*bihu], &B[bihu..2*bihu]);
-    gf2x_add(
-        middle.len() as i32,
-        middle.as_mut_ptr(),
-        middle.len() as i32,
-        middle.as_ptr(),
-        (2i32 as u32).wrapping_mul(bih) as i32,
-        Res.as_ptr().offset((2i32 as u32).wrapping_mul(bih) as isize) as *const DIGIT,
-    );
+    gf2x_add_2(&mut middle, &Res[2*bihu..4*bihu]);
     gf2x_mul_Kar(&mut Res[0..2*bihu], &A[0..bihu], &B[0..bihu]);
-    gf2x_add(
-        middle.len() as i32,
-        middle.as_mut_ptr(),
-        middle.len() as i32,
-        middle.as_ptr(),
-        (2i32 as u32).wrapping_mul(bih) as i32,
-        Res.as_ptr() as *const DIGIT,
-    );
+    gf2x_add_2(&mut middle, &Res[0..2*bihu]);
     gf2x_add(
         (2i32 as u32).wrapping_mul(bih) as i32,
         Res.as_mut_ptr().offset(bih as isize),
