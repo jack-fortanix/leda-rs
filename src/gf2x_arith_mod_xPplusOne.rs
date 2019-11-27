@@ -29,12 +29,9 @@ fn gf2x_mod(out: &mut [DIGIT], input: &[DIGIT]) {
 }
 
 fn left_bit_shift(input: &mut [DIGIT]) {
-    let mut j: i32 = 0; /* logical shift does not need clearing */
-    while j < input.len() as i32 - 1i32 {
-        let i = j as usize;
+    for i in 0..(input.len() - 1) {
         input[i] <<= 1;
         input[i] ^= input[i+1] >> (DIGIT_SIZE_b - 1);
-        j += 1
     }
     input[input.len() - 1] <<= 1;
 }
