@@ -45,28 +45,19 @@ pub fn gf2x_mod_add_2(Res: &mut [DIGIT], A: &[DIGIT]) {
 }
 
 pub fn gf2x_add_3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
-    unsafe {
-        gf2x_add(
-            Res.len() as i32,
-            Res.as_mut_ptr(),
-            A.len() as i32,
-            A.as_ptr(),
-            B.len() as i32,
-            B.as_ptr(),
-        );
+    assert_eq!(Res.len(), A.len());
+    assert_eq!(Res.len(), B.len());
+
+    for i in 0..Res.len() {
+        Res[i] = A[i] ^ B[i];
     }
 }
 
 pub fn gf2x_add_2(Res: &mut [DIGIT], A: &[DIGIT]) {
-    unsafe {
-        gf2x_add(
-            Res.len() as i32,
-            Res.as_mut_ptr(),
-            Res.len() as i32,
-            Res.as_ptr(),
-            A.len() as i32,
-            A.as_ptr(),
-        );
+    assert_eq!(Res.len(), A.len());
+
+    for i in 0..Res.len() {
+        Res[i] ^= A[i];
     }
 }
 
