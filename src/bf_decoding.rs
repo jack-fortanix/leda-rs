@@ -44,8 +44,7 @@ pub fn bf_decoding(
                     let currblockoffset: i32 = blockIdx * crate::consts::P as i32;
                     while currQoneIdx < endQblockIdx {
                         let mut tmp_0: i32 =
-                            QtrPosOnes[i][currQoneIdx as usize]
-                                .wrapping_add(j as u32) as i32;
+                            QtrPosOnes[i][currQoneIdx as usize].wrapping_add(j as u32) as i32;
                         tmp_0 = if tmp_0 >= crate::consts::P as i32 {
                             (tmp_0) - crate::consts::P as i32
                         } else {
@@ -60,16 +59,14 @@ pub fn bf_decoding(
                 }
                 /* Correlation based flipping */
                 if correlation >= corrt_syndrome_based {
-                    gf2x_toggle_coeff(
-                        &mut out[NUM_DIGITS_GF2X_ELEMENT*i..],
-                        j as u32,
-                    );
+                    gf2x_toggle_coeff(&mut out[NUM_DIGITS_GF2X_ELEMENT * i..], j as u32);
                     let mut v: i32 = 0i32;
                     while v < 11i32 {
                         let mut syndromePosToFlip: u32 = 0;
                         let mut HtrOneIdx_0: i32 = 0i32;
                         while HtrOneIdx_0 < 11i32 {
-                            syndromePosToFlip = HtrPosOnes[currQBlkPos[v as usize] as usize][HtrOneIdx_0 as usize]
+                            syndromePosToFlip = HtrPosOnes[currQBlkPos[v as usize] as usize]
+                                [HtrOneIdx_0 as usize]
                                 .wrapping_add(currQBitPos[v as usize]);
                             syndromePosToFlip =
                                 if syndromePosToFlip >= crate::consts::P as i32 as u32 {

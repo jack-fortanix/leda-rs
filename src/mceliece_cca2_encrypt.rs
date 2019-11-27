@@ -129,7 +129,8 @@ pub fn encrypt_Kobara_Imai(pk: &LedaPublicKey, msg: &[u8]) -> Result<Vec<u8>> {
 
     // continue drawing fresh randomness in case the constant weight encoding fails
     loop {
-        let mut cwEncodedError: [DIGIT; N0 * NUM_DIGITS_GF2X_ELEMENT] = [0; N0 * NUM_DIGITS_GF2X_ELEMENT];
+        let mut cwEncodedError: [DIGIT; N0 * NUM_DIGITS_GF2X_ELEMENT] =
+            [0; N0 * NUM_DIGITS_GF2X_ELEMENT];
 
         /* draw filler randomness for cwenc input from an independent random*/
         randombytes(&mut secretSeed);

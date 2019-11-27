@@ -119,9 +119,9 @@ fn char_left_bit_shift_n(input: &mut [u8], amount: i32) {
 
     for j in 0..input.len() - 1 {
         input[j] <<= amount;
-        input[j] |= (input[j+1] & mask) >> (8 - amount);
+        input[j] |= (input[j + 1] & mask) >> (8 - amount);
     }
-    input[input.len()-1] <<= amount;
+    input[input.len() - 1] <<= amount;
 }
 
 fn poly_seq_into_bytestream(
@@ -144,10 +144,8 @@ fn poly_seq_into_bytestream(
         let mut exponent: u32 = 0i32 as u32;
         while exponent < crate::consts::P as i32 as u32 {
             let bitValue = gf2x_get_coeff(
-                &zPoly[
-                    (i * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
-                        as usize..
-                ],
+                &zPoly[(i * ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)))
+                    as usize..],
                 exponent,
             );
             bitstream_write(output, 1i32 as u32, &mut output_bit_cursor, bitValue);
@@ -209,10 +207,10 @@ pub fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<Vec<u8>>
     let mut paddedOutput: Vec<u8> = vec![0u8; paddedSequenceLen as usize];
     poly_seq_into_bytestream(
         &mut paddedOutput,
-          (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u32,
-            &correctedCodeword,
-            (2i32 - 1i32) as u32,
-        );
+        (((2i32 - 1i32) * crate::consts::P as i32 + 7i32) / 8i32) as u32,
+        &correctedCodeword,
+        (2i32 - 1i32) as u32,
+    );
 
     let outputHash = sha3_384(&paddedOutput);
     /* rebuild message hash ^ seed from error vector */

@@ -27,8 +27,7 @@ pub fn gf2x_get_coeff(poly: &[DIGIT], exponent: u32) -> DIGIT {
         .wrapping_sub(exponent);
     let mut digitIdx: u32 = straightIdx.wrapping_div((8i32 << 3i32) as u32);
     let mut inDigitIdx: u32 = straightIdx.wrapping_rem((8i32 << 3i32) as u32);
-    return poly[digitIdx as usize]
-        >> (((8i32 << 3i32) - 1i32) as u32).wrapping_sub(inDigitIdx)
+    return poly[digitIdx as usize] >> (((8i32 << 3i32) - 1i32) as u32).wrapping_sub(inDigitIdx)
         & 1i32 as DIGIT;
 }
 
@@ -78,8 +77,7 @@ pub fn gf2x_toggle_coeff(poly: &mut [DIGIT], exponent: u32) {
         .wrapping_sub(exponent) as i32;
     let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
     let mut inDigitIdx: u32 = (straightIdx % (8i32 << 3i32)) as u32;
-    let mut mask: DIGIT =
-        (1 as DIGIT) << (((8i32 << 3i32) - 1i32) as u32).wrapping_sub(inDigitIdx);
+    let mut mask: DIGIT = (1 as DIGIT) << (((8i32 << 3i32) - 1i32) as u32).wrapping_sub(inDigitIdx);
     poly[digitIdx as usize] ^= mask;
 }
 
