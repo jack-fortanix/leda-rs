@@ -482,39 +482,26 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
         (na / 3 + 1) as u32
     };
     let mut u2: Vec<DIGIT> = vec![0; bih as usize];
-    let leading_slack: i32 = (3 - na % 3) % 3;
-    let mut i: i32 = 0; /* partitioned inputs */
-    i = 0i32; /*bih digit wide*/
-    while i < leading_slack {
-        u2[i as usize] = 0; /*bih digit wide*/
-        i += 1
-    }
-    while (i as u32) < bih {
+    let mut v2: Vec<DIGIT> = vec![0; bih as usize];
+
+    let leading_slack: u32 = (3 - na as u32 % 3) % 3;
+    for i in leading_slack..bih {
         u2[i as usize] = *A.offset((i - leading_slack) as isize);
-        i += 1
+        v2[i as usize] = *B.offset((i - leading_slack) as isize);
     }
+
     let u1 = A.offset(bih as isize).offset(-(leading_slack as isize));
     let u0 = A
         .offset((2i32 as u32).wrapping_mul(bih) as isize)
         .offset(-(leading_slack as isize));
 
-    let u0 = std::slice::from_raw_parts(u0, bih as usize);
-    let u1 = std::slice::from_raw_parts(u1, bih as usize);
-    let mut v2: Vec<DIGIT> = vec![0; bih as usize];
-    i = 0i32;
-    while i < leading_slack {
-        v2[i as usize] = 0;
-        i += 1
-    }
-    while (i as u32) < bih {
-        v2[i as usize] = *B.offset((i - leading_slack) as isize);
-        i += 1
-    }
     let v1 = B.offset(bih as isize).offset(-(leading_slack as isize));
     let v0 = B
         .offset((2i32 as u32).wrapping_mul(bih) as isize)
         .offset(-(leading_slack as isize));
 
+    let u0 = std::slice::from_raw_parts(u0, bih as usize);
+    let u1 = std::slice::from_raw_parts(u1, bih as usize);
     let v0 = std::slice::from_raw_parts(v0, bih as usize);
     let v1 = std::slice::from_raw_parts(v1, bih as usize);
 
