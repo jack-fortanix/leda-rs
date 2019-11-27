@@ -262,8 +262,8 @@ pub fn gf2x_mod_mul(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
 /*----------------------------------------------------------------------------*/
 /* computes operand*x^shiftAmt + Res. assumes res is
  * wide and operand is NUM_DIGITS_GF2X_ELEMENT with blank slack bits */
-unsafe fn gf2x_fmac(Res: &mut [DIGIT], operand: &[DIGIT], shiftAmt: u32) {
-    let digitShift: u32 = shiftAmt / DIGIT_SIZE_b as u32;
+fn gf2x_fmac(Res: &mut [DIGIT], operand: &[DIGIT], shiftAmt: u32) {
+    let digitShift = shiftAmt as usize / DIGIT_SIZE_b;
     let inDigitShift: u32 = shiftAmt % DIGIT_SIZE_b as u32;
     let inDigitShiftMask: i64 = ((inDigitShift > 0i32 as u32) as i32 as i64)
         << (8i32 << 3i32) - 1i32
@@ -271,13 +271,10 @@ unsafe fn gf2x_fmac(Res: &mut [DIGIT], operand: &[DIGIT], shiftAmt: u32) {
 
     let mut prevLo: DIGIT = 0i32 as DIGIT;
 
-    for i in (0..NUM_DIGITS_GF2X_ELEMENT as i32).rev() {
-        let tmp = operand[i as usize];
-        let ref mut fresh7 = *Res.as_mut_ptr().offset(
-            (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + i) as u32)
-                .wrapping_sub(digitShift) as isize,
-        );
-        *fresh7 ^= prevLo | tmp << inDigitShift;
+    for i in (0..NUM_DIGITS_GF2X_ELEMENT).rev() {
+        let tmp = operand[i];
+
+        Res[NUM_DIGITS_GF2X_ELEMENT+i-digitShift as usize] ^= prevLo | (tmp << inDigitShift);
 
         if inDigitShift > 0 {
             prevLo =
@@ -294,11 +291,9 @@ order of the coefficients themselves */
 pub fn gf2x_mod_mul_dense_to_sparse(Res: &mut [DIGIT], dense: &[DIGIT], sparse: &[u32]) {
     let mut resDouble: [DIGIT; N0 * NUM_DIGITS_GF2X_ELEMENT] = [0; N0 * NUM_DIGITS_GF2X_ELEMENT];
 
-    for i in 0..sparse.len() {
-        if sparse[i] != P32 {
-            unsafe {
-                gf2x_fmac(&mut resDouble, dense, sparse[i]);
-            }
+    for s in sparse {
+        if *s != P32 {
+            gf2x_fmac(&mut resDouble, dense, *s);
         }
     }
     gf2x_mod(Res, &resDouble);
