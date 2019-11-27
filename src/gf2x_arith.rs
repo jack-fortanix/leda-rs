@@ -151,16 +151,12 @@ fn gf2x_mul_comb(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
         }
         k -= 1
     }
-    i = na - 1i32;
-    while i >= 0i32 {
-        if A[i as usize] & (1 as DIGIT) != 0 {
-            j = nb - 1i32;
-            while j >= 0i32 {
+    for i in (0..A.len()).rev() {
+        if A[i] & (1 as DIGIT) != 0 {
+            for j in (0..B.len()).rev() {
                 Res[(i + j + 1) as usize] ^= B[j as usize];
-                j -= 1
             }
         }
-        i -= 1
     }
 }
 
