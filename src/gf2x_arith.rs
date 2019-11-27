@@ -259,7 +259,9 @@ pub fn right_bit_shift_n(input: &mut [DIGIT], amount: usize) {
     input[0] >>= amount;
 }
 
-unsafe fn left_bit_shift_n(length: i32, mut input: *mut DIGIT, amount: i32) {
+unsafe fn left_bit_shift_n(input: &mut [DIGIT], amount: i32) {
+    let length = input.len() as i32;
+    let input = input.as_mut_ptr();
     if amount > 8i32 << 3i32 {
         panic!("amount > DIGIT_SIZE_b");
     }
@@ -542,11 +544,7 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     gf2x_mul_TC3(&mut w1, &sum_u, &sum_v);
     let mut u2_x2: Vec<DIGIT> = vec![0; 1 + bih as usize];
     u2_x2[1..1 + bih as usize].copy_from_slice(&u2);
-    left_bit_shift_n(
-        bih.wrapping_add(1i32 as u32) as i32,
-        u2_x2.as_mut_ptr(),
-        2i32,
-    );
+    left_bit_shift_n(&mut u2_x2, 2);
     let mut u1_x: Vec<DIGIT> = vec![0; bih as usize + 1];
     //u1_x[1..1 + bih as usize].copy_from_slice(u1);
     memcpy(
@@ -554,11 +552,7 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
         u1 as *const libc::c_void,
         bih.wrapping_mul(8i32 as u32) as u64,
     );
-    left_bit_shift_n(
-        bih.wrapping_add(1i32 as u32) as i32,
-        u1_x.as_mut_ptr(),
-        1i32,
-    );
+    left_bit_shift_n(&mut u1_x, 1);
     let mut u1_x1_u2_x2: Vec<DIGIT> = vec![0; bih as usize + 1];
     gf2x_add_3(&mut u1_x1_u2_x2, &u1_x, &u2_x2);
     let mut temp_u_components: Vec<DIGIT> = vec![0; bih as usize + 1];
@@ -570,22 +564,14 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
         v2.as_mut_ptr() as *const libc::c_void,
         bih.wrapping_mul(8i32 as u32) as u64,
     );
-    left_bit_shift_n(
-        bih.wrapping_add(1i32 as u32) as i32,
-        v2_x2.as_mut_ptr(),
-        2i32,
-    );
+    left_bit_shift_n(&mut v2_x2, 2);
     let mut v1_x: Vec<DIGIT> = vec![0; bih as usize + 1];
     memcpy(
         v1_x.as_mut_ptr().offset(1) as *mut libc::c_void,
         v1 as *const libc::c_void,
         bih.wrapping_mul(8i32 as u32) as u64,
     );
-    left_bit_shift_n(
-        bih.wrapping_add(1i32 as u32) as i32,
-        v1_x.as_mut_ptr(),
-        1i32,
-    );
+    left_bit_shift_n(&mut v1_x, 1);
     let mut v1_x1_v2_x2: Vec<DIGIT> = vec![0; bih as usize + 1];
     gf2x_add_3(&mut v1_x1_v2_x2, &v1_x, &v2_x2);
 
@@ -624,7 +610,7 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     let mut w4_x3_plus_1: Vec<DIGIT> = ::std::vec::from_elem(0, vla_16);
     w4_x3_plus_1[1..1 + 2 * bih as usize].copy_from_slice(&w4);
 
-    left_bit_shift_n(w4_x3_plus_1.len() as i32, w4_x3_plus_1.as_mut_ptr(), 3i32);
+    left_bit_shift_n(&mut w4_x3_plus_1, 3);
     gf2x_add_asymm_2(&mut w2, &w4);
     gf2x_add_asymm_2(&mut w2, &w4_x3_plus_1);
     gf2x_exact_div_x_plus_one(
