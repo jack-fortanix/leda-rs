@@ -284,11 +284,7 @@ unsafe fn gf2x_fmac(Res: &mut [DIGIT], operand: &[DIGIT], shiftAmt: u32) {
                 tmp >> ((8i32 << 3i32) as u32).wrapping_sub(inDigitShift) & inDigitShiftMask as u64;
         }
     }
-    let ref mut fresh8 = *Res.as_mut_ptr().offset(
-        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1) as u32)
-            .wrapping_sub(digitShift) as isize,
-    );
-    *fresh8 ^= prevLo;
+  Res[NUM_DIGITS_GF2X_ELEMENT-1-digitShift as usize] ^= prevLo;
 }
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
