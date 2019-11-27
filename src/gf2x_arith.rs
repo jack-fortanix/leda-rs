@@ -1,11 +1,6 @@
 use crate::consts::*;
 use crate::types::*;
 
-extern "C" {
-    #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-}
-
 pub fn gf2x_copy(mut dest: &mut [DIGIT], input: &[DIGIT]) {
     for i in 0..NUM_DIGITS_GF2X_ELEMENT {
         dest[i] = input[i];
@@ -189,33 +184,9 @@ unsafe fn gf2x_mul_comb(
         i -= 1
     }
 }
-/*----------------------------------------------------------------------------*/
+
 /* allows the second operand to be shorter than the first */
 /* the result should be as large as the first operand*/
-
-unsafe fn gf2x_add_asymm(
-    _nr: i32,
-    mut Res: *mut DIGIT,
-    na: i32,
-    mut A: *const DIGIT,
-    nb: i32,
-    mut B: *const DIGIT,
-) {
-    let mut delta: i32 = na - nb;
-    memcpy(
-        Res as *mut libc::c_void,
-        A as *const libc::c_void,
-        (delta * 8i32) as u64,
-    );
-    gf2x_add(
-        nb,
-        Res.offset(delta as isize),
-        nb,
-        A.offset(delta as isize),
-        nb,
-        B,
-    );
-}
 
 fn gf2x_add_asymm_3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     assert!(Res.len() >= A.len());
@@ -281,161 +252,61 @@ fn gf2x_exact_div_x_plus_one(A: &mut [DIGIT]) {
     }
 }
 
-unsafe fn gf2x_mul_Kar(
-    nr: i32,
-    mut Res: *mut DIGIT,
-    na: i32,
-    mut A: *const DIGIT,
-    nb: i32,
-    mut B: *const DIGIT,
-) {
-    if na < 9i32 || nb < 9i32 {
+unsafe fn gf2x_mul_Kar(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
+    if A.len() % 2 != 0 || A.len() < 9 || B.len() < 9 {
         /* fall back to schoolbook */
-        gf2x_mul_comb(nr, Res, na, A, nb, B);
+        gf2x_mul_comb(Res.len() as i32, Res.as_mut_ptr(), A.len() as i32, A.as_ptr(), B.len() as i32, B.as_ptr());
         return;
     }
-    if na % 2i32 == 0i32 {
-        let bih: u32 = (na / 2i32) as u32;
-        let bihu = bih as usize;
-        let mut middle: Vec<DIGIT> = vec![0; 2 * bihu];
-        let mut sumA: Vec<DIGIT> = vec![0; bihu];
-        let mut sumB: Vec<DIGIT> = vec![0; bihu];
-        gf2x_add(
-            sumA.len() as i32,
-            sumA.as_mut_ptr(),
-            bih as i32,
-            A,
-            bih as i32,
-            A.offset(bih as isize),
-        );
-        gf2x_add(
-            sumB.len() as i32,
-            sumB.as_mut_ptr(),
-            bih as i32,
-            B,
-            bih as i32,
-            B.offset(bih as isize),
-        );
-        gf2x_mul_Kar(
-            middle.len() as i32,
-            middle.as_mut_ptr(),
-            bih as i32,
-            sumA.as_ptr(),
-            bih as i32,
-            sumB.as_ptr(),
-        );
-        gf2x_mul_Kar(
-            (2i32 as u32).wrapping_mul(bih) as i32,
-            Res.offset((2i32 as u32).wrapping_mul(bih) as isize),
-            bih as i32,
-            A.offset(bih as isize),
-            bih as i32,
-            B.offset(bih as isize),
-        );
-        gf2x_add(
-            middle.len() as i32,
-            middle.as_mut_ptr(),
-            middle.len() as i32,
-            middle.as_ptr(),
-            (2i32 as u32).wrapping_mul(bih) as i32,
-            Res.offset((2i32 as u32).wrapping_mul(bih) as isize) as *const DIGIT,
-        );
-        gf2x_mul_Kar(
-            (2i32 as u32).wrapping_mul(bih) as i32,
-            Res,
-            bih as i32,
-            A,
-            bih as i32,
-            B,
-        );
-        gf2x_add(
-            middle.len() as i32,
-            middle.as_mut_ptr(),
-            middle.len() as i32,
-            middle.as_ptr(),
-            (2i32 as u32).wrapping_mul(bih) as i32,
-            Res as *const DIGIT,
-        );
-        gf2x_add(
-            (2i32 as u32).wrapping_mul(bih) as i32,
-            Res.offset(bih as isize),
-            (2i32 as u32).wrapping_mul(bih) as i32,
-            Res.offset(bih as isize) as *const DIGIT,
-            middle.len() as i32,
-            middle.as_ptr(),
-        );
-    } else {
-        let bih: u32 = (na / 2i32 + 1i32) as u32;
-        let bihu = bih as usize;
-        let mut middle: Vec<DIGIT> = vec![0; bihu * 2];
-        let mut sumA: Vec<DIGIT> = vec![0; bihu];
-        let mut sumB: Vec<DIGIT> = vec![0; bihu];
-        gf2x_add_asymm(
-            sumA.len() as i32,
-            sumA.as_mut_ptr(),
-            bih as i32,
-            A.offset(bih as isize).offset(-1),
-            bih.wrapping_sub(1i32 as u32) as i32,
-            A,
-        );
-        gf2x_add_asymm(
-            bih as i32,
-            sumB.as_mut_ptr(),
-            bih as i32,
-            B.offset(bih as isize).offset(-1),
-            bih.wrapping_sub(1i32 as u32) as i32,
-            B,
-        );
-        gf2x_mul_Kar(
-            middle.len() as i32,
-            middle.as_mut_ptr(),
-            sumA.len() as i32,
-            sumA.as_ptr(),
-            sumB.len() as i32,
-            sumB.as_ptr(),
-        );
-        gf2x_mul_Kar(
-            (2i32 as u32).wrapping_mul(bih) as i32,
-            Res.offset((2i32 as u32).wrapping_mul(bih.wrapping_sub(1i32 as u32)) as isize),
-            bih as i32,
-            A.offset(bih as isize).offset(-1),
-            bih as i32,
-            B.offset(bih as isize).offset(-1),
-        );
-        gf2x_add(
-            middle.len() as i32,
-            middle.as_mut_ptr(),
-            middle.len() as i32,
-            middle.as_ptr(),
-            (2i32 as u32).wrapping_mul(bih) as i32,
-            Res.offset((2i32 as u32).wrapping_mul(bih.wrapping_sub(1i32 as u32)) as isize)
-                as *const DIGIT,
-        );
-        gf2x_mul_Kar(
-            (2i32 as u32).wrapping_mul(bih.wrapping_sub(1i32 as u32)) as i32,
-            Res,
-            bih.wrapping_sub(1i32 as u32) as i32,
-            A,
-            bih.wrapping_sub(1i32 as u32) as i32,
-            B,
-        );
-        gf2x_add_asymm(
-            middle.len() as i32,
-            middle.as_mut_ptr(),
-            middle.len() as i32,
-            middle.as_ptr(),
-            (2i32 as u32).wrapping_mul(bih.wrapping_sub(1i32 as u32)) as i32,
-            Res as *const DIGIT,
-        );
-        gf2x_add(
-            (2i32 as u32).wrapping_mul(bih) as i32,
-            Res.offset(bih as isize).offset(-2),
-            (2i32 as u32).wrapping_mul(bih) as i32,
-            Res.offset(bih as isize).offset(-2) as *const DIGIT,
-            middle.len() as i32,
-            middle.as_ptr(),
-        );
-    };
+
+    let bih: u32 = (A.len() / 2) as u32;
+    let bihu = bih as usize;
+    let mut middle: Vec<DIGIT> = vec![0; 2 * bihu];
+    let mut sumA: Vec<DIGIT> = vec![0; bihu];
+    let mut sumB: Vec<DIGIT> = vec![0; bihu];
+    gf2x_add(
+        sumA.len() as i32,
+        sumA.as_mut_ptr(),
+        bih as i32,
+        A.as_ptr(),
+        bih as i32,
+        A.as_ptr().offset(bih as isize),
+    );
+    gf2x_add(
+        sumB.len() as i32,
+        sumB.as_mut_ptr(),
+        bih as i32,
+        B.as_ptr(),
+        bih as i32,
+        B.as_ptr().offset(bih as isize),
+    );
+    gf2x_mul_Kar(&mut middle, &sumA, &sumB);
+    gf2x_mul_Kar(&mut Res[2*bihu..3*bihu], &A[bihu..2*bihu], &B[bihu..2*bihu]);
+    gf2x_add(
+        middle.len() as i32,
+        middle.as_mut_ptr(),
+        middle.len() as i32,
+        middle.as_ptr(),
+        (2i32 as u32).wrapping_mul(bih) as i32,
+        Res.as_ptr().offset((2i32 as u32).wrapping_mul(bih) as isize) as *const DIGIT,
+    );
+    gf2x_mul_Kar(&mut Res[0..2*bihu], &A[0..bihu], &B[0..bihu]);
+    gf2x_add(
+        middle.len() as i32,
+        middle.as_mut_ptr(),
+        middle.len() as i32,
+        middle.as_ptr(),
+        (2i32 as u32).wrapping_mul(bih) as i32,
+        Res.as_ptr() as *const DIGIT,
+    );
+    gf2x_add(
+        (2i32 as u32).wrapping_mul(bih) as i32,
+        Res.as_mut_ptr().offset(bih as isize),
+        (2i32 as u32).wrapping_mul(bih) as i32,
+        Res.as_ptr().offset(bih as isize) as *const DIGIT,
+        middle.len() as i32,
+        middle.as_ptr(),
+    );
 }
 // end gf2x_add
 /*----------------------------------------------------------------------------*/
@@ -448,14 +319,7 @@ pub fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     if A.len() < 50 || B.len() < 50 {
         /* fall back to schoolbook */
         unsafe {
-            gf2x_mul_Kar(
-                Res.len() as i32,
-                Res.as_mut_ptr(),
-                A.len() as i32,
-                A.as_ptr(),
-                B.len() as i32,
-                B.as_ptr(),
-            );
+            gf2x_mul_Kar(Res, A, B);
         }
         return;
     }
