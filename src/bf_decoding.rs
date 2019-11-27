@@ -14,7 +14,6 @@ pub fn bf_decoding(
     let mut currQBlkPos: [u32; 11] = [0; 11];
     let mut currQBitPos: [u32; 11] = [0; 11];
     let mut currSyndrome: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
-    let mut check: i32 = 0;
     let mut iteration: i32 = 0i32;
     loop {
         gf2x_copy(&mut currSyndrome, privateSyndrome);
@@ -60,24 +59,20 @@ pub fn bf_decoding(
                 /* Correlation based flipping */
                 if correlation >= corrt_syndrome_based {
                     gf2x_toggle_coeff(&mut out[NUM_DIGITS_GF2X_ELEMENT * i..], j as u32);
-                    let mut v: i32 = 0i32;
-                    while v < 11i32 {
+                    for v in 0..DV {
                         let mut syndromePosToFlip: u32 = 0;
-                        let mut HtrOneIdx_0: i32 = 0i32;
-                        while HtrOneIdx_0 < 11i32 {
-                            syndromePosToFlip = HtrPosOnes[currQBlkPos[v as usize] as usize]
-                                [HtrOneIdx_0 as usize]
-                                .wrapping_add(currQBitPos[v as usize]);
+                        for HtrOneIdx in 0..DV {
+                            syndromePosToFlip = HtrPosOnes[currQBlkPos[v] as usize]
+                                [HtrOneIdx]
+                                .wrapping_add(currQBitPos[v]);
                             syndromePosToFlip =
-                                if syndromePosToFlip >= crate::consts::P as i32 as u32 {
-                                    syndromePosToFlip.wrapping_sub(crate::consts::P as i32 as u32)
+                                if syndromePosToFlip >= P32 {
+                                    syndromePosToFlip.wrapping_sub(P32)
                                 } else {
                                     syndromePosToFlip
                                 };
                             gf2x_toggle_coeff(privateSyndrome, syndromePosToFlip);
-                            HtrOneIdx_0 += 1
                         }
-                        v += 1
                     }
                     // end for v
                 }
@@ -86,7 +81,7 @@ pub fn bf_decoding(
             // end for j
         }
         iteration = iteration + 1i32;
-        check = 0i32;
+        let mut check = 0i32;
         while check < (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) && {
             let fresh0 = check;
             check = check + 1;
@@ -95,9 +90,8 @@ pub fn bf_decoding(
         if !(iteration < 2i32
             && check < (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32))
         {
-            break;
+            return (check == (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as i32;
         }
     }
-    return (check == (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)) as i32;
 }
 // end QdecodeSyndromeThresh_bitFlip_sparse
