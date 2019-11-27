@@ -226,14 +226,7 @@ pub fn gf2x_mod_mul(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
 
     let mut aux: [DIGIT; 2 * NUM_DIGITS_GF2X_ELEMENT] = [0; 2 * NUM_DIGITS_GF2X_ELEMENT];
     unsafe {
-        gf2x_mul_TC3(
-            (2 * NUM_DIGITS_GF2X_ELEMENT) as i32,
-            aux.as_mut_ptr(),
-            NUM_DIGITS_GF2X_ELEMENT as i32,
-            A.as_ptr(),
-            NUM_DIGITS_GF2X_ELEMENT as i32,
-            B.as_ptr(),
-        );
+        gf2x_mul_TC3(&mut aux, A, B);
     }
     gf2x_mod(Res, &aux);
 }

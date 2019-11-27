@@ -452,14 +452,15 @@ unsafe fn gf2x_mul_Kar(
  * Marco Bodrato: "Towards Optimal Toom-Cook Multiplication for Univariate and
  * Multivariate Polynomials in Characteristic 2 and 0". WAIFI 2007: 116-133   */
 
-pub unsafe fn gf2x_mul_TC3(
-    nr: i32,
-    mut Res: *mut DIGIT,
-    na: i32,
-    mut A: *const DIGIT,
-    nb: i32,
-    mut B: *const DIGIT,
-) {
+pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
+
+    let nr = Res.len() as i32;
+    let na = A.len() as i32;
+    let nb = B.len() as i32;
+    let Res = Res.as_mut_ptr();
+    let A = A.as_ptr();
+    let B = B.as_ptr();
+
     if na < 50 || nb < 50 {
         /* fall back to schoolbook */
         gf2x_mul_Kar(nr, Res, na, A, nb, B); //number of limbs for each part.
@@ -531,14 +532,7 @@ pub unsafe fn gf2x_mul_TC3(
     );
     gf2x_add_2(&mut sum_v, &v2);
     let mut w1: Vec<DIGIT> = vec![0; 2 * bih as usize];
-    gf2x_mul_TC3(
-        w1.len() as i32,
-        w1.as_mut_ptr(),
-        sum_u.len() as i32,
-        sum_u.as_ptr(),
-        sum_v.len() as i32,
-        sum_v.as_ptr(),
-    );
+    gf2x_mul_TC3(&mut w1, &sum_u, &sum_v);
     let mut u2_x2: Vec<DIGIT> = vec![0; 1 + bih as usize];
     u2_x2[1..1 + bih as usize].copy_from_slice(&u2);
     left_bit_shift_n(
@@ -592,14 +586,7 @@ pub unsafe fn gf2x_mul_TC3(
     gf2x_add_asymm_safe(&mut temp_v_components, &v1_x1_v2_x2, &sum_v);
 
     let mut w3: Vec<DIGIT> = vec![0; 2 * (bih as usize) + 2];
-    gf2x_mul_TC3(
-        w3.len() as i32,
-        w3.as_mut_ptr(),
-        bih.wrapping_add(1i32 as u32) as i32,
-        temp_u_components.as_ptr(),
-        bih.wrapping_add(1i32 as u32) as i32,
-        temp_v_components.as_ptr(),
-    );
+    gf2x_mul_TC3(&mut w3, &temp_u_components, &temp_v_components);
     gf2x_add_asymm(
         bih.wrapping_add(1i32 as u32) as i32,
         u1_x1_u2_x2.as_mut_ptr(),
@@ -617,34 +604,16 @@ pub unsafe fn gf2x_mul_TC3(
         v0,
     );
     let mut w2: Vec<DIGIT> = vec![0; 2 * (bih as usize) + 2];
-    gf2x_mul_TC3(
-        w3.len() as i32,
-        w2.as_mut_ptr(),
-        bih.wrapping_add(1i32 as u32) as i32,
-        u1_x1_u2_x2.as_ptr(),
-        bih.wrapping_add(1i32 as u32) as i32,
-        v1_x1_v2_x2.as_ptr(),
-    );
+    gf2x_mul_TC3(&mut w2, &u1_x1_u2_x2, &v1_x1_v2_x2);
     let vla_14 = (2i32 as u32).wrapping_mul(bih) as usize;
     let mut w4: Vec<DIGIT> = ::std::vec::from_elem(0, vla_14);
-    gf2x_mul_TC3(
-        (2i32 as u32).wrapping_mul(bih) as i32,
-        w4.as_mut_ptr(),
-        bih as i32,
-        u2.as_ptr(),
-        bih as i32,
-        v2.as_ptr(),
-    );
+    gf2x_mul_TC3(&mut w4, &u2, &v2);
     let vla_15 = (2i32 as u32).wrapping_mul(bih) as usize;
     let mut w0: Vec<DIGIT> = ::std::vec::from_elem(0, vla_15);
     gf2x_mul_TC3(
-        (2i32 as u32).wrapping_mul(bih) as i32,
-        w0.as_mut_ptr(),
-        bih as i32,
-        u0,
-        bih as i32,
-        v0,
-    );
+        &mut w0, std::slice::from_raw_parts(u0, bih as usize),
+        std::slice::from_raw_parts(v0, bih as usize));
+
     // Interpolation starts
     gf2x_add_2(&mut w3, &w2);
     gf2x_add_asymm(
