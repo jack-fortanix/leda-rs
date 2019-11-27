@@ -444,13 +444,10 @@ unsafe fn gf2x_mul_Kar(
  * Marco Bodrato: "Towards Optimal Toom-Cook Multiplication for Univariate and
  * Multivariate Polynomials in Characteristic 2 and 0". WAIFI 2007: 116-133   */
 
-pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
-    let nr = Res.len() as i32;
-    let Res = Res.as_mut_ptr();
-
+pub fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     if A.len() < 50 || B.len() < 50 {
         /* fall back to schoolbook */
-        gf2x_mul_Kar(nr, Res, A.len() as i32, A.as_ptr(), B.len() as i32, B.as_ptr());
+        unsafe { gf2x_mul_Kar(Res.len() as i32, Res.as_mut_ptr(), A.len() as i32, A.as_ptr(), B.len() as i32, B.as_ptr()); }
         return;
     }
 
@@ -541,18 +538,20 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     gf2x_add_2(&mut w2, &w3);
     // Result recombination starts here
 
-    for i in 0..nr {
-        *Res.offset(i as isize) = 0;
+    for i in 0..Res.len() {
+        Res[i] = 0;
     }
+
+    unsafe {
     /* optimization: topmost slack digits should be computed, and not addedd,
      * zeroization can be avoided altogether with a proper merge of the
      * results */
-    let mut leastSignifDigitIdx: i32 = nr - 1i32;
+    let mut leastSignifDigitIdx: i32 = Res.len() as i32 - 1i32;
     let mut i_0: i32 = 0i32;
 
     let bih = bih as u32;
     while (i_0 as u32) < (2i32 as u32).wrapping_mul(bih) {
-        let ref mut fresh4 = *Res.offset((leastSignifDigitIdx - i_0) as isize);
+        let ref mut fresh4 = *Res.as_mut_ptr().offset((leastSignifDigitIdx - i_0) as isize);
         *fresh4 ^= *w0.as_mut_ptr().offset(
             (2i32 as u32)
                 .wrapping_mul(bih)
@@ -564,7 +563,7 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     leastSignifDigitIdx = (leastSignifDigitIdx as u32).wrapping_sub(bih) as i32 as i32;
     let mut i_1: i32 = 0i32;
     while (i_1 as u32) < (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) {
-        let ref mut fresh5 = *Res.offset((leastSignifDigitIdx - i_1) as isize);
+        let ref mut fresh5 = *Res.as_mut_ptr().offset((leastSignifDigitIdx - i_1) as isize);
         *fresh5 ^= *w1_final.as_mut_ptr().offset(
             (2i32 as u32)
                 .wrapping_mul(bih)
@@ -577,7 +576,7 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     leastSignifDigitIdx = (leastSignifDigitIdx as u32).wrapping_sub(bih) as i32 as i32;
     let mut i_2: i32 = 0i32;
     while (i_2 as u32) < (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) {
-        let ref mut fresh6 = *Res.offset((leastSignifDigitIdx - i_2) as isize);
+        let ref mut fresh6 = *Res.as_mut_ptr().offset((leastSignifDigitIdx - i_2) as isize);
         *fresh6 ^= *w2.as_mut_ptr().offset(
             (2i32 as u32)
                 .wrapping_mul(bih)
@@ -590,7 +589,7 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     leastSignifDigitIdx = (leastSignifDigitIdx as u32).wrapping_sub(bih) as i32 as i32;
     let mut i_3: i32 = 0i32;
     while (i_3 as u32) < (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) {
-        let ref mut fresh7 = *Res.offset((leastSignifDigitIdx - i_3) as isize);
+        let ref mut fresh7 = *Res.as_mut_ptr().offset((leastSignifDigitIdx - i_3) as isize);
         *fresh7 ^= *w3.as_mut_ptr().offset(
             (2i32 as u32)
                 .wrapping_mul(bih)
@@ -603,7 +602,7 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     leastSignifDigitIdx = (leastSignifDigitIdx as u32).wrapping_sub(bih) as i32 as i32;
     let mut i_4: i32 = 0i32;
     while (i_4 as u32) < (2i32 as u32).wrapping_mul(bih) && leastSignifDigitIdx - i_4 >= 0i32 {
-        let ref mut fresh8 = *Res.offset((leastSignifDigitIdx - i_4) as isize);
+        let ref mut fresh8 = *Res.as_mut_ptr().offset((leastSignifDigitIdx - i_4) as isize);
         *fresh8 ^= *w4.as_mut_ptr().offset(
             (2i32 as u32)
                 .wrapping_mul(bih)
@@ -611,5 +610,6 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
                 .wrapping_sub(i_4 as u32) as isize,
         );
         i_4 += 1
+    }
     }
 }

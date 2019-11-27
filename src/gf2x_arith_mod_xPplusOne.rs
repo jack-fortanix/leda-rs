@@ -209,9 +209,7 @@ pub fn gf2x_mod_mul(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     assert_eq!(B.len(), NUM_DIGITS_GF2X_MODULUS);
 
     let mut aux: [DIGIT; 2 * NUM_DIGITS_GF2X_ELEMENT] = [0; 2 * NUM_DIGITS_GF2X_ELEMENT];
-    unsafe {
-        gf2x_mul_TC3(&mut aux, A, B);
-    }
+    gf2x_mul_TC3(&mut aux, A, B);
     gf2x_mod(Res, &aux);
 }
 // end gf2x_mod_mul
