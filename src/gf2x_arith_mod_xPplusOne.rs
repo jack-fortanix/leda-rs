@@ -138,70 +138,69 @@ fn gf2x_swap(f: &mut [DIGIT], s: &mut [DIGIT]) {
 
 pub fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
 /* in^{-1} mod x^P-1 */ {
+    let mut i: i32 = 0;
+    let mut delta: i32 = 0;
+    let mut u: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
+    let mut v: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
+    let mut s: [DIGIT; NUM_DIGITS_GF2X_MODULUS] = [0; NUM_DIGITS_GF2X_MODULUS];
+    let mut f: [DIGIT; NUM_DIGITS_GF2X_MODULUS] = [0; NUM_DIGITS_GF2X_MODULUS];
+    u[NUM_DIGITS_GF2X_ELEMENT - 1] = 0x1;
+    s[NUM_DIGITS_GF2X_MODULUS - 1] = 0x1;
 
-        let mut i: i32 = 0;
-        let mut delta: i32 = 0;
-        let mut u: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
-        let mut v: [DIGIT; NUM_DIGITS_GF2X_ELEMENT] = [0; NUM_DIGITS_GF2X_ELEMENT];
-        let mut s: [DIGIT; NUM_DIGITS_GF2X_MODULUS] = [0; NUM_DIGITS_GF2X_MODULUS];
-        let mut f: [DIGIT; NUM_DIGITS_GF2X_MODULUS] = [0; NUM_DIGITS_GF2X_MODULUS];
-        u[NUM_DIGITS_GF2X_ELEMENT - 1] = 0x1;
-        s[NUM_DIGITS_GF2X_MODULUS - 1] = 0x1;
-
-        s[0] |= GF2_INVERSE_MASK;
-        i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
-        while i >= 0i32 && input[i as usize] == 0 {
+    s[0] |= GF2_INVERSE_MASK;
+    i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+    while i >= 0i32 && input[i as usize] == 0 {
+        i -= 1
+    }
+    if i < 0i32 {
+        return 0i32;
+    }
+    if (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
+        == 1i32 + (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
+    {
+        i = (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+        while i >= 1i32 {
+            f[i as usize] = input[(i - 1i32) as usize];
             i -= 1
         }
-        if i < 0i32 {
-            return 0i32;
-        }
-        if (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
-            == 1i32 + (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
-        {
-            i = (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
-            while i >= 1i32 {
-                f[i as usize] = input[(i - 1i32) as usize];
-                i -= 1
-            }
-        } else {
-            /* they are equal */
-            i = (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
-            while i >= 0i32 {
-                f[i as usize] = input[i as usize];
-                i -= 1
-            }
-        }
-        i = 1i32;
-        while i <= 2i32 * crate::consts::P as i32 {
-            if f[0] & GF2_INVERSE_MASK == 0i32 as u64 {
-                left_bit_shift(&mut f);
-                rotate_bit_left(&mut u);
-                delta += 1i32
-            } else {
-                if s[0] & GF2_INVERSE_MASK != 0i32 as u64 {
-                    gf2x_mod_add_2(&mut s, &f);
-                    gf2x_mod_add_2(&mut v, &u);
-                }
-                left_bit_shift(&mut s);
-                if delta == 0i32 {
-                    gf2x_swap(&mut f, &mut s);
-                    gf2x_swap(&mut u, &mut v);
-                    rotate_bit_left(&mut u);
-                    delta = 1i32
-                } else {
-                    rotate_bit_right(&mut u);
-                    delta = delta - 1i32
-                }
-            }
-            i += 1
-        }
-        i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+    } else {
+        /* they are equal */
+        i = (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
         while i >= 0i32 {
-            out[i as usize] = u[i as usize];
+            f[i as usize] = input[i as usize];
             i -= 1
         }
-        return (delta == 0i32) as i32;
+    }
+    i = 1i32;
+    while i <= 2i32 * crate::consts::P as i32 {
+        if f[0] & GF2_INVERSE_MASK == 0i32 as u64 {
+            left_bit_shift(&mut f);
+            rotate_bit_left(&mut u);
+            delta += 1i32
+        } else {
+            if s[0] & GF2_INVERSE_MASK != 0i32 as u64 {
+                gf2x_mod_add_2(&mut s, &f);
+                gf2x_mod_add_2(&mut v, &u);
+            }
+            left_bit_shift(&mut s);
+            if delta == 0i32 {
+                gf2x_swap(&mut f, &mut s);
+                gf2x_swap(&mut u, &mut v);
+                rotate_bit_left(&mut u);
+                delta = 1i32
+            } else {
+                rotate_bit_right(&mut u);
+                delta = delta - 1i32
+            }
+        }
+        i += 1
+    }
+    i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+    while i >= 0i32 {
+        out[i as usize] = u[i as usize];
+        i -= 1
+    }
+    return (delta == 0i32) as i32;
 }
 // end gf2x_mod_inverse
 

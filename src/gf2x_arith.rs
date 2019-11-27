@@ -230,7 +230,7 @@ fn gf2x_add_asymm_3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     let delta = A.len() - B.len();
     Res[0..delta].copy_from_slice(&A[0..delta]);
     for i in 0..B.len() {
-        Res[i+delta] = A[i+delta] ^ B[i];
+        Res[i + delta] = A[i + delta] ^ B[i];
     }
 }
 
@@ -239,7 +239,7 @@ fn gf2x_add_asymm_2(Res: &mut [DIGIT], A: &[DIGIT]) {
 
     let delta = Res.len() - A.len();
     for i in 0..A.len() {
-        Res[i+delta] ^= A[i];
+        Res[i + delta] ^= A[i];
     }
 }
 
@@ -461,7 +461,6 @@ unsafe fn gf2x_mul_Kar(
  * Multivariate Polynomials in Characteristic 2 and 0". WAIFI 2007: 116-133   */
 
 pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
-
     let nr = Res.len() as i32;
     let na = A.len() as i32;
     let nb = B.len() as i32;
@@ -595,8 +594,14 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
 
     let mut w3: Vec<DIGIT> = vec![0; 2 * (bih as usize) + 2];
     gf2x_mul_TC3(&mut w3, &temp_u_components, &temp_v_components);
-    gf2x_add_asymm_2(&mut u1_x1_u2_x2, std::slice::from_raw_parts(u0, bih as usize));
-    gf2x_add_asymm_2(&mut v1_x1_v2_x2, std::slice::from_raw_parts(v0, bih as usize));
+    gf2x_add_asymm_2(
+        &mut u1_x1_u2_x2,
+        std::slice::from_raw_parts(u0, bih as usize),
+    );
+    gf2x_add_asymm_2(
+        &mut v1_x1_v2_x2,
+        std::slice::from_raw_parts(v0, bih as usize),
+    );
 
     let mut w2: Vec<DIGIT> = vec![0; 2 * (bih as usize) + 2];
     gf2x_mul_TC3(&mut w2, &u1_x1_u2_x2, &v1_x1_v2_x2);
@@ -606,7 +611,8 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     gf2x_mul_TC3(
         &mut w0,
         std::slice::from_raw_parts(u0, bih as usize),
-        std::slice::from_raw_parts(v0, bih as usize));
+        std::slice::from_raw_parts(v0, bih as usize),
+    );
 
     // Interpolation starts
     gf2x_add_2(&mut w3, &w2);
@@ -616,7 +622,7 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     // w2 + (w4 * x^3+1) = w2 + w4 + w4 << 3
     let vla_16 = (2i32 as u32).wrapping_mul(bih).wrapping_add(1i32 as u32) as usize;
     let mut w4_x3_plus_1: Vec<DIGIT> = ::std::vec::from_elem(0, vla_16);
-    w4_x3_plus_1[1..1+2*bih as usize].copy_from_slice(&w4);
+    w4_x3_plus_1[1..1 + 2 * bih as usize].copy_from_slice(&w4);
 
     left_bit_shift_n(w4_x3_plus_1.len() as i32, w4_x3_plus_1.as_mut_ptr(), 3i32);
     gf2x_add_asymm_2(&mut w2, &w4);
