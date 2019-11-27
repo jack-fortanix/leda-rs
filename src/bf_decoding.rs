@@ -19,33 +19,15 @@ pub unsafe fn bf_decoding(
     loop {
         gf2x_copy(&mut currSyndrome, privateSyndrome);
         let mut unsatParityChecks: [u8; 115798] = [0; 115798];
-        let mut i: i32 = 0i32;
-        while i < 2i32 {
-            let mut valueIdx: i32 = 0i32;
-            while valueIdx < crate::consts::P as i32 {
-                let mut HtrOneIdx: i32 = 0i32;
-                while HtrOneIdx < 11i32 {
-                    let tmp: u32 = if HtrPosOnes[i as usize][HtrOneIdx as usize]
-                        .wrapping_add(valueIdx as u32)
-                        >= crate::consts::P as i32 as u32
-                    {
-                        HtrPosOnes[i as usize][HtrOneIdx as usize]
-                            .wrapping_add(valueIdx as u32)
-                            .wrapping_sub(crate::consts::P as i32 as u32)
-                    } else {
-                        HtrPosOnes[i as usize][HtrOneIdx as usize]
-                            .wrapping_add(valueIdx as u32)
-                    };
+        for i in 0..N0 {
+            for valueIdx in 0..P32 {
+                for HtrOneIdx in 0..DV {
+                    let tmp = (HtrPosOnes[i][HtrOneIdx] + valueIdx) % P32;
                     if gf2x_get_coeff(&currSyndrome, tmp) != 0 {
-                        unsatParityChecks[(i * crate::consts::P as i32 + valueIdx) as usize] =
-                            unsatParityChecks[(i * crate::consts::P as i32 + valueIdx) as usize]
-                                .wrapping_add(1)
+                        unsatParityChecks[(i * P + valueIdx as usize)] += 1;
                     }
-                    HtrOneIdx += 1
                 }
-                valueIdx += 1
             }
-            i += 1
         }
         /* iteration based threshold determination*/
         let corrt_syndrome_based: i32 = thresholds[iteration as usize];
