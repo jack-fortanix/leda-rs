@@ -243,10 +243,10 @@ pub fn right_bit_shift_n(input: &mut [DIGIT], amount: usize) {
         return;
     }
     let mask: DIGIT = ((1 as DIGIT) << amount) - 1;
-    let mut j = input.len() as i32 - 1i32;
-    while j > 0i32 {
-        input[j as usize] >>= amount;
-        input[j as usize] |= (input[j as usize - 1] & mask) << (DIGIT_SIZE_b - amount);
+    let mut j = input.len() - 1;
+    while j > 0 {
+        input[j] >>= amount;
+        input[j] |= (input[j-1] & mask) << (DIGIT_SIZE_b - amount);
         j -= 1
     }
     input[0] >>= amount;
