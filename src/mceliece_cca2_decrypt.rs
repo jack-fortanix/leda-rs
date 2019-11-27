@@ -161,7 +161,7 @@ fn poly_seq_into_bytestream(
 }
 
 pub fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<Vec<u8>> {
-    if ctext.len() < N0 * NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_B {
+    if ctext.len() != N0 * NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_B {
         return Err(Error::DecryptionFailed);
     }
 
