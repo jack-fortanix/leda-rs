@@ -270,10 +270,8 @@ unsafe fn gf2x_fmac(Res: &mut [DIGIT], operand: &[DIGIT], shiftAmt: u32) {
         >> (8i32 << 3i32) - 1i32;
 
     let mut prevLo: DIGIT = 0i32 as DIGIT;
-    let mut i: i32 = 0;
 
-    i = NUM_DIGITS_GF2X_ELEMENT as i32 - 1;
-    while i >= 0i32 {
+    for i in (0..NUM_DIGITS_GF2X_ELEMENT as i32).rev() {
         let tmp = operand[i as usize];
         let ref mut fresh7 = *Res.as_mut_ptr().offset(
             (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + i) as u32)
@@ -285,10 +283,9 @@ unsafe fn gf2x_fmac(Res: &mut [DIGIT], operand: &[DIGIT], shiftAmt: u32) {
             prevLo =
                 tmp >> ((8i32 << 3i32) as u32).wrapping_sub(inDigitShift) & inDigitShiftMask as u64;
         }
-        i -= 1
     }
     let ref mut fresh8 = *Res.as_mut_ptr().offset(
-        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + i) as u32)
+        (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1) as u32)
             .wrapping_sub(digitShift) as isize,
     );
     *fresh8 ^= prevLo;
