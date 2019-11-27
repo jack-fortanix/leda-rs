@@ -71,7 +71,7 @@ pub fn gf2x_add_2(Res: &mut [DIGIT], A: &[DIGIT]) {
     }
 }
 
-pub unsafe fn gf2x_toggle_coeff(mut poly: *mut DIGIT, exponent: u32) {
+pub fn gf2x_toggle_coeff(poly: &mut [DIGIT], exponent: u32) {
     let mut straightIdx: i32 = (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
         * (8i32 << 3i32)
         - 1i32) as u32)
@@ -79,8 +79,8 @@ pub unsafe fn gf2x_toggle_coeff(mut poly: *mut DIGIT, exponent: u32) {
     let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
     let mut inDigitIdx: u32 = (straightIdx % (8i32 << 3i32)) as u32;
     let mut mask: DIGIT =
-        (1i32 as DIGIT) << (((8i32 << 3i32) - 1i32) as u32).wrapping_sub(inDigitIdx);
-    *poly.offset(digitIdx as isize) = *poly.offset(digitIdx as isize) ^ mask;
+        (1 as DIGIT) << (((8i32 << 3i32) - 1i32) as u32).wrapping_sub(inDigitIdx);
+    poly[digitIdx as usize] ^= mask;
 }
 
 /* *

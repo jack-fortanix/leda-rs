@@ -2,7 +2,7 @@ use crate::consts::*;
 use crate::gf2x_arith::*;
 use crate::types::*;
 
-pub unsafe fn bf_decoding(
+pub fn bf_decoding(
     out: &mut [DIGIT],
     HtrPosOnes: &[[u32; 11]; 2],
     QtrPosOnes: &[[u32; 11]; 2],
@@ -32,8 +32,7 @@ pub unsafe fn bf_decoding(
         /* iteration based threshold determination*/
         let corrt_syndrome_based: i32 = thresholds[iteration as usize];
         //Computation of correlation  with a full Q matrix
-        let mut i_0: i32 = 0i32; // end for i
-        while i_0 < 2i32 {
+        for i in 0..N0 {
             let mut j: i32 = 0i32; // position in the column of QtrPosOnes[][...]
             while j < crate::consts::P as i32 {
                 let mut currQoneIdx: i32 = 0i32;
@@ -41,11 +40,11 @@ pub unsafe fn bf_decoding(
                 let mut correlation: i32 = 0i32;
                 let mut blockIdx: i32 = 0i32;
                 while blockIdx < 2i32 {
-                    endQblockIdx += qBlockWeights[blockIdx as usize][i_0 as usize] as i32;
+                    endQblockIdx += qBlockWeights[blockIdx as usize][i] as i32;
                     let currblockoffset: i32 = blockIdx * crate::consts::P as i32;
                     while currQoneIdx < endQblockIdx {
                         let mut tmp_0: i32 =
-                            QtrPosOnes[i_0 as usize][currQoneIdx as usize]
+                            QtrPosOnes[i][currQoneIdx as usize]
                                 .wrapping_add(j as u32) as i32;
                         tmp_0 = if tmp_0 >= crate::consts::P as i32 {
                             (tmp_0) - crate::consts::P as i32
@@ -62,10 +61,7 @@ pub unsafe fn bf_decoding(
                 /* Correlation based flipping */
                 if correlation >= corrt_syndrome_based {
                     gf2x_toggle_coeff(
-                        out.as_mut_ptr().offset(
-                            ((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
-                                * i_0) as isize,
-                        ),
+                        &mut out[NUM_DIGITS_GF2X_ELEMENT*i..],
                         j as u32,
                     );
                     let mut v: i32 = 0i32;
@@ -81,7 +77,7 @@ pub unsafe fn bf_decoding(
                                 } else {
                                     syndromePosToFlip
                                 };
-                            gf2x_toggle_coeff(privateSyndrome.as_mut_ptr(), syndromePosToFlip);
+                            gf2x_toggle_coeff(privateSyndrome, syndromePosToFlip);
                             HtrOneIdx_0 += 1
                         }
                         v += 1
@@ -90,7 +86,6 @@ pub unsafe fn bf_decoding(
                 }
                 j += 1
             }
-            i_0 += 1
             // end for j
         }
         iteration = iteration + 1i32;
