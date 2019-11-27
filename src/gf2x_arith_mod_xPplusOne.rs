@@ -265,15 +265,14 @@ pub fn gf2x_mod_mul(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
 unsafe fn gf2x_fmac(Res: &mut [DIGIT], operand: &[DIGIT], shiftAmt: u32) {
     let mut digitShift: u32 = shiftAmt.wrapping_div((8i32 << 3i32) as u32);
     let mut inDigitShift: u32 = shiftAmt.wrapping_rem((8i32 << 3i32) as u32);
-    let mut tmp: DIGIT = 0;
     let mut prevLo: DIGIT = 0i32 as DIGIT;
     let mut i: i32 = 0;
     let mut inDigitShiftMask: i64 = ((inDigitShift > 0i32 as u32) as i32 as i64)
         << (8i32 << 3i32) - 1i32
         >> (8i32 << 3i32) - 1i32;
-    i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
+    i = NUM_DIGITS_GF2X_ELEMENT as i32 - 1;
     while i >= 0i32 {
-        tmp = *operand.as_ptr().offset(i as isize);
+        let tmp = operand[i as usize];
         let ref mut fresh7 = *Res.as_mut_ptr().offset(
             (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) + i) as u32)
                 .wrapping_sub(digitShift) as isize,
