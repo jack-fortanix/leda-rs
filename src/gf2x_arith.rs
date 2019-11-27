@@ -132,11 +132,11 @@ unsafe fn gf2x_mul_comb(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     while k > 0i32 {
         i = na - 1i32;
         while i >= 0i32 {
-            if *A.as_ptr().offset(i as isize) & (0x1i32 as DIGIT) << k != 0 {
+            if A[i as usize] & (0x1i32 as DIGIT) << k != 0 {
                 j = nb - 1i32;
                 while j >= 0i32 {
                     let ref mut fresh0 = *Res.as_mut_ptr().offset((i + j + 1i32) as isize);
-                    *fresh0 ^= *B.as_ptr().offset(j as isize);
+                    *fresh0 ^= B[j as usize];
                     j -= 1
                 }
             }
@@ -155,11 +155,11 @@ unsafe fn gf2x_mul_comb(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     }
     i = na - 1i32;
     while i >= 0i32 {
-        if *A.as_ptr().offset(i as isize) & 0x1i32 as DIGIT != 0 {
+        if A[i as usize] & (1 as DIGIT) != 0 {
             j = nb - 1i32;
             while j >= 0i32 {
                 let ref mut fresh1 = *Res.as_mut_ptr().offset((i + j + 1i32) as isize);
-                *fresh1 ^= *B.as_ptr().offset(j as isize);
+                *fresh1 ^= B[j as usize];
                 j -= 1
             }
         }
