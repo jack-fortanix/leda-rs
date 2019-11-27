@@ -243,7 +243,7 @@ pub fn right_bit_shift_n(input: &mut [DIGIT], amount: usize) {
     let mask: DIGIT = ((1 as DIGIT) << amount) - 1;
     for j in (1..input.len()).rev() {
         input[j] >>= amount;
-        input[j] |= (input[j-1] & mask) << (DIGIT_SIZE_b - amount);
+        input[j] |= (input[j - 1] & mask) << (DIGIT_SIZE_b - amount);
     }
     input[0] >>= amount;
 }
@@ -674,10 +674,7 @@ pub unsafe fn gf2x_mul_TC3(
         w0.len() as i32,
         w0.as_ptr(),
     );
-    right_bit_shift_n(
-        &mut w2,
-        1
-    );
+    right_bit_shift_n(&mut w2, 1);
     gf2x_add_2(&mut w2, &w3);
     // w2 + (w4 * x^3+1) = w2 + w4 + w4 << 3
     let vla_16 = (2i32 as u32).wrapping_mul(bih).wrapping_add(1i32 as u32) as usize;

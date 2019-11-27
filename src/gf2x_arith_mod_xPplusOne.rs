@@ -12,9 +12,7 @@ fn gf2x_mod(out: &mut [DIGIT], input: &[DIGIT]) {
 
     aux.copy_from_slice(&input[0..(NUM_DIGITS_GF2X_ELEMENT + 1)]);
 
-    right_bit_shift_n(
-        &mut aux,
-        MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS);
+    right_bit_shift_n(&mut aux, MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS);
 
     gf2x_mod_add_3(
         out,
@@ -28,7 +26,7 @@ fn gf2x_mod(out: &mut [DIGIT], input: &[DIGIT]) {
 fn left_bit_shift(input: &mut [DIGIT]) {
     for i in 0..(input.len() - 1) {
         input[i] <<= 1;
-        input[i] ^= input[i+1] >> (DIGIT_SIZE_b - 1);
+        input[i] ^= input[i + 1] >> (DIGIT_SIZE_b - 1);
     }
     input[input.len() - 1] <<= 1;
 }
@@ -69,10 +67,7 @@ pub fn gf2x_transpose_in_place(mut A: &mut [DIGIT]) {
         A[NUM_DIGITS_GF2X_ELEMENT / 2] = reverse_digit(A[NUM_DIGITS_GF2X_ELEMENT / 2]);
     }
     if slack_bits_amount != 0 {
-        right_bit_shift_n(
-            A,
-            slack_bits_amount,
-        );
+        right_bit_shift_n(A, slack_bits_amount);
     }
 
     A[NUM_DIGITS_GF2X_ELEMENT - 1] = (A[NUM_DIGITS_GF2X_ELEMENT - 1] & (!mask)) | a00;
@@ -258,14 +253,14 @@ fn gf2x_fmac(Res: &mut [DIGIT], operand: &[DIGIT], shiftAmt: u32) {
     for i in (0..NUM_DIGITS_GF2X_ELEMENT).rev() {
         let tmp = operand[i];
 
-        Res[NUM_DIGITS_GF2X_ELEMENT+i-digitShift as usize] ^= prevLo | (tmp << inDigitShift);
+        Res[NUM_DIGITS_GF2X_ELEMENT + i - digitShift as usize] ^= prevLo | (tmp << inDigitShift);
 
         if inDigitShift > 0 {
             prevLo =
                 tmp >> ((8i32 << 3i32) as u32).wrapping_sub(inDigitShift) & inDigitShiftMask as u64;
         }
     }
-  Res[NUM_DIGITS_GF2X_ELEMENT-1-digitShift as usize] ^= prevLo;
+    Res[NUM_DIGITS_GF2X_ELEMENT - 1 - digitShift as usize] ^= prevLo;
 }
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
