@@ -515,6 +515,9 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
         .offset((2i32 as u32).wrapping_mul(bih) as isize)
         .offset(-(leading_slack as isize));
 
+    let v0 = std::slice::from_raw_parts(v0, bih as usize);
+    let v1 = std::slice::from_raw_parts(v1, bih as usize);
+
     let mut sum_u: Vec<DIGIT> = vec![0; bih as usize];
     gf2x_add(
         sum_u.len() as i32,
@@ -538,9 +541,9 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
         sum_v.len() as i32,
         sum_v.as_mut_ptr(),
         bih as i32,
-        v0,
+        v0.as_ptr(),
         bih as i32,
-        v1,
+        v1.as_ptr(),
     );
     gf2x_add_2(&mut sum_v, &v2);
     let mut w1: Vec<DIGIT> = vec![0; 2 * bih as usize];
@@ -564,11 +567,7 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     );
     left_bit_shift_n(&mut v2_x2, 2);
     let mut v1_x: Vec<DIGIT> = vec![0; bih as usize + 1];
-    memcpy(
-        v1_x.as_mut_ptr().offset(1) as *mut libc::c_void,
-        v1 as *const libc::c_void,
-        bih.wrapping_mul(8i32 as u32) as u64,
-    );
+    v1_x[1..1+bih as usize].copy_from_slice(v1);
     left_bit_shift_n(&mut v1_x, 1);
     let mut v1_x1_v2_x2: Vec<DIGIT> = vec![0; bih as usize + 1];
     gf2x_add_3(&mut v1_x1_v2_x2, &v1_x, &v2_x2);
@@ -579,20 +578,14 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     let mut w3: Vec<DIGIT> = vec![0; 2 * (bih as usize) + 2];
     gf2x_mul_TC3(&mut w3, &temp_u_components, &temp_v_components);
     gf2x_add_asymm_2(&mut u1_x1_u2_x2, u0);
-    gf2x_add_asymm_2(
-        &mut v1_x1_v2_x2,
-        std::slice::from_raw_parts(v0, bih as usize),
-    );
+    gf2x_add_asymm_2(&mut v1_x1_v2_x2, v0);
 
     let mut w2: Vec<DIGIT> = vec![0; 2 * (bih as usize) + 2];
     gf2x_mul_TC3(&mut w2, &u1_x1_u2_x2, &v1_x1_v2_x2);
     let mut w4: Vec<DIGIT> = vec![0; 2 * bih as usize];
     gf2x_mul_TC3(&mut w4, &u2, &v2);
     let mut w0: Vec<DIGIT> = vec![0; 2 * bih as usize];
-    gf2x_mul_TC3(
-        &mut w0, u0,
-        std::slice::from_raw_parts(v0, bih as usize),
-    );
+    gf2x_mul_TC3(&mut w0, u0, v0);
 
     // Interpolation starts
     gf2x_add_2(&mut w3, &w2);
