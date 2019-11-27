@@ -28,10 +28,9 @@ fn gf2x_mod(out: &mut [DIGIT], input: &[DIGIT]) {
     out[0] &= ((1 as DIGIT) << MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS) - 1;
 }
 
-unsafe fn left_bit_shift(length: i32, input: &mut [DIGIT]) {
-    assert_eq!(length as usize, input.len());
+unsafe fn left_bit_shift(input: &mut [DIGIT]) {
     let mut j: i32 = 0; /* logical shift does not need clearing */
-    while j < length - 1i32 {
+    while j < input.len() as i32 - 1i32 {
         *input.as_mut_ptr().offset(j as isize) <<= 1i32;
         let ref mut fresh1 = *input.as_mut_ptr().offset(j as isize);
         *fresh1 |= *input.as_mut_ptr().offset((j + 1i32) as isize) >> (8i32 << 3i32) - 1i32;
@@ -101,7 +100,7 @@ fn rotate_bit_left(input: &mut [DIGIT]) {
     let rotated_bit = (input[0] & mask != 0) as i32 as DIGIT;
     input[0] &= !mask;
 
-    unsafe { left_bit_shift(NUM_DIGITS_GF2X_ELEMENT as i32, input) }
+    unsafe { left_bit_shift(input) }
     input[NUM_DIGITS_GF2X_ELEMENT - 1] |= rotated_bit;
 }
 
@@ -197,10 +196,7 @@ pub fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
         i = 1i32;
         while i <= 2i32 * crate::consts::P as i32 {
             if f[0] & GF2_INVERSE_MASK == 0i32 as u64 {
-                left_bit_shift(
-                    (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-                    &mut f,
-                );
+                left_bit_shift(&mut f);
                 rotate_bit_left(&mut u);
                 delta += 1i32
             } else {
@@ -208,10 +204,7 @@ pub fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
                     gf2x_mod_add_2(&mut s, &f);
                     gf2x_mod_add_2(&mut v, &u);
                 }
-                left_bit_shift(
-                    (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-                                                       &mut s,
-                );
+                left_bit_shift(&mut s);
                 if delta == 0i32 {
                     gf2x_swap(
                         (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
