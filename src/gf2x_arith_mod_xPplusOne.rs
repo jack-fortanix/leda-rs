@@ -28,15 +28,15 @@ fn gf2x_mod(out: &mut [DIGIT], input: &[DIGIT]) {
     out[0] &= ((1 as DIGIT) << MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS) - 1;
 }
 
-unsafe fn left_bit_shift(input: &mut [DIGIT]) {
+fn left_bit_shift(input: &mut [DIGIT]) {
     let mut j: i32 = 0; /* logical shift does not need clearing */
     while j < input.len() as i32 - 1i32 {
-        *input.as_mut_ptr().offset(j as isize) <<= 1i32;
-        let ref mut fresh1 = *input.as_mut_ptr().offset(j as isize);
-        *fresh1 |= *input.as_mut_ptr().offset((j + 1i32) as isize) >> (8i32 << 3i32) - 1i32;
+        let i = j as usize;
+        input[i] <<= 1;
+        input[i] ^= input[i+1] >> (DIGIT_SIZE_b - 1);
         j += 1
     }
-    *input.as_mut_ptr().offset(j as isize) <<= 1i32;
+    input[input.len() - 1] <<= 1;
 }
 // end left_bit_shift
 
@@ -100,7 +100,7 @@ fn rotate_bit_left(input: &mut [DIGIT]) {
     let rotated_bit = (input[0] & mask != 0) as i32 as DIGIT;
     input[0] &= !mask;
 
-    unsafe { left_bit_shift(input) }
+    left_bit_shift(input);
     input[NUM_DIGITS_GF2X_ELEMENT - 1] |= rotated_bit;
 }
 
