@@ -1,7 +1,7 @@
 use crate::consts::*;
 use crate::types::*;
 
-pub fn gf2x_copy(mut dest: &mut [DIGIT], input: &[DIGIT]) {
+pub fn gf2x_copy(dest: &mut [DIGIT], input: &[DIGIT]) {
     for i in 0..NUM_DIGITS_GF2X_ELEMENT {
         dest[i] = input[i];
     }

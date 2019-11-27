@@ -62,7 +62,7 @@ pub fn int32_sort(x: &mut [i32]) {
         j = 0;
         q = top;
         while q > p {
-            let mut current_block_73: u64;
+            let current_block_73: u64;
             if j != i {
                 loop {
                     if j == n - q {

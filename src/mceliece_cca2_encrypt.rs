@@ -45,8 +45,8 @@ fn char_right_bit_shift_n(data: &mut [u8], amount: usize) {
 
 // shifts the input stream so that the bytewise pad is on the left before conversion
 fn bytestream_into_poly_seq(
-    mut polySeq: &mut [DIGIT],
-    mut numPoly: usize,
+    polySeq: &mut [DIGIT],
+    numPoly: usize,
     S: &mut [u8],
 ) -> Result<()> {
     let padsize = if K % 8 != 0 { 8 - (K % 8) } else { 0 };
