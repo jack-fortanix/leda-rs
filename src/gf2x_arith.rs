@@ -235,6 +235,25 @@ fn gf2x_add_asymm_safe(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     }
 }
 
+fn gf2x_add_asymm_2(Res: &mut [DIGIT], A: &[DIGIT]) {
+    assert!(Res.len() >= A.len());
+
+    unsafe {
+        gf2x_add_asymm(
+            Res.len() as i32,
+            Res.as_mut_ptr(),
+            Res.len() as i32,
+            Res.as_ptr(),
+            A.len() as i32,
+            A.as_ptr());
+    }
+/*
+    let offset = Res.len() - A.len();
+    for i in offset..A.len() {
+        Res[i - offset] ^= A[i];
+    }*/
+}
+
 /*----------------------------------------------------------------------------*/
 /* PRE: MAX ALLOWED ROTATION AMOUNT : DIGIT_SIZE_b */
 
@@ -587,22 +606,9 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
 
     let mut w3: Vec<DIGIT> = vec![0; 2 * (bih as usize) + 2];
     gf2x_mul_TC3(&mut w3, &temp_u_components, &temp_v_components);
-    gf2x_add_asymm(
-        bih.wrapping_add(1i32 as u32) as i32,
-        u1_x1_u2_x2.as_mut_ptr(),
-        bih.wrapping_add(1i32 as u32) as i32,
-        u1_x1_u2_x2.as_ptr(),
-        bih as i32,
-        u0,
-    );
-    gf2x_add_asymm(
-        bih.wrapping_add(1i32 as u32) as i32,
-        v1_x1_v2_x2.as_mut_ptr(),
-        bih.wrapping_add(1i32 as u32) as i32,
-        v1_x1_v2_x2.as_ptr(),
-        bih as i32,
-        v0,
-    );
+    gf2x_add_asymm_2(&mut u1_x1_u2_x2, std::slice::from_raw_parts(u0, bih as usize));
+    gf2x_add_asymm_2(&mut v1_x1_v2_x2, std::slice::from_raw_parts(v0, bih as usize));
+
     let mut w2: Vec<DIGIT> = vec![0; 2 * (bih as usize) + 2];
     gf2x_mul_TC3(&mut w2, &u1_x1_u2_x2, &v1_x1_v2_x2);
     let mut w4: Vec<DIGIT> = vec![0; 2 * bih as usize];
@@ -615,14 +621,7 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
 
     // Interpolation starts
     gf2x_add_2(&mut w3, &w2);
-    gf2x_add_asymm(
-        w2.len() as i32,
-        w2.as_mut_ptr(),
-        w2.len() as i32,
-        w2.as_ptr(),
-        w0.len() as i32,
-        w0.as_ptr(),
-    );
+    gf2x_add_asymm_2(&mut w2, &w0);
     right_bit_shift_n(&mut w2, 1);
     gf2x_add_2(&mut w2, &w3);
     // w2 + (w4 * x^3+1) = w2 + w4 + w4 << 3
@@ -631,35 +630,14 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     w4_x3_plus_1[1..1+2*bih as usize].copy_from_slice(&w4);
 
     left_bit_shift_n(w4_x3_plus_1.len() as i32, w4_x3_plus_1.as_mut_ptr(), 3i32);
-    gf2x_add_asymm(
-        w2.len() as i32,
-        w2.as_mut_ptr(),
-        w2.len() as i32,
-        w2.as_ptr(),
-        w4.len() as i32,
-        w4.as_ptr(),
-    );
-    gf2x_add_asymm(
-        w2.len() as i32,
-        w2.as_mut_ptr(),
-        w2.len() as i32,
-        w2.as_ptr(),
-        w4_x3_plus_1.len() as i32,
-        w4_x3_plus_1.as_ptr(),
-    );
+    gf2x_add_asymm_2(&mut w2, &w4);
+    gf2x_add_asymm_2(&mut w2, &w4_x3_plus_1);
     gf2x_exact_div_x_plus_one(
         (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
         w2.as_mut_ptr(),
     );
     gf2x_add_2(&mut w1, &w0);
-    gf2x_add_asymm(
-        w3.len() as i32,
-        w3.as_mut_ptr(),
-        w3.len() as i32,
-        w3.as_ptr(),
-        w1.len() as i32,
-        w1.as_ptr(),
-    );
+    gf2x_add_asymm_2(&mut w3, &w1);
     right_bit_shift_n(&mut w3, 1);
     gf2x_exact_div_x_plus_one(w3.len() as i32, w3.as_mut_ptr());
     gf2x_add_2(&mut w1, &w4);
