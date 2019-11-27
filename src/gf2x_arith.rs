@@ -464,10 +464,7 @@ unsafe fn gf2x_mul_Kar(
 
 pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     let nr = Res.len() as i32;
-    //let na = A.len() as i32;
-    //let nb = B.len() as i32;
     let Res = Res.as_mut_ptr();
-    //let A = A.as_ptr();
 
     if A.len() < 50 || B.len() < 50 {
         /* fall back to schoolbook */
@@ -476,71 +473,67 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     }
 
     let bih = if A.len() % 3 == 0 {
-        (A.len() / 3) as u32
+        (A.len() / 3)
     } else {
-        (A.len() / 3 + 1) as u32
+        (A.len() / 3 + 1)
     };
-    let mut u2: Vec<DIGIT> = vec![0; bih as usize];
-    let mut v2: Vec<DIGIT> = vec![0; bih as usize];
+    let mut u2: Vec<DIGIT> = vec![0; bih];
+    let mut v2: Vec<DIGIT> = vec![0; bih];
 
-    let leading_slack = (3 - A.len() as u32 % 3) % 3;
+    let leading_slack = (3 - A.len() % 3) % 3;
     for i in leading_slack..bih {
-        u2[i as usize] = A[(i - leading_slack) as usize];
-        v2[i as usize] = B[(i - leading_slack) as usize];
+        u2[i] = A[(i - leading_slack)];
+        v2[i] = B[(i - leading_slack)];
     }
 
-    let u1 = &A[bih as usize - leading_slack as usize..2*bih as usize - leading_slack as usize];
-    let u0 = &A[2*bih as usize - leading_slack as usize..3*bih as usize - leading_slack as usize];
+    let u1 = &A[bih - leading_slack..2*bih - leading_slack];
+    let u0 = &A[2*bih - leading_slack..3*bih - leading_slack];
 
-    let v1 = &B[bih as usize - leading_slack as usize..2*bih as usize - leading_slack as usize];
-    let v0 = &B[2*bih as usize - leading_slack as usize..3*bih as usize - leading_slack as usize];
+    let v1 = &B[bih - leading_slack..2*bih - leading_slack];
+    let v0 = &B[2*bih - leading_slack..3*bih - leading_slack];
 
-    let mut sum_u: Vec<DIGIT> = vec![0; bih as usize];
+    let mut sum_u: Vec<DIGIT> = vec![0; bih];
     gf2x_add_3(&mut sum_u, u0, u1);
     gf2x_add_2(&mut sum_u, &u2);
 
-    let mut sum_v: Vec<DIGIT> = vec![0; bih as usize];
+    let mut sum_v: Vec<DIGIT> = vec![0; bih];
     gf2x_add_3(&mut sum_v, v0, v1);
     gf2x_add_2(&mut sum_v, &v2);
-    let mut w1: Vec<DIGIT> = vec![0; 2 * bih as usize];
+    let mut w1: Vec<DIGIT> = vec![0; 2 * bih];
     gf2x_mul_TC3(&mut w1, &sum_u, &sum_v);
-    let mut u2_x2: Vec<DIGIT> = vec![0; 1 + bih as usize];
-    u2_x2[1..1 + bih as usize].copy_from_slice(&u2);
+    let mut u2_x2: Vec<DIGIT> = vec![0; 1 + bih];
+    u2_x2[1..1 + bih].copy_from_slice(&u2);
     left_bit_shift_n(&mut u2_x2, 2);
-    let mut u1_x: Vec<DIGIT> = vec![0; bih as usize + 1];
-    u1_x[1..1 + bih as usize].copy_from_slice(u1);
+    let mut u1_x: Vec<DIGIT> = vec![0; bih + 1];
+    u1_x[1..1 + bih].copy_from_slice(u1);
     left_bit_shift_n(&mut u1_x, 1);
-    let mut u1_x1_u2_x2: Vec<DIGIT> = vec![0; bih as usize + 1];
+    let mut u1_x1_u2_x2: Vec<DIGIT> = vec![0; bih + 1];
     gf2x_add_3(&mut u1_x1_u2_x2, &u1_x, &u2_x2);
-    let mut temp_u_components: Vec<DIGIT> = vec![0; bih as usize + 1];
+    let mut temp_u_components: Vec<DIGIT> = vec![0; bih + 1];
     gf2x_add_asymm_3(&mut temp_u_components, &u1_x1_u2_x2, &sum_u);
 
-    let mut v2_x2: Vec<DIGIT> = vec![0; bih as usize + 1];
-    memcpy(
-        v2_x2.as_mut_ptr().offset(1) as *mut libc::c_void,
-        v2.as_mut_ptr() as *const libc::c_void,
-        bih.wrapping_mul(8i32 as u32) as u64,
-    );
+    let mut v2_x2: Vec<DIGIT> = vec![0; bih + 1];
+    v2_x2[1..bih+1].copy_from_slice(&v2);
     left_bit_shift_n(&mut v2_x2, 2);
-    let mut v1_x: Vec<DIGIT> = vec![0; bih as usize + 1];
-    v1_x[1..1+bih as usize].copy_from_slice(v1);
+    let mut v1_x: Vec<DIGIT> = vec![0; bih + 1];
+    v1_x[1..1+bih].copy_from_slice(v1);
     left_bit_shift_n(&mut v1_x, 1);
-    let mut v1_x1_v2_x2: Vec<DIGIT> = vec![0; bih as usize + 1];
+    let mut v1_x1_v2_x2: Vec<DIGIT> = vec![0; bih + 1];
     gf2x_add_3(&mut v1_x1_v2_x2, &v1_x, &v2_x2);
 
-    let mut temp_v_components: Vec<DIGIT> = vec![0; bih as usize + 1];
+    let mut temp_v_components: Vec<DIGIT> = vec![0; bih + 1];
     gf2x_add_asymm_3(&mut temp_v_components, &v1_x1_v2_x2, &sum_v);
 
-    let mut w3: Vec<DIGIT> = vec![0; 2 * (bih as usize) + 2];
+    let mut w3: Vec<DIGIT> = vec![0; 2 * bih + 2];
     gf2x_mul_TC3(&mut w3, &temp_u_components, &temp_v_components);
     gf2x_add_asymm_2(&mut u1_x1_u2_x2, u0);
     gf2x_add_asymm_2(&mut v1_x1_v2_x2, v0);
 
-    let mut w2: Vec<DIGIT> = vec![0; 2 * (bih as usize) + 2];
+    let mut w2: Vec<DIGIT> = vec![0; 2 * bih + 2];
     gf2x_mul_TC3(&mut w2, &u1_x1_u2_x2, &v1_x1_v2_x2);
-    let mut w4: Vec<DIGIT> = vec![0; 2 * bih as usize];
+    let mut w4: Vec<DIGIT> = vec![0; 2 * bih];
     gf2x_mul_TC3(&mut w4, &u2, &v2);
-    let mut w0: Vec<DIGIT> = vec![0; 2 * bih as usize];
+    let mut w0: Vec<DIGIT> = vec![0; 2 * bih];
     gf2x_mul_TC3(&mut w0, u0, v0);
 
     // Interpolation starts
@@ -549,15 +542,14 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     right_bit_shift_n(&mut w2, 1);
     gf2x_add_2(&mut w2, &w3);
     // w2 + (w4 * x^3+1) = w2 + w4 + w4 << 3
-    let vla_16 = (2i32 as u32).wrapping_mul(bih).wrapping_add(1i32 as u32) as usize;
-    let mut w4_x3_plus_1: Vec<DIGIT> = ::std::vec::from_elem(0, vla_16);
-    w4_x3_plus_1[1..1 + 2 * bih as usize].copy_from_slice(&w4);
+    let mut w4_x3_plus_1: Vec<DIGIT> = vec![0; 2*bih+1];
+    w4_x3_plus_1[1..1 + 2 * bih].copy_from_slice(&w4);
 
     left_bit_shift_n(&mut w4_x3_plus_1, 3);
     gf2x_add_asymm_2(&mut w2, &w4);
     gf2x_add_asymm_2(&mut w2, &w4_x3_plus_1);
     gf2x_exact_div_x_plus_one(
-        (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as i32,
+        w2.len() as i32,
         w2.as_mut_ptr(),
     );
     gf2x_add_2(&mut w1, &w0);
@@ -565,8 +557,7 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     right_bit_shift_n(&mut w3, 1);
     gf2x_exact_div_x_plus_one(w3.len() as i32, w3.as_mut_ptr());
     gf2x_add_2(&mut w1, &w4);
-    let vla_17 = (2i32 as u32).wrapping_mul(bih).wrapping_add(2i32 as u32) as usize;
-    let mut w1_final: Vec<DIGIT> = ::std::vec::from_elem(0, vla_17);
+    let mut w1_final: Vec<DIGIT> = vec![0; 2*bih + 2];
     gf2x_add_asymm_3(&mut w1_final, &w2, &w1);
     gf2x_add_2(&mut w2, &w3);
     // Result recombination starts here
@@ -579,6 +570,8 @@ pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
      * results */
     let mut leastSignifDigitIdx: i32 = nr - 1i32;
     let mut i_0: i32 = 0i32;
+
+    let bih = bih as u32;
     while (i_0 as u32) < (2i32 as u32).wrapping_mul(bih) {
         let ref mut fresh4 = *Res.offset((leastSignifDigitIdx - i_0) as isize);
         *fresh4 ^= *w0.as_mut_ptr().offset(
