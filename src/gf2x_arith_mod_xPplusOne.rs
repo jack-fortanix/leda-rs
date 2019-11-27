@@ -108,19 +108,16 @@ fn rotate_bit_right(input: &mut [DIGIT]) {
     input[0] |= rotated_bit;
 }
 
-unsafe fn gf2x_swap(length: i32, mut f: *mut DIGIT, mut s: *mut DIGIT) {
-    let mut t: DIGIT = 0;
-    let mut i: i32 = length - 1i32;
-    while i >= 0i32 {
-        t = *f.offset(i as isize);
-        *f.offset(i as isize) = *s.offset(i as isize);
-        *s.offset(i as isize) = t;
-        i -= 1
+fn gf2x_swap(f: &mut [DIGIT], s: &mut [DIGIT]) {
+    assert_eq!(f.len(), s.len());
+
+    for i in 0..f.len() {
+        let t = f[i] ^ s[i];
+        f[i] ^= t;
+        s[i] ^= t;
     }
 }
-/*----------------------------------------------------------------------------*/
-// end gf2x_swap
-/*----------------------------------------------------------------------------*/
+
 /*
  * Optimized extended GCD algorithm to compute the multiplicative inverse of
  * a non-zero element in GF(2)[x] mod x^P+1, in polyn. representation.
@@ -141,9 +138,6 @@ unsafe fn gf2x_swap(length: i32, mut f: *mut DIGIT, mut s: *mut DIGIT) {
 
 pub fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
 /* in^{-1} mod x^P-1 */ {
-    unsafe {
-        let out = out.as_mut_ptr();
-        let input = input.as_ptr();
 
         let mut i: i32 = 0;
         let mut delta: i32 = 0;
@@ -156,7 +150,7 @@ pub fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
 
         s[0] |= GF2_INVERSE_MASK;
         i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
-        while i >= 0i32 && *input.offset(i as isize) == 0i32 as u64 {
+        while i >= 0i32 && input[i as usize] == 0 {
             i -= 1
         }
         if i < 0i32 {
@@ -167,14 +161,14 @@ pub fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
         {
             i = (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
             while i >= 1i32 {
-                f[i as usize] = *input.offset((i - 1i32) as isize);
+                f[i as usize] = input[(i - 1i32) as usize];
                 i -= 1
             }
         } else {
             /* they are equal */
             i = (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
             while i >= 0i32 {
-                f[i as usize] = *input.offset(i as isize);
+                f[i as usize] = input[i as usize];
                 i -= 1
             }
         }
@@ -191,16 +185,8 @@ pub fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
                 }
                 left_bit_shift(&mut s);
                 if delta == 0i32 {
-                    gf2x_swap(
-                        (crate::consts::P as i32 + 1i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-                        f.as_mut_ptr(),
-                        s.as_mut_ptr(),
-                    );
-                    gf2x_swap(
-                        (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32),
-                        u.as_mut_ptr(),
-                        v.as_mut_ptr(),
-                    );
+                    gf2x_swap(&mut f, &mut s);
+                    gf2x_swap(&mut u, &mut v);
                     rotate_bit_left(&mut u);
                     delta = 1i32
                 } else {
@@ -212,11 +198,10 @@ pub fn gf2x_mod_inverse(out: &mut [DIGIT], input: &[DIGIT]) -> i32
         }
         i = (crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32) - 1i32;
         while i >= 0i32 {
-            *out.offset(i as isize) = u[i as usize];
+            out[i as usize] = u[i as usize];
             i -= 1
         }
         return (delta == 0i32) as i32;
-    }
 }
 // end gf2x_mod_inverse
 
