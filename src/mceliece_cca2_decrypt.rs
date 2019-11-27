@@ -172,7 +172,7 @@ pub fn decrypt_Kobara_Imai(sk: &LedaPrivateKey, ctext: &[u8]) -> Result<Vec<u8>>
     let mut correctedCodeword: [DIGIT; N0 * NUM_DIGITS_GF2X_ELEMENT] =
         [0; N0 * NUM_DIGITS_GF2X_ELEMENT];
     /* first N0*NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_B bytes are the actual McE
-     * ciphertext. Note: storage endiannes in BE hardware should flip bytes */
+     * ciphertext. */
 
     for i in 0..correctedCodeword.len() {
         let digit: [u8; 8] = ctext[(8 * i)..(8 * (i + 1))].try_into().expect("8 bytes");
