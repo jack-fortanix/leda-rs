@@ -24,20 +24,16 @@ pub fn gf2x_get_coeff(poly: &[DIGIT], exponent: u32) -> DIGIT {
     let straightIdx = (NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_b - 1) - exponent as usize;
     let digitIdx = straightIdx / DIGIT_SIZE_b;
     let inDigitIdx = straightIdx % DIGIT_SIZE_b;
-
     let mask = 1 as DIGIT;
     return (poly[digitIdx] >> (DIGIT_SIZE_b - 1 - inDigitIdx)) & mask;
 }
 
 pub fn gf2x_toggle_coeff(poly: &mut [DIGIT], exponent: u32) {
-    let mut straightIdx: i32 = (((crate::consts::P as i32 + (8i32 << 3i32) - 1i32) / (8i32 << 3i32)
-        * (8i32 << 3i32)
-        - 1i32) as u32)
-        .wrapping_sub(exponent) as i32;
-    let mut digitIdx: i32 = straightIdx / (8i32 << 3i32);
-    let mut inDigitIdx: u32 = (straightIdx % (8i32 << 3i32)) as u32;
-    let mut mask: DIGIT = (1 as DIGIT) << (((8i32 << 3i32) - 1i32) as u32).wrapping_sub(inDigitIdx);
-    poly[digitIdx as usize] ^= mask;
+    let straightIdx = (NUM_DIGITS_GF2X_ELEMENT*DIGIT_SIZE_b - 1) - exponent as usize;
+    let digitIdx = straightIdx / DIGIT_SIZE_b;
+    let inDigitIdx = straightIdx % DIGIT_SIZE_b;
+    let mask: DIGIT = (1 as DIGIT) << (DIGIT_SIZE_b - 1 - inDigitIdx);
+    poly[digitIdx] ^= mask;
 }
 
 pub fn gf2x_mod_add_3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
