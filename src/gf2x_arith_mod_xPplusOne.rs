@@ -13,9 +13,8 @@ fn gf2x_mod(out: &mut [DIGIT], input: &[DIGIT]) {
     aux.copy_from_slice(&input[0..(NUM_DIGITS_GF2X_ELEMENT + 1)]);
 
     right_bit_shift_n(
-        NUM_DIGITS_GF2X_ELEMENT as i32 + 1,
         &mut aux,
-        MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS as i32);
+        MSb_POSITION_IN_MSB_DIGIT_OF_MODULUS);
 
     gf2x_mod_add_3(
         out,
@@ -71,10 +70,9 @@ pub fn gf2x_transpose_in_place(mut A: &mut [DIGIT]) {
     }
     if slack_bits_amount != 0 {
         right_bit_shift_n(
-            NUM_DIGITS_GF2X_ELEMENT as i32,
             A,
-            slack_bits_amount as i32,
-        }
+            slack_bits_amount,
+        );
     }
 
     A[NUM_DIGITS_GF2X_ELEMENT - 1] = (A[NUM_DIGITS_GF2X_ELEMENT - 1] & (!mask)) | a00;
