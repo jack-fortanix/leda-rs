@@ -118,11 +118,7 @@ fn gf2x_mul_comb(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
         Res[i] = 0;
     }
 
-    let mut k: i32 = 0;
-
-    k = (8i32 << 3i32) - 1i32;
-    while k > 0i32 {
-
+    for k in (1..DIGIT_SIZE_b).rev() {
         for i in (0..A.len()).rev() {
             if A[i] & (1 as DIGIT) << k != 0 {
                 for j in (0..B.len()).rev() {
@@ -138,12 +134,11 @@ fn gf2x_mul_comb(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
             u = Res[A.len() + B.len() - 1 - j];
             Res[A.len() + B.len() - 1 - j] = h ^ u << 1;
         }
-        k -= 1
     }
     for i in (0..A.len()).rev() {
         if A[i] & (1 as DIGIT) != 0 {
             for j in (0..B.len()).rev() {
-                Res[(i + j + 1) as usize] ^= B[j as usize];
+                Res[i + j + 1] ^= B[j];
             }
         }
     }
