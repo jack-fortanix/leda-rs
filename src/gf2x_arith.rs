@@ -253,22 +253,17 @@ pub fn right_bit_shift_n(input: &mut [DIGIT], amount: usize) {
     input[0] >>= amount;
 }
 
-unsafe fn left_bit_shift_n(input: &mut [DIGIT], amount: usize) {
+fn left_bit_shift_n(input: &mut [DIGIT], amount: usize) {
     assert!(amount < DIGIT_SIZE_b);
     if amount == 0 {
         return;
     }
     let mask: DIGIT = !((1 as DIGIT) << (DIGIT_SIZE_b - amount - 1));
-    let mut j: i32 = 0;
-    j = 0i32;
-    let length = input.len() as i32;
-    while j < length - 1i32 {
-        *input.as_mut_ptr().offset(j as isize) <<= amount;
-        let ref mut fresh3 = *input.as_mut_ptr().offset(j as isize);
-        *fresh3 |= (*input.as_mut_ptr().offset((j + 1i32) as isize) & mask) >> (8i32 << 3i32) - amount as i32;
-        j += 1
+    for j in 0..(input.len() - 1) {
+        input[j] <<= amount;
+        input[j] |= (input[j+1] & mask) >> (DIGIT_SIZE_b - amount);
     }
-    *input.as_mut_ptr().offset(j as isize) <<= amount;
+    input[input.len() - 1] <<= amount;
 }
 // end left_bit_shift_n
 /*----------------------------------------------------------------------------*/
