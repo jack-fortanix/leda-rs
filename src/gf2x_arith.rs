@@ -114,7 +114,6 @@ pub fn gf2x_set_coeff(poly: &mut [DIGIT], exponent: usize, value: DIGIT) {
 }
 
 unsafe fn gf2x_mul_comb(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
-
     for i in 0..Res.len() {
         Res[i] = 0;
     }
@@ -135,8 +134,7 @@ unsafe fn gf2x_mul_comb(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
             if A[i as usize] & (0x1i32 as DIGIT) << k != 0 {
                 j = nb - 1i32;
                 while j >= 0i32 {
-                    let ref mut fresh0 = *Res.as_mut_ptr().offset((i + j + 1i32) as isize);
-                    *fresh0 ^= B[j as usize];
+                    Res[(i+j+1) as usize] ^= B[j as usize];
                     j -= 1
                 }
             }
@@ -243,23 +241,22 @@ fn gf2x_mul_Kar(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
         return;
     }
 
-    let bih: u32 = (A.len() / 2) as u32;
-    let bihu = bih as usize;
-    let mut middle: Vec<DIGIT> = vec![0; 2 * bihu];
-    let mut sumA: Vec<DIGIT> = vec![0; bihu];
-    let mut sumB: Vec<DIGIT> = vec![0; bihu];
-    gf2x_add_3(&mut sumA, &A[0..bihu], &A[bihu..2 * bihu]);
-    gf2x_add_3(&mut sumB, &B[0..bihu], &B[bihu..2 * bihu]);
+    let bih = (A.len() / 2);
+    let mut middle: Vec<DIGIT> = vec![0; 2 * bih];
+    let mut sumA: Vec<DIGIT> = vec![0; bih];
+    let mut sumB: Vec<DIGIT> = vec![0; bih];
+    gf2x_add_3(&mut sumA, &A[0..bih], &A[bih..2 * bih]);
+    gf2x_add_3(&mut sumB, &B[0..bih], &B[bih..2 * bih]);
     gf2x_mul_Kar(&mut middle, &sumA, &sumB);
     gf2x_mul_Kar(
-        &mut Res[2 * bihu..3 * bihu],
-        &A[bihu..2 * bihu],
-        &B[bihu..2 * bihu],
+        &mut Res[2 * bih..4 * bih],
+        &A[bih..2 * bih],
+        &B[bih..2 * bih],
     );
-    gf2x_add_2(&mut middle, &Res[2 * bihu..4 * bihu]);
-    gf2x_mul_Kar(&mut Res[0..2 * bihu], &A[0..bihu], &B[0..bihu]);
-    gf2x_add_2(&mut middle, &Res[0..2 * bihu]);
-    gf2x_add_2(&mut Res[bihu..3 * bihu], &middle);
+    gf2x_add_2(&mut middle, &Res[2 * bih..4 * bih]);
+    gf2x_mul_Kar(&mut Res[0..2 * bih], &A[0..bih], &B[0..bih]);
+    gf2x_add_2(&mut middle, &Res[0..2 * bih]);
+    gf2x_add_2(&mut Res[bih..3 * bih], &middle);
 }
 
 /*----------------------------------------------------------------------------*/
