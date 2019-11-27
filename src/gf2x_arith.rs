@@ -238,20 +238,11 @@ fn gf2x_add_asymm_safe(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
 fn gf2x_add_asymm_2(Res: &mut [DIGIT], A: &[DIGIT]) {
     assert!(Res.len() >= A.len());
 
-    unsafe {
-        gf2x_add_asymm(
-            Res.len() as i32,
-            Res.as_mut_ptr(),
-            Res.len() as i32,
-            Res.as_ptr(),
-            A.len() as i32,
-            A.as_ptr());
+    let delta = Res.len() - A.len();
+
+    for i in 0..A.len() {
+        Res[i+delta] ^= A[i];
     }
-/*
-    let offset = Res.len() - A.len();
-    for i in offset..A.len() {
-        Res[i - offset] ^= A[i];
-    }*/
 }
 
 /*----------------------------------------------------------------------------*/
