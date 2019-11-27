@@ -236,10 +236,10 @@ fn gf2x_exact_div_x_plus_one(A: &mut [DIGIT]) {
     }
 }
 
-unsafe fn gf2x_mul_Kar(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
+fn gf2x_mul_Kar(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     if A.len() % 2 != 0 || A.len() < 9 || B.len() < 9 {
         /* fall back to schoolbook */
-        gf2x_mul_comb(Res.len() as i32, Res.as_mut_ptr(), A.len() as i32, A.as_ptr(), B.len() as i32, B.as_ptr());
+        unsafe { gf2x_mul_comb(Res.len() as i32, Res.as_mut_ptr(), A.len() as i32, A.as_ptr(), B.len() as i32, B.as_ptr()); }
         return;
     }
 
@@ -266,10 +266,8 @@ unsafe fn gf2x_mul_Kar(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
 
 pub fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     if A.len() < 50 || B.len() < 50 {
-        /* fall back to schoolbook */
-        unsafe {
-            gf2x_mul_Kar(Res, A, B);
-        }
+        /* fall back to Karatsuba */
+        gf2x_mul_Kar(Res, A, B);
         return;
     }
 
