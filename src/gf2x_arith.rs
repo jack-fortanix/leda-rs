@@ -268,18 +268,16 @@ fn left_bit_shift_n(input: &mut [DIGIT], amount: usize) {
 
 fn gf2x_exact_div_x_plus_one(A: &mut [DIGIT]) {
     let mut t: DIGIT = 0;
-    let na = A.len() as i32;
-    let mut i: i32 = na - 1i32;
-    while i >= 0i32 {
-        t ^= A[i as usize];
-        let mut j: i32 = 1i32;
-        while j <= (8i32 << 3i32) / 2i32 {
-            t ^= t << j as u32;
-            j = j * 2i32
+
+    for i in (0..A.len()).rev() {
+        t ^= A[i];
+        let mut j = 1;
+        while j <= DIGIT_SIZE_b / 2 {
+            t ^= t << j;
+            j = j * 2;
         }
-        A[i as usize] = t;
-        t >>= (8i32 << 3i32) - 1i32;
-        i -= 1
+        A[i] = t;
+        t >>= DIGIT_SIZE_b - 1;
     }
 }
 
