@@ -464,46 +464,36 @@ unsafe fn gf2x_mul_Kar(
 
 pub unsafe fn gf2x_mul_TC3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     let nr = Res.len() as i32;
-    let na = A.len() as i32;
-    let nb = B.len() as i32;
+    //let na = A.len() as i32;
+    //let nb = B.len() as i32;
     let Res = Res.as_mut_ptr();
-    let A = A.as_ptr();
-    let B = B.as_ptr();
+    //let A = A.as_ptr();
 
-    if na < 50 || nb < 50 {
+    if A.len() < 50 || B.len() < 50 {
         /* fall back to schoolbook */
-        gf2x_mul_Kar(nr, Res, na, A, nb, B); //number of limbs for each part.
+        gf2x_mul_Kar(nr, Res, A.len() as i32, A.as_ptr(), B.len() as i32, B.as_ptr());
         return;
     }
 
-    let bih = if na % 3 == 0 {
-        (na / 3) as u32
+    let bih = if A.len() % 3 == 0 {
+        (A.len() / 3) as u32
     } else {
-        (na / 3 + 1) as u32
+        (A.len() / 3 + 1) as u32
     };
     let mut u2: Vec<DIGIT> = vec![0; bih as usize];
     let mut v2: Vec<DIGIT> = vec![0; bih as usize];
 
-    let leading_slack: u32 = (3 - na as u32 % 3) % 3;
+    let leading_slack = (3 - A.len() as u32 % 3) % 3;
     for i in leading_slack..bih {
-        u2[i as usize] = *A.offset((i - leading_slack) as isize);
-        v2[i as usize] = *B.offset((i - leading_slack) as isize);
+        u2[i as usize] = A[(i - leading_slack) as usize];
+        v2[i as usize] = B[(i - leading_slack) as usize];
     }
 
-    let u1 = A.offset(bih as isize).offset(-(leading_slack as isize));
-    let u0 = A
-        .offset((2i32 as u32).wrapping_mul(bih) as isize)
-        .offset(-(leading_slack as isize));
+    let u1 = &A[bih as usize - leading_slack as usize..2*bih as usize - leading_slack as usize];
+    let u0 = &A[2*bih as usize - leading_slack as usize..3*bih as usize - leading_slack as usize];
 
-    let v1 = B.offset(bih as isize).offset(-(leading_slack as isize));
-    let v0 = B
-        .offset((2i32 as u32).wrapping_mul(bih) as isize)
-        .offset(-(leading_slack as isize));
-
-    let u0 = std::slice::from_raw_parts(u0, bih as usize);
-    let u1 = std::slice::from_raw_parts(u1, bih as usize);
-    let v0 = std::slice::from_raw_parts(v0, bih as usize);
-    let v1 = std::slice::from_raw_parts(v1, bih as usize);
+    let v1 = &B[bih as usize - leading_slack as usize..2*bih as usize - leading_slack as usize];
+    let v0 = &B[2*bih as usize - leading_slack as usize..3*bih as usize - leading_slack as usize];
 
     let mut sum_u: Vec<DIGIT> = vec![0; bih as usize];
     gf2x_add_3(&mut sum_u, u0, u1);
