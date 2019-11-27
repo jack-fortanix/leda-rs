@@ -263,13 +263,15 @@ pub fn gf2x_mod_mul(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
 /* computes operand*x^shiftAmt + Res. assumes res is
  * wide and operand is NUM_DIGITS_GF2X_ELEMENT with blank slack bits */
 unsafe fn gf2x_fmac(Res: &mut [DIGIT], operand: &[DIGIT], shiftAmt: u32) {
-    let mut digitShift: u32 = shiftAmt.wrapping_div((8i32 << 3i32) as u32);
-    let mut inDigitShift: u32 = shiftAmt.wrapping_rem((8i32 << 3i32) as u32);
-    let mut prevLo: DIGIT = 0i32 as DIGIT;
-    let mut i: i32 = 0;
-    let mut inDigitShiftMask: i64 = ((inDigitShift > 0i32 as u32) as i32 as i64)
+    let digitShift: u32 = shiftAmt / DIGIT_SIZE_b as u32;
+    let inDigitShift: u32 = shiftAmt % DIGIT_SIZE_b as u32;
+    let inDigitShiftMask: i64 = ((inDigitShift > 0i32 as u32) as i32 as i64)
         << (8i32 << 3i32) - 1i32
         >> (8i32 << 3i32) - 1i32;
+
+    let mut prevLo: DIGIT = 0i32 as DIGIT;
+    let mut i: i32 = 0;
+
     i = NUM_DIGITS_GF2X_ELEMENT as i32 - 1;
     while i >= 0i32 {
         let tmp = operand[i as usize];
