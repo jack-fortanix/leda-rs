@@ -100,23 +100,7 @@ pub fn gf2x_add_2(Res: &mut [DIGIT], A: &[DIGIT]) {
  *           position[A_{1}]  ==  n-2
  *           position[A_{0}]  ==  n-1
  */
-/*----------------------------------------------------------------------------*/
-unsafe fn gf2x_add(
-    nr: i32,
-    mut Res: *mut DIGIT,
-    _na: i32,
-    mut A: *const DIGIT,
-    _nb: i32,
-    mut B: *const DIGIT,
-) {
-    let mut i: u32 = 0i32 as u32;
-    while i < nr as u32 {
-        *Res.offset(i as isize) = *A.offset(i as isize) ^ *B.offset(i as isize);
-        i = i.wrapping_add(1)
-    }
-}
 
-/*--------------------------------------------------------------------------*/
 /* sets the coefficient of the x^exponent term as the LSB of a digit */
 pub fn gf2x_set_coeff(poly: &mut [DIGIT], exponent: usize, value: DIGIT) {
     let straightIdx = (NUM_DIGITS_GF2X_ELEMENT * DIGIT_SIZE_b - 1) - exponent;
@@ -271,16 +255,9 @@ unsafe fn gf2x_mul_Kar(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
     gf2x_add_2(&mut middle, &Res[2*bihu..4*bihu]);
     gf2x_mul_Kar(&mut Res[0..2*bihu], &A[0..bihu], &B[0..bihu]);
     gf2x_add_2(&mut middle, &Res[0..2*bihu]);
-    gf2x_add(
-        (2i32 as u32).wrapping_mul(bih) as i32,
-        Res.as_mut_ptr().offset(bih as isize),
-        (2i32 as u32).wrapping_mul(bih) as i32,
-        Res.as_ptr().offset(bih as isize) as *const DIGIT,
-        middle.len() as i32,
-        middle.as_ptr(),
-    );
+    gf2x_add_2(&mut Res[bihu..3*bihu], &middle);
 }
-// end gf2x_add
+
 /*----------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 /* Toom-Cook 3 algorithm as reported in
