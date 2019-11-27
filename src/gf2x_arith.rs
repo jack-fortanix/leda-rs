@@ -224,14 +224,13 @@ unsafe fn gf2x_add_asymm(
 }
 
 fn gf2x_add_asymm_3(Res: &mut [DIGIT], A: &[DIGIT], B: &[DIGIT]) {
-    unsafe {
-        gf2x_add_asymm(
-            Res.len() as i32,
-            Res.as_mut_ptr(),
-            A.len() as i32,
-            A.as_ptr(),
-            B.len() as i32,
-            B.as_ptr());
+    assert!(Res.len() >= A.len());
+    assert!(A.len() >= B.len());
+
+    let delta = A.len() - B.len();
+    Res[0..delta].copy_from_slice(&A[0..delta]);
+    for i in 0..B.len() {
+        Res[i+delta] = A[i+delta] ^ B[i];
     }
 }
 
@@ -239,7 +238,6 @@ fn gf2x_add_asymm_2(Res: &mut [DIGIT], A: &[DIGIT]) {
     assert!(Res.len() >= A.len());
 
     let delta = Res.len() - A.len();
-
     for i in 0..A.len() {
         Res[i+delta] ^= A[i];
     }
